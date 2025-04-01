@@ -17,7 +17,10 @@ logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
 
 # Database engine configuration (SQLite)
-engine = create_engine('sqlite:////opt/render/project/src/shopee-analytics.db')
+DB_PATH = 'shopee-analytics.db'
+logger.info(f"Tentando conectar ao banco de dados em: {DB_PATH}")
+engine = create_engine(f'sqlite:///{DB_PATH}')
+
 # Create a local session to interact with the database
 SessionLocal = sessionmaker(bind=engine)
 
@@ -26,18 +29,48 @@ def get_db() -> Session:
     Generator function to get a database session.
     Ensures that the session is closed after use.
     """
+    logger.info("Iniciando nova sessão do banco de dados")
     db = SessionLocal()
     try:
         yield db
     finally: 
+        logger.info("Fechando sessão do banco de dados")
         db.close()
+
+def test_connection():
+    """
+    Test database connection and print database info
+    """
+    try:
+        logger.info("Testando conexão com o banco de dados...")
+        conn = sqlite3.connect(DB_PATH)
+        cursor = conn.cursor()
+        
+        # Get database info
+        cursor.execute("SELECT name FROM sqlite_master WHERE type='table';")
+        tables = cursor.fetchall()
+        
+        logger.info(f"Conexão bem sucedida! Tabelas encontradas: {tables}")
+        
+        # Test query on products table
+        cursor.execute("SELECT COUNT(*) FROM products;")
+        count = cursor.fetchone()[0]
+        logger.info(f"Número de produtos no banco: {count}")
+        
+        return True
+    except Exception as e:
+        logger.error(f"Erro ao conectar com o banco de dados: {str(e)}")
+        return False
+    finally:
+        if 'conn' in locals():
+            conn.close()
 
 def get_db_connection():
     """
     Returns a direct SQLite connection for use with functions that need a raw connection.
     This function is used by API endpoints that require direct SQL queries.
     """
-    conn = sqlite3.connect('shopee-analytics.db')
+    conn = sqlite3.connect(DB_PATH)
     conn.row_factory = sqlite3.Row  # This enables accessing columns by name
     return conn
 
