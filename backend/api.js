@@ -46,6 +46,11 @@ app.get('/api/products', (req, res) => {
   res.send('Lista de produtos');
 });
 
+// Rota pública para o favicon
+app.get('/favicon.ico', (req, res) => {
+  res.status(204).send(); // Retorna um status 204 (sem conteúdo) para o favicon
+});
+
 // Middleware para proteger todas as outras rotas
 app.use(adminAuth);
 
