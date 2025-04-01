@@ -2,6 +2,11 @@
 # exit on error
 set -o errexit
 
+# Deactivate virtual environment if active
+if [ -n "$VIRTUAL_ENV" ]; then
+    deactivate
+fi
+
 # Upgrade pip
 python -m pip install --upgrade pip
 
