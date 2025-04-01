@@ -168,23 +168,7 @@ def check_affiliate_links():
 
 def start_shopee_analytics():
     print("Iniciando SENTINNELL Analytics...")
-    
-    # Get the absolute path to the current directory
-    current_dir = os.path.dirname(os.path.abspath(__file__))
-    backend_script = os.path.join(current_dir, "backend", "shopee_affiliate_auth.py")
 
-    # Iniciar o servidor FastAPI
-    print("Iniciando o servidor FastAPI...")
-    # Usamos a flag -u para garantir saída não-bufferizada
-    subprocess.Popen([
-        PYTHON_EXECUTABLE, "-u", backend_script, "--port", "8001"
-    ])
-
-    # Wait for the backend server to be ready
-    if not wait_for_backend(8001):
-        print("Failed to start the backend server. Exiting...")
-        return
-    
     # Iniciar o servidor de API principal
     serve_api()
     wait_for_server(5000, "API principal")
@@ -197,23 +181,19 @@ def start_shopee_analytics():
     print("Aguardando os servidores iniciarem (3 segundos)...")
     time.sleep(3)
 
-    # Abrir o frontend no navegador padrão
-    print("Abrindo o frontend no navegador padrão...")
-    webbrowser.open("http://localhost:8000")
-    
-    # Verificar se a vitrine está usando links de afiliado
-    check_affiliate_links()
-    
+    # Abrir a vitrine no navegador padrão
+    print("Abrindo a vitrine no navegador padrão...")
+    webbrowser.open("http://localhost:8000/vitrine.html")
+
     # Exibir informações sobre todos os servidores disponíveis
     print("\n=== SENTINNELL Analytics - Serviços Disponíveis ===")
     print("Servidor backend API: http://localhost:8001")
     print("Servidor API principal: http://localhost:5000")
-    print("Painel administrativo: http://localhost:8000")
+    print("Painel administrativo: http://localhost:8000/admin")
     print("Vitrine de produtos: http://localhost:8000/vitrine.html")
-    print("Vitrine alternativa: http://localhost:8000/storefront.html")
     print("=============================================\n")
     print("Pressione Ctrl+C para encerrar todos os servidores")
-    
+
     # Manter o script em execução para permitir Ctrl+C
     try:
         while True:
