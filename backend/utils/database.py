@@ -18,8 +18,14 @@ logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
 
 # Database engine configuration (SQLite)
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-DB_PATH = os.path.join(BASE_DIR, '../../shopee-analytics.db')
+# Use o mesmo caminho que o models.py para consistência
+if os.environ.get('RENDER'):
+    # No Render, usar o disco persistente
+    DB_PATH = '/data/shopee-analytics.db'
+else:
+    # Localmente, usar o caminho relativo
+    DB_PATH = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))), 'shopee-analytics.db')
+
 logger.info(f"Tentando conectar ao banco de dados em: {DB_PATH}")
 engine = create_engine(f'sqlite:///{DB_PATH}')
 

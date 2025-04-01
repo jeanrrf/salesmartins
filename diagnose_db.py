@@ -11,7 +11,8 @@ logger = logging.getLogger(__name__)
 # Path to the database file
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 DB_PATH = os.path.join(BASE_DIR, 'shopee-analytics.db')
-DB_PATH_RENDER = '/opt/render/project/src/shopee-analytics.db'
+DB_PATH_RENDER_SRC = '/opt/render/project/src/shopee-analytics.db'
+DB_PATH_RENDER_DATA = '/data/shopee-analytics.db'
 
 def check_environment():
     """Check the environment information."""
@@ -20,6 +21,8 @@ def check_environment():
     logger.info(f"Diretório atual: {os.getcwd()}")
     logger.info(f"Diretório base: {BASE_DIR}")
     logger.info(f"Caminho do banco de dados local: {DB_PATH}")
+    logger.info(f"Caminho do banco de dados no Render (src): {DB_PATH_RENDER_SRC}")
+    logger.info(f"Caminho do banco de dados no Render (data): {DB_PATH_RENDER_DATA}")
 
 def check_file_existence():
     """Check if the database file exists."""
@@ -28,76 +31,99 @@ def check_file_existence():
         logger.info(f"   Tamanho: {os.path.getsize(DB_PATH)} bytes")
         return True
     else:
-        logger.error(f"❌ Banco de dados não encontrado em: {DB_PATH}")
+        logger.warning(f"⚠️ Banco de dados não encontrado em: {DB_PATH}")
         
-        # Check alternative path for Render
-        if os.path.exists(DB_PATH_RENDER):
-            logger.info(f"✅ Banco de dados encontrado no caminho do Render: {DB_PATH_RENDER}")
-            logger.info(f"   Tamanho: {os.path.getsize(DB_PATH_RENDER)} bytes")
+        # Check alternative paths for Render
+        if os.path.exists(DB_PATH_RENDER_SRC):
+            logger.info(f"✅ Banco de dados encontrado no caminho do Render (src): {DB_PATH_RENDER_SRC}")
+            logger.info(f"   Tamanho: {os.path.getsize(DB_PATH_RENDER_SRC)} bytes")
+            return True
+        elif os.path.exists(DB_PATH_RENDER_DATA):
+            logger.info(f"✅ Banco de dados encontrado no caminho do Render (data): {DB_PATH_RENDER_DATA}")
+            logger.info(f"   Tamanho: {os.path.getsize(DB_PATH_RENDER_DATA)} bytes")
             return True
             
+        logger.error("❌ Banco de dados não encontrado em nenhum dos caminhos verificados.")
         return False
 
 def check_file_permissions():
     """Check if the database file has read/write permissions."""
     try:
-        # Check local path
+        # Check all possible paths
+        paths_to_check = []
+        
         if os.path.exists(DB_PATH):
-            path_to_check = DB_PATH
-        # Check Render path
-        elif os.path.exists(DB_PATH_RENDER):
-            path_to_check = DB_PATH_RENDER
-        else:
+            paths_to_check.append(("Local", DB_PATH))
+        if os.path.exists(DB_PATH_RENDER_SRC):
+            paths_to_check.append(("Render (src)", DB_PATH_RENDER_SRC))
+        if os.path.exists(DB_PATH_RENDER_DATA):
+            paths_to_check.append(("Render (data)", DB_PATH_RENDER_DATA))
+            
+        if not paths_to_check:
             logger.error("❌ Nenhum banco de dados encontrado para verificar permissões.")
             return False
-            
-        if os.access(path_to_check, os.R_OK) and os.access(path_to_check, os.W_OK):
-            logger.info("✅ Permissões de leitura e escrita estão corretas.")
-            return True
-        else:
-            logger.error("❌ Permissões de leitura e/ou escrita estão incorretas.")
-            if not os.access(path_to_check, os.R_OK):
-                logger.error("   Problema: Sem permissão de leitura.")
-            if not os.access(path_to_check, os.W_OK):
-                logger.error("   Problema: Sem permissão de escrita.")
-            return False
+        
+        all_ok = True
+        for desc, path in paths_to_check:
+            if os.access(path, os.R_OK) and os.access(path, os.W_OK):
+                logger.info(f"✅ {desc}: Permissões de leitura e escrita estão corretas em {path}.")
+            else:
+                logger.error(f"❌ {desc}: Permissões de leitura e/ou escrita estão incorretas em {path}.")
+                if not os.access(path, os.R_OK):
+                    logger.error(f"   Problema: Sem permissão de leitura em {path}.")
+                if not os.access(path, os.W_OK):
+                    logger.error(f"   Problema: Sem permissão de escrita em {path}.")
+                all_ok = False
+                
+        return all_ok
     except Exception as e:
         logger.error(f"❌ Erro ao verificar permissões: {str(e)}")
         return False
 
 def test_database_connection():
     """Test connection to the database and list tables."""
-    try:
-        # Try local path first
-        path_to_try = DB_PATH
-        
-        if not os.path.exists(path_to_try) and os.path.exists(DB_PATH_RENDER):
-            path_to_try = DB_PATH_RENDER
-            
-        logger.info(f"Testando conexão com o banco de dados em: {path_to_try}")
-        conn = sqlite3.connect(path_to_try)
-        cursor = conn.cursor()
-
-        # List tables in the database
-        cursor.execute("SELECT name FROM sqlite_master WHERE type='table';")
-        tables = cursor.fetchall()
-        logger.info(f"✅ Conexão bem-sucedida! Tabelas encontradas: {tables}")
-        
-        # Test query on products table if it exists
-        if any('products' in table for table in tables):
-            cursor.execute("SELECT COUNT(*) FROM products;")
-            count = cursor.fetchone()[0]
-            logger.info(f"✅ Consulta teste: {count} produtos encontrados no banco.")
-
-        conn.close()
-        return True
-    except Exception as e:
-        logger.error(f"❌ Erro ao conectar com o banco de dados: {str(e)}")
-        # Try to diagnose specific SQLite errors
-        if "unable to open database file" in str(e):
-            logger.error("   Problema: SQLite não consegue abrir o arquivo do banco de dados.")
-            logger.error("   Possíveis causas: caminho incorreto, permissões insuficientes, diretório inexistente.")
+    paths_to_try = [
+        ("Local", DB_PATH),
+        ("Render (src)", DB_PATH_RENDER_SRC),
+        ("Render (data)", DB_PATH_RENDER_DATA)
+    ]
+    
+    # Filter to only existing paths
+    existing_paths = [(desc, path) for desc, path in paths_to_try if os.path.exists(path)]
+    
+    if not existing_paths:
+        logger.error("❌ Nenhum banco de dados encontrado para testar conexão.")
         return False
+    
+    success = False
+    
+    for desc, path in existing_paths:
+        try:
+            logger.info(f"Testando conexão com o banco de dados em: {path} ({desc})")
+            conn = sqlite3.connect(path)
+            cursor = conn.cursor()
+
+            # List tables in the database
+            cursor.execute("SELECT name FROM sqlite_master WHERE type='table';")
+            tables = cursor.fetchall()
+            logger.info(f"✅ Conexão bem-sucedida a {desc}! Tabelas encontradas: {tables}")
+            
+            # Test query on products table if it exists
+            if any('products' in table[0] for table in tables):
+                cursor.execute("SELECT COUNT(*) FROM products;")
+                count = cursor.fetchone()[0]
+                logger.info(f"✅ Consulta teste: {count} produtos encontrados no banco.")
+
+            conn.close()
+            success = True
+        except Exception as e:
+            logger.error(f"❌ Erro ao conectar com o banco de dados em {path} ({desc}): {str(e)}")
+            # Try to diagnose specific SQLite errors
+            if "unable to open database file" in str(e):
+                logger.error(f"   Problema: SQLite não consegue abrir o arquivo do banco de dados em {path}.")
+                logger.error("   Possíveis causas: caminho incorreto, permissões insuficientes, diretório inexistente.")
+    
+    return success
 
 def test_sqlalchemy_connection():
     """Test SQLAlchemy connection to the database."""
@@ -107,26 +133,38 @@ def test_sqlalchemy_connection():
         
         logger.info("Testando conexão do SQLAlchemy...")
         
-        # Try local path first
-        path_to_try = f'sqlite:///{DB_PATH}'
+        # Define paths para testar
+        paths_to_try = [
+            ("Local", f'sqlite:///{DB_PATH}'),
+            ("Render (src)", f'sqlite:///{DB_PATH_RENDER_SRC}'),
+            ("Render (data)", f'sqlite:///{DB_PATH_RENDER_DATA}')
+        ]
         
-        if not os.path.exists(DB_PATH) and os.path.exists(DB_PATH_RENDER):
-            path_to_try = f'sqlite:///{DB_PATH_RENDER}'
-            
-        logger.info(f"String de conexão SQLAlchemy: {path_to_try}")
+        # Filtra apenas os caminhos de arquivos que existem
+        existing_paths = [(desc, path) for desc, path in paths_to_try 
+                         if os.path.exists(path.replace('sqlite:///', ''))]
         
-        engine = create_engine(path_to_try)
-        conn = engine.connect()
-        conn.close()
+        if not existing_paths:
+            logger.error("❌ Nenhum banco de dados encontrado para testar com SQLAlchemy.")
+            return False
         
-        logger.info("✅ Conexão SQLAlchemy bem-sucedida!")
-        return True
+        success = False
+        
+        for desc, path in existing_paths:
+            try:
+                logger.info(f"Testando SQLAlchemy com {desc}: {path}")
+                engine = create_engine(path)
+                conn = engine.connect()
+                conn.close()
+                logger.info(f"✅ Conexão SQLAlchemy bem-sucedida com {desc}!")
+                success = True
+            except SQLAlchemyError as e:
+                logger.error(f"❌ Erro na conexão SQLAlchemy com {desc}: {str(e)}")
+        
+        return success
     except ImportError:
         logger.warning("⚠️ SQLAlchemy não está instalado. Ignorando este teste.")
         return None
-    except SQLAlchemyError as e:
-        logger.error(f"❌ Erro na conexão SQLAlchemy: {str(e)}")
-        return False
     except Exception as e:
         logger.error(f"❌ Erro inesperado: {str(e)}")
         return False
