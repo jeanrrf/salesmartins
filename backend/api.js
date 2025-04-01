@@ -23,9 +23,10 @@ app.get('/api/products', (req, res) => {
   res.send('Lista de produtos');
 });
 
-// Rota pública para o favicon
+// Adicionar suporte para servir um favicon válido
+const faviconPath = path.join(__dirname, '../frontend/static/img/favicon.ico');
 app.get('/favicon.ico', (req, res) => {
-  res.status(204).send(); // Retorna um status 204 (sem conteúdo) para o favicon
+  res.sendFile(faviconPath);
 });
 
 // Exemplo de rota administrativa sem autenticação inicial
