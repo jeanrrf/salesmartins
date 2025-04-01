@@ -11,10 +11,5 @@
       "src": "/(.*)",
       "dest": "backend/api.js"
     }
-  ],
-  "functions": {
-    "backend/api.js": {
-      "includeFiles": ["shopee-analytics.db"]
-    }
-  }
+  ]
 }
