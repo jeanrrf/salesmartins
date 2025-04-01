@@ -1,0 +1,20 @@
+{
+  "version": 2,
+  "builds": [
+    {
+      "src": "backend/api.js",
+      "use": "@vercel/node"
+    }
+  ],
+  "routes": [
+    {
+      "src": "/(.*)",
+      "dest": "backend/api.js"
+    }
+  ],
+  "functions": {
+    "backend/api.js": {
+      "includeFiles": ["shopee-analytics.db"]
+    }
+  }
+}
