@@ -6,7 +6,7 @@ set -o errexit
 python -m pip install --upgrade pip
 
 # Install Python dependencies
-pip install --no-cache-dir -r requirements.txt
+pip install --no-cache-dir -r $(dirname "$0")/requirements.txt
 
 # Create database if it doesn't exist
 python << END
