@@ -23,8 +23,9 @@ except ImportError:
     sys.exit(1)
 
 from fastapi import FastAPI, HTTPException, Request
-from pydantic import BaseModel
+from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
+from pydantic import BaseModel
 from dotenv import load_dotenv
 
 # Adjust import paths based on whether this is run as a module or directly
@@ -172,6 +173,10 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# Montar os arquivos estáticos do frontend
+frontend_path = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "frontend")
+app.mount("/", StaticFiles(directory=frontend_path, html=True), name="frontend")
 
 class GraphQLRequest(BaseModel):
     query: str

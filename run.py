@@ -11,6 +11,11 @@ import importlib.util
 import platform
 import requests
 import re
+from os import environ
+
+# Configurações do servidor
+PORT = int(environ.get('PORT', 8000))
+HOST = environ.get('HOST', '0.0.0.0')
 
 # Importar a camada de compatibilidade primeiro para corrigir importações do Flask
 print("Carregando camada de compatibilidade...")
@@ -40,20 +45,18 @@ PYTHON_EXECUTABLE = get_venv_python()
 print(f"Usando Python: {PYTHON_EXECUTABLE}")
 
 def serve_frontend():
-    # Configurar o servidor HTTP
-    PORT = 8000
-    DIRECTORY = os.path.join(os.getcwd(), "frontend")  # Garantir caminho absoluto
+    # Configurar o servidor HTTP usando as variáveis de ambiente
+    DIRECTORY = os.path.join(os.getcwd(), "frontend")  
 
     class Handler(http.server.SimpleHTTPRequestHandler):
         def __init__(self, *args, **kwargs):
             super().__init__(*args, directory=DIRECTORY, **kwargs)
 
         def log_message(self, format, *args):
-            # Adicionar logs mais claros para depuração
             print("[Servidor Frontend]", format % args)
 
-    with socketserver.TCPServer(("", PORT), Handler) as httpd:
-        print(f"Servidor frontend rodando em http://localhost:{PORT}")
+    with socketserver.TCPServer((HOST, PORT), Handler) as httpd:
+        print(f"Servidor frontend rodando em http://{HOST}:{PORT}")
         httpd.serve_forever()
 
 def serve_api():
@@ -199,16 +202,16 @@ def start_shopee_analytics():
 
     # Abrir o frontend no navegador padrão
     print("Abrindo o frontend no navegador padrão...")
-    webbrowser.open("http://localhost:8000")
+    webbrowser.open(f"http://{HOST}:{PORT}")
     
     # Verificar se a vitrine está usando links de afiliado
     check_affiliate_links()
     
     # Exibir informações sobre todos os servidores disponíveis
     print("\n=== SENTINNELL Analytics - Serviços Disponíveis ===")
-    print("Servidor backend API: http://localhost:8001")
+    print(f"Servidor backend API: http://{HOST}:8001")
     print("Servidor API principal: http://localhost:5000")
-    print("Painel administrativo: http://localhost:8000")
+    print(f"Painel administrativo: http://{HOST}:{PORT}")
     print("Vitrine de produtos: http://localhost:8000/vitrine.html")
     print("Vitrine alternativa: http://localhost:8000/storefront.html")
     print("=============================================\n")

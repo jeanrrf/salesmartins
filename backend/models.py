@@ -1,6 +1,7 @@
 from sqlalchemy import Column, Integer, String, Float, DateTime, create_engine, JSON, func
 from sqlalchemy.ext.declarative import declarative_base
 from datetime import datetime
+import os
 
 Base = declarative_base()
 
@@ -37,6 +38,7 @@ class Product(Base):
     item_status = Column(String)
     discount = Column(String)
 
-# Criar o engine e as tabelas
-engine = create_engine('sqlite:///shopee-analytics.db')
+# Criar o engine e as tabelas usando caminho absoluto
+db_path = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'shopee-analytics.db')
+engine = create_engine(f'sqlite:///{db_path}')
 Base.metadata.create_all(engine)
