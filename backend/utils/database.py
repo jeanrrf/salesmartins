@@ -6,7 +6,7 @@ saving and updating products, and searching for products with filters and sortin
 """
 from sqlalchemy.orm import sessionmaker, Session
 from sqlalchemy import create_engine
-from models import Base, Product
+from backend.models import Base, Product
 import json
 from datetime import datetime
 import logging
