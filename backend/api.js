@@ -1,34 +1,30 @@
 const express = require('express');
 const path = require('path');
 const bodyParser = require('body-parser');
+const jwt = require('jsonwebtoken');
 
 const app = express();
+const SECRET_KEY = 'your_secret_key';
 
 app.use(bodyParser.json());
 
 // Middleware para autenticação
 const adminAuth = (req, res, next) => {
-  const adminEmail = 'salesmartins.siaw@gmail.com';
+  const token = req.headers.authorization?.split(' ')[1];
 
-  // Permitir acesso automático para o e-mail do administrador
-  if (req.headers['x-admin-email'] === adminEmail) {
-    return next();
+  if (!token) {
+    return res.status(401).send('Token não fornecido');
   }
 
-  const authHeader = req.headers.authorization;
-
-  if (!authHeader) {
-    return res.status(401).send('Autenticação necessária');
+  try {
+    const decoded = jwt.verify(token, SECRET_KEY);
+    if (decoded.email === 'salesmartins.siaw@gmail.com') {
+      return next();
+    }
+    return res.status(403).send('Acesso negado');
+  } catch (err) {
+    return res.status(403).send('Token inválido');
   }
-
-  const credentials = Buffer.from(authHeader.split(' ')[1], 'base64').toString('utf-8');
-  const [email, password] = credentials.split(':');
-
-  if (email === adminEmail && password === 'vvh31676685') {
-    return next();
-  }
-
-  return res.status(403).send('Acesso negado');
 };
 
 // Rota pública para vitrine.html
@@ -76,7 +72,8 @@ app.post('/login', (req, res) => {
   const adminPassword = 'vvh31676685';
 
   if (email === adminEmail && password === adminPassword) {
-    return res.status(200).send('Autenticado com sucesso');
+    const token = jwt.sign({ email }, SECRET_KEY, { expiresIn: '1h' });
+    return res.status(200).json({ token });
   }
 
   return res.status(401).send('Credenciais inválidas');
