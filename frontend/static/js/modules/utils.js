@@ -1,4 +1,7 @@
-export const API_URL = 'http://localhost:8001';
+// Se estiver em produção (Render), use a URL do Render, senão use localhost
+export const API_URL = window.location.hostname === 'salesmartins.onrender.com' 
+    ? 'https://salesmartins.onrender.com' 
+    : 'http://localhost:8001';
 
 export const formatters = {
     currency: (value) => {

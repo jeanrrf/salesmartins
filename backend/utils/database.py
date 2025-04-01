@@ -50,9 +50,11 @@ def test_connection():
         if os.environ.get('RENDER') == "1" and DB_PATH == ":memory:":
             conn = engine.raw_connection().connection
             cursor = conn.cursor()
+            logger.info("✅ Usando banco de dados em memória no ambiente Render")
         else:
             conn = sqlite3.connect(DB_PATH)
             cursor = conn.cursor()
+            logger.info(f"✅ Usando banco de dados no arquivo: {DB_PATH}")
         
         # Get database info
         cursor.execute("SELECT name FROM sqlite_master WHERE type='table';")
@@ -67,13 +69,11 @@ def test_connection():
         
         return True
     except Exception as e:
-        logger.error(f"Erro ao conectar com o banco de dados: {str(e)}")
+        logger.error(f"❌ Erro ao conectar com o banco de dados: {str(e)}")
         return False
     finally:
         if 'conn' in locals():
-            if os.environ.get('RENDER') == "1" and DB_PATH == ":memory:":
-                pass  # Não fechar conexão do SQLAlchemy engine
-            else:
+            if not (os.environ.get('RENDER') == "1" and DB_PATH == ":memory:"):
                 conn.close()
 
 def get_db_connection():

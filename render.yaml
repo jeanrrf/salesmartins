@@ -3,12 +3,10 @@ services:
     name: shopee-analytics
     env: python
     buildCommand: ./build.sh
-    startCommand: gunicorn -w 4 -k uvicorn.workers.UvicornWorker backend.shopee_affiliate_auth:app
+    startCommand: gunicorn -w 4 -k uvicorn.workers.UvicornWorker backend.shopee_affiliate_auth:app --bind 0.0.0.0:$PORT
     envVars:
       - key: PYTHON_VERSION
         value: 3.11.7
-      - key: PORT
-        value: 8000
       - key: HOST
         value: 0.0.0.0
       - key: RENDER
