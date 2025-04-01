@@ -1,0 +1,42 @@
+{
+    "github.copilot.enable": {
+        "*": true,
+        "plaintext": true,
+        "markdown": true,
+        "javascript": true,
+        "python": true,
+        "html": true
+    },
+    // Limitar o contexto do Copilot para processamento mais eficiente
+    "github.copilot.advanced": {
+        "maxContextTokens": 2000,
+        "maxPromptTokens": 1500,
+        "maxCompletionTokens": 500
+    },
+    // Limitar arquivos no contexto para forçar processamento de um arquivo por vez
+    "editor.stickyScroll.enabled": true,
+    "editor.inlineSuggest.enabled": true,
+    "github.copilot.editor.enableAutoCompletions": true,
+    "github.copilot.inlineSuggest.enable": true,
+    "github.copilot.chat.localeOverride": "pt-BR",
+    // Limitar quantidade de arquivos no contexto
+    "github.copilot.contextFilesMaxFiles": 1,
+    // Ajustes adicionais para desempenho
+    "editor.suggest.preview": true,
+    "editor.quickSuggestions": {
+        "other": true,
+        "comments": true,
+        "strings": true
+    },
+    // Evitar que o VS Code abra muitos arquivos simultaneamente
+    "workbench.editor.limit.enabled": true,
+    "workbench.editor.limit.value": 5,
+    "workbench.editor.limit.perEditorGroup": true,
+    "workbench.editor.identaçation": "full",
+    "workbench.editor.showTabs": "multiple",
+    "workbench.editor.tabSizing": "fit",
+    "workbench.editor.closeOnFileDelete": true,
+    "workbench.editor.enablePreview": true,
+    "workbench.editor.enablePreviewFromQuickOpen": true,
+    "workbench.editor.showIcons": true
+}

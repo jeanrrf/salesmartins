@@ -1,0 +1,128 @@
+:root {
+    --primary-color: #2A3990;
+    --secondary-color: #6777c7;
+    --accent-color: #FF5757;
+    --dark-color: #1E293B;
+    --light-color: #F8FAFC;
+    --glow-color: #4facfe;
+}
+
+/* Layout & Core Styles */
+body {
+    font-family: 'Montserrat', sans-serif;
+    background-color: #f8f9fa;
+}
+
+h1, h2, h3, h4, h5, h6 {
+    font-family: 'Raleway', sans-serif;
+    font-weight: 600;
+}
+
+/* Card & Image Styles */
+.product-card {
+    transition: transform 0.3s, box-shadow 0.3s;
+    height: 100%;
+    border: none;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+}
+
+.product-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 15px 30px rgba(0,0,0,0.1);
+}
+
+.product-image {
+    height: 200px;
+    object-fit: contain;
+    padding: 10px;
+}
+
+/* Badge & Status Indicators */
+.category-badge {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    z-index: 2;
+    background-color: rgba(0,0,0,0.7);
+    color: white;
+    padding: 2px 8px;
+    border-radius: 10px;
+    font-size: 0.75rem;
+}
+
+/* Form & Input Groups */
+.subid-group {
+    margin-bottom: 10px;
+}
+
+/* Animation Keyframes */
+@keyframes spinner-border {
+    to { transform: rotate(360deg); }
+}
+
+/* Loading States */
+.loading-spinner {
+    display: inline-block;
+    width: 1rem;
+    height: 1rem;
+    margin-right: 0.5rem;
+    vertical-align: text-bottom;
+    border: 0.2em solid currentColor;
+    border-right-color: transparent;
+    border-radius: 50%;
+    animation: spinner-border .75s linear infinite;
+}
+
+/* Button & Interactive Elements */
+.btn-primary {
+    background-color: var(--primary-color);
+    border-color: var(--primary-color);
+    border-radius: 8px;
+    font-weight: 500;
+    transition: all 0.3s ease;
+}
+
+.btn-primary:hover {
+    background-color: var(--secondary-color);
+    border-color: var(--secondary-color);
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(42, 57, 144, 0.2);
+}
+
+/* Estilos para checkboxes de seleção de produtos */
+.product-selector {
+    z-index: 10;
+    background-color: rgba(255, 255, 255, 0.8);
+    border-radius: 4px;
+    padding: 2px;
+}
+
+.product-selector .form-check-input {
+    cursor: pointer;
+}
+
+/* Estilo para destacar produtos selecionados */
+.product-card.selected {
+    box-shadow: 0 0 0 2px #0d6efd;
+}
+
+/* Estilo para a área de ações em massa */
+#bulk-actions {
+    background-color: #f8f9fa;
+    border-radius: 6px;
+    padding: 10px 15px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+    margin-bottom: 15px;
+    transition: all 0.3s ease;
+}
+
+#bulk-actions:hover {
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+#selected-count {
+    display: inline-block;
+    min-width: 120px;
+}

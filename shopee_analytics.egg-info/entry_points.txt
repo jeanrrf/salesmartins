@@ -1,0 +1,2 @@
+[console_scripts]
+shopee-analytics = app.main:app

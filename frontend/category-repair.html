@@ -1,0 +1,722 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reparador de Categorias - SENTINNELL Analytics</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;600;700&family=Raleway:wght@300;400;700;900&family=Bruno+Ace+SC&display=swap"
+        rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #2A3990;
+            --secondary-color: #6777c7;
+            --accent-color: #FF5757;
+            --dark-color: #1E293B;
+            --light-color: #F8FAFC;
+        }
+
+        body {
+            font-family: 'Montserrat', sans-serif;
+            background-color: #f8f9fa;
+        }
+
+        h1, h2, h3, h4, h5, h6 {
+            font-family: 'Raleway', sans-serif;
+            font-weight: 600;
+        }
+
+        .navbar-brand {
+            font-family: 'Bruno Ace SC', cursive;
+            background: linear-gradient(135deg, #00c6ff, #0072ff, #ff0099, #ff6a00);
+            background-size: 300% 300%;
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: gradientShift 5s ease infinite;
+        }
+
+        @keyframes gradientShift {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        .btn-primary {
+            background-color: var(--primary-color);
+            border-color: var(--primary-color);
+        }
+
+        .btn-primary:hover {
+            background-color: var(--secondary-color);
+            border-color: var(--secondary-color);
+        }
+
+        .card {
+            border: none;
+            border-radius: 10px;
+            box-shadow: 0 0.5rem 1rem rgba(0,0,0,0.05);
+            transition: all 0.3s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 1rem 2rem rgba(0,0,0,0.1);
+        }
+
+        .product-card {
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .product-card.needs-repair {
+            border-left: 4px solid var(--accent-color);
+        }
+
+        .product-image {
+            height: 150px;
+            object-fit: contain;
+        }
+
+        .badge-category {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+        }
+
+        #loading-indicator {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.3);
+            z-index: 9999;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .spinner {
+            width: 3rem;
+            height: 3rem;
+        }
+
+        .category-badge {
+            font-size: 0.8rem;
+            padding: 0.25rem 0.5rem;
+            border-radius: 50px;
+        }
+
+        .repair-status {
+            padding: 10px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            display: none;
+        }
+
+        .repair-success {
+            background-color: #d1e7dd;
+            border: 1px solid #badbcc;
+            color: #0f5132;
+        }
+
+        .repair-error {
+            background-color: #f8d7da;
+            border: 1px solid #f5c2c7;
+            color: #842029;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Barra de Navegação -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark mb-4">
+        <div class="container">
+            <a class="navbar-brand" href="index.html">SENTINNELL</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav">
+                    <li class="nav-item">
+                        <a class="nav-link" href="index.html">Painel Principal</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="champion-products.html">Buscador de Produtos</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="vitrine.html">Vitrine</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active" href="category-repair.html">Reparador de Categorias</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Conteúdo Principal -->
+    <div class="container">
+        <div class="row mb-4">
+            <div class="col-12">
+                <h1 class="mb-3">Reparador de Categorias</h1>
+                <p class="lead">Esta ferramenta identifica e corrige produtos com categorias ausentes ou incorretas no banco de dados.</p>
+
+                <div id="repair-status" class="repair-status"></div>
+            </div>
+        </div>
+
+        <!-- Controles -->
+        <div class="row mb-4">
+            <div class="col-md-12">
+                <div class="card">
+                    <div class="card-body">
+                        <h4 class="card-title">Opções de Reparo</h4>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <button id="btn-scan-products" class="btn btn-primary w-100 mb-3">
+                                    <i class="bi bi-search"></i> Escanear Produtos com Problemas
+                                </button>
+                            </div>
+                            <div class="col-md-6">
+                                <button id="btn-repair-all" class="btn btn-success w-100 mb-3" disabled>
+                                    <i class="bi bi-wrench"></i> Reparar Todos Automaticamente
+                                </button>
+                            </div>
+                        </div>
+                        <div class="row mt-3">
+                            <div class="col-md-12">
+                                <div class="alert alert-info">
+                                    <strong><i class="bi bi-info-circle"></i> Como funciona:</strong>
+                                    <p class="mb-0">1. Clique em "Escanear Produtos" para detectar todos os itens com problemas de categoria.</p>
+                                    <p class="mb-0">2. Repare individualmente ou use "Reparar Todos" para corrigir automaticamente.</p>
+                                    <p class="mb-0">3. Produtos com categorias corrigidas funcionarão normalmente na vitrine.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Estatísticas -->
+        <div class="row mb-4">
+            <div class="col-md-4">
+                <div class="card bg-light">
+                    <div class="card-body text-center">
+                        <h5>Total de Produtos</h5>
+                        <h2 id="total-products">-</h2>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card bg-warning text-white">
+                    <div class="card-body text-center">
+                        <h5>Produtos com Problemas</h5>
+                        <h2 id="problem-products">-</h2>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card bg-success text-white">
+                    <div class="card-body text-center">
+                        <h5>Produtos Reparados</h5>
+                        <h2 id="repaired-products">0</h2>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Lista de Produtos com Problemas -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header bg-light">
+                        <h4>Produtos Que Precisam de Reparo</h4>
+                    </div>
+                    <div class="card-body">
+                        <div id="products-container" class="row">
+                            <div class="col-12 text-center py-5">
+                                <p class="text-muted">Clique em "Escanear Produtos" para começar.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Loading Indicator -->
+    <div id="loading-indicator">
+        <div class="spinner-border spinner text-primary" role="status">
+            <span class="visually-hidden">Carregando...</span>
+        </div>
+    </div>
+
+    <!-- Modal de Edição de Categoria -->
+    <div class="modal fade" id="edit-category-modal" tabindex="-1" aria-labelledby="editCategoryModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="editCategoryModalLabel">Editar Categoria</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="row mb-4">
+                        <div class="col-12">
+                            <div id="product-info" class="mb-3">
+                                <!-- Informações do produto preenchidas via JavaScript -->
+                            </div>
+                            <input type="hidden" id="edit-product-id">
+                            
+                            <label for="category-select" class="form-label">Selecione a Categoria Correta:</label>
+                            <select id="category-select" class="form-select mb-3">
+                                <!-- Opções preenchidas via JavaScript -->
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-primary" id="save-category">Salvar Alterações</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Script -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="static/js/libs/axios.min.js"></script>
+    <script>
+        // API URL
+        const API_URL = 'http://localhost:8001';
+        
+        // Elementos do DOM
+        const loadingIndicator = document.getElementById('loading-indicator');
+        const btnScanProducts = document.getElementById('btn-scan-products');
+        const btnRepairAll = document.getElementById('btn-repair-all');
+        const productsContainer = document.getElementById('products-container');
+        const totalProductsEl = document.getElementById('total-products');
+        const problemProductsEl = document.getElementById('problem-products');
+        const repairedProductsEl = document.getElementById('repaired-products');
+        const repairStatus = document.getElementById('repair-status');
+        const categorySelect = document.getElementById('category-select');
+        const productInfo = document.getElementById('product-info');
+        const editProductId = document.getElementById('edit-product-id');
+        const saveCategory = document.getElementById('save-category');
+        
+        // Variáveis para armazenar dados
+        let allProducts = [];
+        let problemProducts = [];
+        let categories = [];
+        let repairedCount = 0;
+        let repairLogs = [];
+        
+        // Modal de edição
+        const editModal = new bootstrap.Modal(document.getElementById('edit-category-modal'));
+        
+        // Funções utilitárias
+        function showLoading() {
+            loadingIndicator.style.display = 'flex';
+        }
+        
+        function hideLoading() {
+            loadingIndicator.style.display = 'none';
+        }
+        
+        function showStatus(message, type) {
+            repairStatus.className = 'repair-status';
+            repairStatus.classList.add(type === 'success' ? 'repair-success' : 'repair-error');
+            repairStatus.textContent = message;
+            repairStatus.style.display = 'block';
+            
+            // Auto-hide after 5 seconds
+            setTimeout(() => {
+                repairStatus.style.display = 'none';
+            }, 5000);
+        }
+        
+        function formatPrice(price) {
+            return new Intl.NumberFormat('pt-BR', {
+                style: 'currency',
+                currency: 'BRL'
+            }).format(price);
+        }
+        
+        // Carregar categorias
+        async function loadCategories() {
+            try {
+                const response = await axios.get(`${API_URL}/categories`);
+                categories = response.data;
+                
+                // Preencher o select de categorias
+                if (categorySelect && categories) {
+                    categorySelect.innerHTML = categories.map(cat => 
+                        `<option value="${cat.id}">${cat.name}</option>`
+                    ).join('');
+                } else {
+                    console.error('Category select element or categories data is missing');
+                }
+            } catch (error) {
+                console.error('Erro ao carregar categorias:', error);
+                showStatus('Erro ao carregar categorias.', 'error');
+            }
+        }
+
+        async function loadRepairLogs() {
+            try {
+                const response = await axios.get(`${API_URL}/api/repair-logs`);
+                repairLogs = response.data.repairedItems || [];
+            } catch (error) {
+                console.warn('Não foi possível carregar logs de reparo:', error);
+                repairLogs = [];
+            }
+        }
+
+        function wasAlreadyRepaired(productId) {
+            return repairLogs.some(item => item.id === productId);
+        }
+
+        async function saveRepairLogs(productId, oldCat, newCat) {
+            // Adicionar ao array local
+            repairLogs.push({ id: productId, oldCategory: oldCat, newCategory: newCat });
+            
+            try {
+                // Enviar para a API para salvar no arquivo
+                await axios.post(`${API_URL}/api/repair-logs`, {
+                    repairedItems: repairLogs
+                });
+            } catch (error) {
+                console.error('Erro ao salvar logs de reparo:', error);
+                showStatus('Aviso: Não foi possível salvar o histórico de reparos', 'error');
+            }
+        }
+        
+        // Escanear produtos com problemas
+        async function scanProducts() {
+            await loadRepairLogs();
+            showLoading();
+            try {
+                // Use the new endpoint that directly returns products with category issues
+                const response = await axios.get(`${API_URL}/db/products-with-category-issues`);
+                const products = response.data || [];
+                allProducts = products;
+                
+                // These products already have category issues, so we can use them directly
+                problemProducts = products;
+                
+                // Atualizar contadores
+                if (totalProductsEl) totalProductsEl.textContent = products.length;
+                if (problemProductsEl) problemProductsEl.textContent = problemProducts.length;
+                
+                // Habilitar botão de reparo em massa se houver problemas
+                if (btnRepairAll) btnRepairAll.disabled = problemProducts.length === 0;
+                
+                // Exibir produtos com problemas
+                renderProblemProducts();
+                
+                // Mostrar mensagem de status
+                if (problemProducts.length > 0) {
+                    showStatus(`Encontrados ${problemProducts.length} produtos com problemas de categoria.`, 'error');
+                } else {
+                    showStatus('Nenhum produto com problemas encontrado!', 'success');
+                }
+            } catch (error) {
+                console.error('Erro ao escanear produtos:', error);
+                showStatus('Erro ao escanear produtos.', 'error');
+            } finally {
+                hideLoading();
+            }
+        }
+        
+        // Exibir produtos com problemas
+        function renderProblemProducts() {
+            if (problemProducts.length === 0) {
+                productsContainer.innerHTML = `
+                    <div class="col-12 text-center py-5">
+                        <p class="text-success"><i class="bi bi-check-circle"></i> Não há produtos com problemas de categoria.</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            productsContainer.innerHTML = problemProducts.map((product, index) => {
+                // Determinar o problema específico
+                let problemBadge;
+                if (!product.category_id) {
+                    problemBadge = `<span class="badge bg-danger">Sem categoria</span>`;
+                } else if (!categories.some(cat => cat.id === String(product.category_id))) {
+                    problemBadge = `<span class="badge bg-warning text-dark">Categoria inválida: ${product.category_id}</span>`;
+                }
+                
+                return `
+                    <div class="col-md-6 col-lg-4 mb-4">
+                        <div class="card product-card needs-repair" id="product-${product.id}">
+                            <div class="card-body">
+                                <div class="d-flex mb-3">
+                                    <img src="${product.image_url || 'https://placehold.co/100x100?text=Sem+Imagem'}" class="product-image me-3" alt="${product.name}">
+                                    <div>
+                                        <h5 class="card-title">${product.name}</h5>
+                                        <p class="card-text mb-1">${formatPrice(product.price)}</p>
+                                        <div>${problemBadge}</div>
+                                    </div>
+                                </div>
+                                <div class="d-flex justify-content-between mt-3">
+                                    <button class="btn btn-sm btn-outline-primary repair-button" data-product-id="${product.id}" data-index="${index}">
+                                        <i class="bi bi-wrench"></i> Reparar
+                                    </button>
+                                    <button class="btn btn-sm btn-outline-info preview-button" data-product-id="${product.id}">
+                                        <i class="bi bi-eye"></i> Visualizar
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+            
+            // Adicionar event listeners aos botões
+            document.querySelectorAll('.repair-button').forEach(button => {
+                button.addEventListener('click', function() {
+                    const productId = this.getAttribute('data-product-id');
+                    const index = parseInt(this.getAttribute('data-index'));
+                    openEditModal(productId, index);
+                });
+            });
+            
+            document.querySelectorAll('.preview-button').forEach(button => {
+                button.addEventListener('click', function() {
+                    const productId = this.getAttribute('data-product-id');
+                    previewProduct(productId);
+                });
+            });
+        }
+        
+        // Abrir modal de edição
+        function openEditModal(productId, index) {
+            const product = problemProducts[index];
+            
+            editProductId.value = productId;
+            
+            // Preencher informações do produto
+            productInfo.innerHTML = `
+                <div class="d-flex align-items-center">
+                    <img src="${product.image_url || 'https://placehold.co/100x100?text=Sem+Imagem'}" style="width: 80px; height: 80px; object-fit: cover;" class="me-3">
+                    <div>
+                        <h5>${product.name}</h5>
+                        <p class="mb-0">${formatPrice(product.price)}</p>
+                        <p class="mb-0 text-muted">ID: ${product.id}</p>
+                    </div>
+                </div>
+            `;
+            
+            // Mostrar o modal
+            editModal.show();
+        }
+        
+        // Visualizar produto
+        function previewProduct(productId) {
+            const product = allProducts.find(p => p.id == productId);
+            if (!product) return;
+            
+            // Abrir em uma nova janela (por exemplo, na vitrine)
+            window.open(`vitrine.html?product=${productId}`, '_blank');
+        }
+        
+        // Reparar um produto
+        async function repairProduct(productId, categoryId) {
+            if (wasAlreadyRepaired(productId)) {
+                showStatus('Este item já foi reparado antes.', 'success');
+                return false;
+            }
+            showLoading();
+            try {
+                // Enviar solicitação de atualização para a API
+                const response = await axios.put(`${API_URL}/db/products/${productId}`, {
+                    category_id: categoryId
+                });
+                
+                if (response.status === 200) {
+                    // Incrementar contador de reparos
+                    repairedCount++;
+                    repairedProductsEl.textContent = repairedCount;
+                    
+                    // Remover produto da lista de problemas
+                    const index = problemProducts.findIndex(p => p.id == productId);
+                    if (index !== -1) {
+                        const productOldCategory = problemProducts[index].category_id;
+                        problemProducts.splice(index, 1);
+                        problemProductsEl.textContent = problemProducts.length;
+                        
+                        // Remover o elemento da interface
+                        const productCard = document.getElementById(`product-${productId}`);
+                        if (productCard) {
+                            productCard.parentElement.remove();
+                        }
+                        
+                        await saveRepairLogs(productId, productOldCategory, categoryId);
+                    }
+                    
+                    // Atualizar o produto na lista completa
+                    const allIndex = allProducts.findIndex(p => p.id == productId);
+                    if (allIndex !== -1) {
+                        allProducts[allIndex].category_id = categoryId;
+                    }
+                    
+                    // Desativar botão de reparo em massa se não houver mais problemas
+                    btnRepairAll.disabled = problemProducts.length === 0;
+                    
+                    // Mostrar mensagem de sucesso
+                    showStatus('Produto reparado com sucesso!', 'success');
+                    
+                    // Se a lista de problemas estiver vazia, atualizar a exibição
+                    if (problemProducts.length === 0) {
+                        renderProblemProducts();
+                    }
+                    
+                    return true;
+                } else {
+                    showStatus('Erro ao reparar produto.', 'error');
+                    return false;
+                }
+            } catch (error) {
+                console.error('Erro ao reparar produto:', error);
+                showStatus('Erro ao reparar produto: ' + (error.message || 'Erro desconhecido'), 'error');
+                return false;
+            } finally {
+                hideLoading();
+            }
+        }
+        
+        // Reparar todos os produtos automaticamente
+        async function repairAllProducts() {
+            if (!confirm(`Deseja realmente reparar automaticamente ${problemProducts.length} produtos?`)) {
+                return;
+            }
+            
+            showLoading();
+            let successful = 0;
+            let failed = 0;
+            
+            try {
+                // Criar um mapa para sugerir categorias com base em palavras-chave
+                const categoryKeywords = [
+                    { category: "100001", keywords: ["eletrônico", "gadget", "computador", "laptop", "notebook", "tablet", "monitor", "teclado", "mouse", "fone"] },
+                    { category: "100006", keywords: ["celular", "smartphone", "iphone", "android", "carregador", "capa", "película", "cabo usb", "fone de ouvido"] },
+                    { category: "100018", keywords: ["vestido", "blusa", "feminina", "mulher", "maquiagem", "batom", "salto", "sandália", "bolsa"] },
+                    { category: "100019", keywords: ["masculino", "homem", "camisa", "camiseta", "calça", "bermuda", "cueca", "meia", "gravata"] },
+                    { category: "100039", keywords: ["casa", "decoração", "móvel", "cozinha", "quarto", "sala", "tapete", "cortina", "toalha"] },
+                    { category: "100040", keywords: ["bebê", "criança", "infantil", "fralda", "chupeta", "mamadeira", "brinquedo", "carrinho"] },
+                    { category: "100041", keywords: ["beleza", "cuidado", "shampoo", "perfume", "creme", "hidratante", "maquiagem", "batom"] },
+                    { category: "100042", keywords: ["esporte", "fitness", "academia", "futebol", "basquete", "tênis", "bicicleta", "bike"] },
+                    { category: "100048", keywords: ["jogo", "hobby", "videogame", "console", "playstation", "xbox", "nintendo", "card", "tabuleiro"] },
+                    { category: "100049", keywords: ["automotivo", "carro", "moto", "acessório", "limpeza", "óleo", "pneu", "alarme"] },
+                    { category: "100050", keywords: ["ferramenta", "construção", "martelo", "chave", "parafuso", "elétrica", "manual", "alicate"] }
+                ];
+                
+                // Processar cada produto com problema
+                for (const product of [...problemProducts]) {
+                    // Tentar encontrar uma categoria apropriada baseada no nome do produto
+                    const productName = product.name.toLowerCase();
+                    
+                    // Encontrar a melhor categoria baseada em palavras-chave
+                    let bestCategory = null;
+                    let bestMatches = 0;
+                    
+                    for (const catInfo of categoryKeywords) {
+                        const matches = catInfo.keywords.filter(keyword => 
+                            productName.includes(keyword.toLowerCase())
+                        ).length;
+                        
+                        if (matches > bestMatches) {
+                            bestMatches = matches;
+                            bestCategory = catInfo.category;
+                        }
+                    }
+                    
+                    // Se não encontrou nenhuma correspondência, usar a primeira categoria
+                    const categoryId = bestMatches > 0 ? bestCategory : "100001";
+                    
+                    // Reparar o produto com a categoria sugerida
+                    const success = await repairProduct(product.id, categoryId);
+                    
+                    if (success) {
+                        successful++;
+                    } else {
+                        failed++;
+                    }
+                }
+                
+                // Mostrar resultado final
+                if (failed === 0) {
+                    showStatus(`Todos os ${successful} produtos foram reparados com sucesso!`, 'success');
+                } else {
+                    showStatus(`${successful} produtos reparados, mas ${failed} falharam.`, 'error');
+                }
+            } catch (error) {
+                console.error('Erro ao reparar todos os produtos:', error);
+                showStatus('Erro ao reparar produtos: ' + error.message, 'error');
+            } finally {
+                hideLoading();
+            }
+        }
+        
+        // Inicializar
+        document.addEventListener('DOMContentLoaded', () => {
+            // Verificar se todos os elementos do DOM foram encontrados corretamente
+            const requiredElements = {
+                'btnScanProducts': btnScanProducts,
+                'btnRepairAll': btnRepairAll,
+                'productsContainer': productsContainer,
+                'totalProductsEl': totalProductsEl,
+                'problemProductsEl': problemProductsEl,
+                'repairedProductsEl': repairedProductsEl,
+                'repairStatus': repairStatus,
+                'categorySelect': categorySelect,
+                'productInfo': productInfo,
+                'editProductId': editProductId,
+                'saveCategory': saveCategory
+            };
+            
+            // Verificar elementos ausentes
+            const missingElements = Object.entries(requiredElements)
+                .filter(([name, element]) => !element)
+                .map(([name]) => name);
+                
+            if (missingElements.length > 0) {
+                console.error('Elementos do DOM ausentes:', missingElements.join(', '));
+                showStatus('Erro na inicialização: elementos da página ausentes', 'error');
+                return;
+            }
+
+            // Carregar categorias ao iniciar
+            loadCategories();
+            loadRepairLogs();
+            
+            // Event listeners
+            btnScanProducts.addEventListener('click', scanProducts);
+            btnRepairAll.addEventListener('click', repairAllProducts);
+            
+            saveCategory.addEventListener('click', async () => {
+                const productId = editProductId.value;
+                const categoryId = categorySelect.value;
+                
+                editModal.hide();
+                
+                // Reparar o produto com a categoria selecionada
+                await repairProduct(productId, categoryId);
+            });
+            
+            console.log('Reparador de categorias inicializado com sucesso.');
+        });
+    </script>
+</body>
+
+</html>

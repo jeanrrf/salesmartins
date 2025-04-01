@@ -1,0 +1,663 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Buscador de Produtos Campeões - SENTINNELL Analytics</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.8.0/font/bootstrap-icons.css">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;600;700&family=Raleway:wght@300;400;700&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="static/css/product-analysis.css">
+</head>
+
+<body>
+    <div class="container mt-4">
+        <h1 class="mb-4">Buscador de Produtos Campeões</h1>
+
+        <div class="row">
+            <div class="col-md-12">
+                <div class="card bg-light">
+                    <div class="card-body">
+                        <h5 class="mb-0">Gerenciamento de Produtos</h5>
+                        <p class="text-muted mb-3">Ajuste categorias, links e exporte os dados diretamente nesta tela.
+                        </p>
+
+                        <div class="row">
+                            <div class="col-md-3">
+                                <h6>Atualizar Categorias</h6>
+                                <select id="bulk-category-update" class="form-select mb-3">
+                                    <option value="">Selecione uma categoria</option>
+                                    <!-- Categories will be dynamically populated -->
+                                </select>
+                                <button id="apply-category-update" class="btn btn-primary w-100">Aplicar
+                                    Categoria</button>
+                            </div>
+
+                            <div class="col-md-3">
+                                <h6>Gerar Links Sequenciais</h6>
+                                <button id="generate-sequential-links" class="btn btn-success w-100">
+                                    <i class="bi bi-magic"></i> Gerar Links Automáticos
+                                </button>
+                            </div>
+
+                            <div class="col-md-3">
+                                <h6>Ajustar Templates de Links</h6>
+                                <button id="edit-link-templates" class="btn btn-secondary w-100">Editar SubIDs</button>
+                            </div>
+
+                            <div class="col-md-3">
+                                <h6>Exportar Dados</h6>
+                                <button id="export-data" class="btn btn-primary w-100">Exportar para Banco</button>
+                            </div>
+                        </div>
+
+                        <!-- Status dos Links de Afiliados -->
+                        <div id="affiliate-links-status" class="mt-3" style="display: none;">
+                            <div class="card border-0 bg-light">
+                                <div class="card-body p-2">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <span class="fw-bold">Status dos Links</span>
+                                        <small id="links-percentage">0%</small>
+                                    </div>
+                                    <div class="progress mt-1" style="height: 8px;">
+                                        <div id="links-progress" class="progress-bar bg-danger" role="progressbar"
+                                            style="width: 0%" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">
+                                        </div>
+                                    </div>
+                                    <small class="text-muted">
+                                        <span id="links-count">0/0</span> links gerados
+                                    </small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row mt-4">
+            <!-- Sidebar com formulário de busca -->
+            <div class="col-md-3">
+                <div class="card filter-sidebar">
+                    <div class="card-header">
+                        <h5 class="mb-0">Busca de Produtos</h5>
+                    </div>
+                    <div class="card-body">
+                        <form id="search-form">
+                            <div class="mb-3">
+                                <label for="keyword" class="form-label">Palavra-chave</label>
+                                <input type="text" id="keyword" class="form-control"
+                                    placeholder="Ex: smartphone, tênis...">
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="sortType" class="form-label">Ordenar por</label>
+                                <select id="sortType" class="form-select">
+                                    <option value="2" selected>Mais vendidos</option>
+                                    <option value="4">Melhor preço</option>
+                                    <option value="5">Maior comissão</option>
+                                    <option value="3">Preço (maior-menor)</option>
+                                    <option value="1">Relevância</option>
+                                    <option value="6">Melhor avaliação</option>
+                                    <option value="7">Melhor pontuação</option>
+                                </select>
+                            </div>
+
+                            <div class="input-group mb-3">
+                                <label class="input-group-text" for="limit">Produtos por página:</label>
+                                <select class="form-select" id="limit">
+                                    <option value="1">1 produto</option>
+                                    <option value="10">10 produtos</option>
+                                    <option value="20" selected>20 produtos</option>
+                                    <option value="50">50 produtos</option>
+                                    <option value="100">100 produtos</option>
+                                </select>
+                            </div>
+
+                            <button type="submit" class="btn btn-primary w-100">
+                                <i class="bi bi-search"></i> Buscar Produtos
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Conteúdo principal com produtos -->
+            <div class="col-md-9">
+                <div class="card mb-4">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <h5 class="mb-0">Resultados</h5>
+                                <p class="text-muted mb-0" id="results-count">Use o formulário para buscar produtos</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Loading indicator -->
+                <div id="loading-indicator" style="display:none;">
+                    <div class="d-flex justify-content-center my-5">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Carregando...</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Products container -->
+                <div id="products-container" class="row">
+                    <div class="card product-card" data-product-id="${productId}">
+                        <img src="${imageUrl}" class="card-img-top" alt="${productName}">
+                        <div class="card-body">
+                            <h5 class="card-title">${productName}</h5>
+                            <span class="badge bg-info">${categoryName}</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- No results message -->
+                <div id="no-results" class="text-center py-5" style="display:none;">
+                    <i class="bi bi-search" style="font-size: 3rem;"></i>
+                    <h4 class="mt-3">Nenhum produto encontrado</h4>
+                    <p class="text-muted">Tente outros termos ou categorias</p>
+                </div>
+
+                <!-- Bulk actions -->
+                <div class="product-actions mt-3 mb-3" id="bulk-actions" style="display: none;">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <button id="select-all" class="btn btn-sm btn-outline-primary">
+                                <i class="bi bi-check-all"></i> Selecionar Todos
+                            </button>
+                            <button id="deselect-all" class="btn btn-sm btn-outline-secondary ms-2">
+                                <i class="bi bi-x-lg"></i> Limpar Seleção
+                            </button>
+                            <span id="selected-count" class="ms-3 text-muted">0 itens selecionados</span>
+                        </div>
+                        <div>
+                            <button id="remove-selected" class="btn btn-sm btn-danger" disabled>
+                                <i class="bi bi-trash"></i> Remover Selecionados
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Link Generation Modal -->
+    <div class="modal fade" id="link-modal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Gerar Link de Afiliado</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div id="link-product-info" class="mb-4"></div>
+                    <div id="link-form">
+                        <input type="hidden" id="product-url">
+                        <input type="hidden" id="product-category">
+                        <input type="hidden" id="product-category-id">
+
+                        <div class="mb-3">
+                            <h6>SubIDs do Link</h6>
+                            <p class="text-muted small">Os SubIDs são preenchidos automaticamente seguindo o padrão
+                                definido</p>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 subid-group">
+                                <div class="input-group">
+                                    <span class="input-group-text">SubID 1</span>
+                                    <input type="text" class="form-control" id="subid1" readonly value="SalesMartins">
+                                </div>
+                            </div>
+                            <div class="col-md-6 subid-group">
+                                <div class="input-group">
+                                    <span class="input-group-text">SubID 2</span>
+                                    <input type="text" class="form-control" id="subid2" readonly
+                                        value="shopee_analytics">
+                                </div>
+                            </div>
+                            <div class="col-md-6 subid-group">
+                                <div class="input-group">
+                                    <span class="input-group-text">SubID 3</span>
+                                    <input type="text" class="form-control" id="subid3" readonly>
+                                </div>
+                            </div>
+                            <div class="col-md-6 subid-group">
+                                <div class="input-group">
+                                    <span class="input-group-text">SubID 4</span>
+                                    <input type="text" class="form-control" id="subid4" readonly>
+                                </div>
+                            </div>
+                            <div class="col-md-6 subid-group">
+                                <div class="input-group">
+                                    <span class="input-group-text">SubID 5</span>
+                                    <input type="text" class="form-control" id="subid5" readonly>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="generated-link-area" class="mt-4" style="display: none;">
+                        <h6>Link Gerado</h6>
+                        <div class="input-group mb-3">
+                            <input type="text" id="generated-link" class="form-control" readonly>
+                            <button class="btn btn-outline-secondary" type="button" id="copy-link">
+                                <i class="bi bi-clipboard"></i> Copiar
+                            </button>
+                        </div>
+                        <div id="link-success" class="alert alert-success" style="display: none;">
+                            Link copiado para a área de transferência!
+                        </div>
+                    </div>
+
+                    <div id="link-loading" class="text-center py-3" style="display: none;">
+                        <div class="spinner-border text-primary">
+                            <span class="visually-hidden">Gerando link...</span>
+                        </div>
+                        <p class="mt-2">Gerando link de afiliado...</p>
+                    </div>
+
+                    <div id="link-error" class="alert alert-danger mt-3" style="display: none;"></div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fechar</button>
+                    <button type="button" class="btn btn-primary" id="generate-link-btn">Gerar Link</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Template Editor Modal -->
+    <div class="modal fade" id="template-editor-modal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Editor de Templates de Links</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="alert alert-info">
+                        <strong>Regras de SubIDs:</strong>
+                        <ul class="mb-0">
+                            <li>SubID 1: Fixo como "salesmartins"</li>
+                            <li>SubID 2: Fixo como "sentinnellanalytics"</li>
+                            <li>SubID 3: Nome da categoria (sem espaços/caracteres especiais)</li>
+                            <li>SubID 4: Padrão SM##### (automático)</li>
+                            <li>SubID 5: Padrão SM_XXX##### (automático com sigla da categoria)</li>
+                        </ul>
+                    </div>
+
+                    <div class="mb-4">
+                        <h6>Preview do Template</h6>
+                        <div class="row subid-preview">
+                            <div class="col-md-6 mb-2">
+                                <div class="input-group">
+                                    <span class="input-group-text">SubID 1</span>
+                                    <input type="text" class="form-control" value="salesmartins" readonly>
+                                </div>
+                            </div>
+                            <div class="col-md-6 mb-2">
+                                <div class="input-group">
+                                    <span class="input-group-text">SubID 2</span>
+                                    <input type="text" class="form-control" value="sentinnellanalytics" readonly>
+                                </div>
+                            </div>
+                            <div class="col-md-6 mb-2">
+                                <div class="input-group">
+                                    <span class="input-group-text">SubID 3</span>
+                                    <input type="text" class="form-control" id="preview-subid3" readonly>
+                                </div>
+                            </div>
+                            <div class="col-md-6 mb-2">
+                                <div class="input-group">
+                                    <span class="input-group-text">SubID 4</span>
+                                    <input type="text" class="form-control" value="SM00001" readonly>
+                                </div>
+                            </div>
+                            <div class="col-md-6 mb-2">
+                                <div class="input-group">
+                                    <span class="input-group-text">SubID 5</span>
+                                    <input type="text" class="form-control" value="SM_ELE00001" readonly>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Exemplo de Link:</label>
+                        <input type="text" class="form-control" id="template-example-link" readonly>
+                    </div>
+
+                    <div id="template-validation-error" class="alert alert-danger" style="display: none;"></div>
+                    <div id="template-validation-success" class="alert alert-success" style="display: none;">
+                        Template validado com sucesso!
+                    </div>
+                </div>
+                <div class="modal-footer"></div>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fechar</button>
+                <button type="button" class="btn btn-primary" id="validate-template">Validar Template</button>
+            </div>
+        </div>
+    </div>
+    </div>
+
+    <!-- Modal for Category Selection -->
+    <div class="modal fade" id="category-selection-modal" tabindex="-1" aria-labelledby="categorySelectionModalLabel"
+        aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="categorySelectionModalLabel">Atualizar Categorias</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form>
+                        <div class="mb-3">
+                            <label for="category-selection" class="form-label">Selecione a nova categoria</label>
+                            <select id="category-selection" class="form-select">
+                                <!-- Options will be dynamically populated -->
+                            </select>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" id="confirm-category-selection" class="btn btn-primary">Confirmar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast container for notifications -->
+    <div id="toast-container" class="toast-container position-fixed bottom-0 end-0 p-3"></div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script type="module">
+        import { ProductSearch } from './static/js/modules/productSearch.js';
+        import { IntegrityCheck } from './static/js/modules/integrityCheck.js';
+        import { api, notify } from './static/js/modules/utils.js';
+
+        async function loadCategories() {
+            try {
+                const categories = await api.get('/categories');
+                const categorySelect = document.getElementById('bulk-category-update');
+                if (categorySelect && categories) {
+                    categorySelect.innerHTML = `
+                        <option value="">Selecione uma categoria</option>
+                        ${categories.map(cat => `<option value="${cat.id}">${cat.name}</option>`).join('')}
+                    `;
+                }
+            } catch (error) {
+                console.error('Erro ao carregar categorias:', error);
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            try {
+                // Carregar categorias
+                const categories = await fetchCategories();
+                console.log('Categorias carregadas:', categories);
+
+                // Carregar produtos
+                const products = await fetchProducts();
+                console.log('Produtos carregados:', products);
+
+                // Atualizar a interface com os dados carregados
+                // (Exemplo: preencher dropdowns ou exibir produtos)
+            } catch (error) {
+                console.error('Erro ao carregar dados:', error);
+            }
+
+            // Iniciar verificação de integridade
+            const integrityChecker = new IntegrityCheck();
+            const checkResult = integrityChecker.runCheck();
+
+            if (!checkResult.success) {
+                console.error('Alguns elementos críticos estão ausentes. Corrija antes de prosseguir.');
+            }
+
+            try {
+                // Carregar categorias usando o módulo de API
+                await loadCategories();
+
+                // Iniciar a aplicação
+                const app = new ProductSearch();
+                app.initialize();
+
+                // Event Listeners
+                const categorySelect = document.getElementById('bulk-category-update');
+                document.getElementById('apply-category-update').addEventListener('click', () => {
+                    const selectedCategoryId = categorySelect.value;
+                    if (!selectedCategoryId) {
+                        notify.error('Por favor, selecione uma categoria.');
+                        return;
+                    }
+
+                    // Update all products with the selected category
+                    const products = document.querySelectorAll('#products-container .product-card');
+                    const categories = Array.from(categorySelect.options).map(option => ({
+                        id: option.value,
+                        name: option.textContent
+                    }));
+                    const selectedCategory = categories.find(cat => cat.id === selectedCategoryId);
+
+                    products.forEach(product => {
+                        product.dataset.categoryId = selectedCategoryId;
+                        product.querySelector('.category-badge').textContent = selectedCategory.name;
+                    });
+
+                    notify.success('Categoria aplicada com sucesso!');
+                });
+
+                // Event listeners para outras funcionalidades
+                document.getElementById('edit-link-templates').addEventListener('click', async () => {
+                    // Aqui será implementada a edição de templates
+                    notify.info('Funcionalidade de edição de templates em desenvolvimento.');
+                });
+
+                document.getElementById('export-data').addEventListener('click', async () => {
+                    // Utilizar o método saveToDatabase da classe ProductSearch
+                    await app.saveToDatabase();
+                });
+
+                // Event listener para geração de links
+                document.getElementById('generate-sequential-links').addEventListener('click', async () => {
+                    await app.generateLinks();
+
+                    // Atualizar o indicador de status
+                    updateLinkStatusIndicator(app.getAffiliateLinkStats());
+                });
+
+                // Função para atualizar o indicador de status dos links
+                function updateLinkStatusIndicator(stats) {
+                    const container = document.getElementById('affiliate-links-status');
+                    const progressBar = document.getElementById('links-progress');
+                    const percentage = document.getElementById('links-percentage');
+                    const count = document.getElementById('links-count');
+
+                    // Mostrar o container
+                    container.style.display = stats.total > 0 ? 'block' : 'none';
+
+                    if (stats.total === 0) return;
+
+                    // Atualizar os elementos
+                    progressBar.style.width = `${stats.percentage}%`;
+                    progressBar.setAttribute('aria-valuenow', stats.percentage);
+                    percentage.textContent = `${stats.percentage}%`;
+                    count.textContent = `${stats.withLinks}/${stats.total}`;
+
+                    // Definir cor da barra baseada na porcentagem
+                    progressBar.className = 'progress-bar';
+                    if (stats.percentage === 100) {
+                        progressBar.classList.add('bg-success');
+                    } else if (stats.percentage >= 75) {
+                        progressBar.classList.add('bg-info');
+                    } else if (stats.percentage >= 25) {
+                        progressBar.classList.add('bg-warning');
+                    } else {
+                        progressBar.classList.add('bg-danger');
+                    }
+                }
+
+                // Gerenciamento de seleção e remoção de itens
+                let selectedItems = new Set();
+
+                function updateSelectedCount() {
+                    const count = selectedItems.size;
+                    document.getElementById('selected-count').textContent = `${count} ${count === 1 ? 'item selecionado' : 'itens selecionados'}`;
+                    document.getElementById('remove-selected').disabled = count === 0;
+                }
+
+                function toggleBulkActions(show) {
+                    const bulkActions = document.getElementById('bulk-actions');
+                    if (bulkActions) {
+                        bulkActions.style.display = show ? 'block' : 'none';
+                    }
+                }
+
+                function addSelectionCheckboxes() {
+                    // Adicionar checkboxes a todos os cards de produtos
+                    document.querySelectorAll('.product-card').forEach(card => {
+                        // Verificar se o checkbox já existe
+                        if (!card.querySelector('.product-selector')) {
+                            const productId = card.getAttribute('data-product-id');
+                            const checkbox = document.createElement('div');
+                            checkbox.className = 'product-selector form-check position-absolute top-0 start-0 m-2';
+                            checkbox.innerHTML = `
+                                <input class="form-check-input" type="checkbox" value="${productId}" id="selector-${productId}">
+                                <label class="form-check-label visually-hidden" for="selector-${productId}">
+                                    Selecionar produto
+                                </label>
+                            `;
+                            card.style.position = 'relative';
+                            card.appendChild(checkbox);
+
+                            // Adicionar evento de mudança ao checkbox
+                            const input = checkbox.querySelector('input');
+                            input.addEventListener('change', function() {
+                                if (this.checked) {
+                                    selectedItems.add(productId);
+                                } else {
+                                    selectedItems.delete(productId);
+                                }
+                                updateSelectedCount();
+                            });
+                        }
+                    });
+
+                    // Mostrar as ações em massa se houver produtos
+                    toggleBulkActions(document.querySelectorAll('.product-card').length > 0);
+                }
+
+                // Eventos para os botões de seleção
+                document.getElementById('select-all')?.addEventListener('click', function() {
+                    document.querySelectorAll('.product-card .product-selector input').forEach(checkbox => {
+                        checkbox.checked = true;
+                        selectedItems.add(checkbox.value);
+                    });
+                    updateSelectedCount();
+                });
+
+                document.getElementById('deselect-all')?.addEventListener('click', function() {
+                    document.querySelectorAll('.product-card .product-selector input').forEach(checkbox => {
+                        checkbox.checked = false;
+                    });
+                    selectedItems.clear();
+                    updateSelectedCount();
+                });
+
+                document.getElementById('remove-selected')?.addEventListener('click', function() {
+                    if (selectedItems.size === 0) return;
+
+                    const confirmMessage = selectedItems.size === 1 
+                        ? 'Tem certeza que deseja remover o item selecionado dos resultados?'
+                        : `Tem certeza que deseja remover os ${selectedItems.size} itens selecionados dos resultados?`;
+
+                    if (confirm(confirmMessage)) {
+                        // Remover os itens selecionados
+                        selectedItems.forEach(id => {
+                            const card = document.querySelector(`.product-card[data-product-id="${id}"]`);
+                            if (card) {
+                                card.remove();
+                            }
+                        });
+
+                        // Limpar seleção
+                        selectedItems.clear();
+                        updateSelectedCount();
+
+                        // Verificar se restam produtos
+                        toggleBulkActions(document.querySelectorAll('.product-card').length > 0);
+
+                        // Notificar o usuário
+                        showToast('Itens removidos com sucesso dos resultados de pesquisa!', 'success');
+                    }
+                });
+
+                // Modificar a função que renderiza os resultados para adicionar os checkboxes
+                function renderResults(products) {
+                    // ...código existente para renderização dos produtos...
+
+                    // Adicionar checkboxes após a renderização
+                    setTimeout(() => {
+                        addSelectionCheckboxes();
+                    }, 100);
+                }
+
+                // Adicionar uma função de toast para feedback
+                function showToast(message, type = 'info') {
+                    const toastContainer = document.getElementById('toast-container') || createToastContainer();
+
+                    const toast = document.createElement('div');
+                    toast.className = `toast align-items-center text-white bg-${type} border-0`;
+                    toast.setAttribute('role', 'alert');
+                    toast.setAttribute('aria-live', 'assertive');
+                    toast.setAttribute('aria-atomic', 'true');
+
+                    toast.innerHTML = `
+                        <div class="d-flex">
+                            <div class="toast-body">
+                                ${message}
+                            </div>
+                            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+                        </div>
+                    `;
+
+                    toastContainer.appendChild(toast);
+
+                    const bsToast = new bootstrap.Toast(toast, {
+                        autohide: true,
+                        delay: 3000
+                    });
+
+                    bsToast.show();
+
+                    toast.addEventListener('hidden.bs.toast', () => {
+                        toast.remove();
+                    });
+                }
+
+                function createToastContainer() {
+                    const container = document.createElement('div');
+                    container.id = 'toast-container';
+                    container.className = 'toast-container position-fixed bottom-0 end-0 p-3';
+                    container.style.zIndex = '1050';
+                    document.body.appendChild(container);
+                    return container;
+                }
+            } catch (error) {
+                console.error('Erro ao inicializar a aplicação:', error);
+                notify.error('Erro ao carregar categorias. Por favor, recarregue a página.');
+            }
+        });
+    </script>
+</body>
+
+</html>

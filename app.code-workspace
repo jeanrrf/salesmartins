@@ -1,0 +1,28 @@
+{
+	"folders": [
+		{
+			"path": "."
+		}
+	],
+	"settings": {
+		"github.copilot.advanced": {
+			"maxContextTokens": 2000,
+			"maxPromptTokens": 1500,
+			"maxCompletionTokens": 500
+		},
+		"github.copilot.editor.enableAutoCompletions": true,
+		"github.copilot.chat.localeOverride": "pt-BR",
+		"workbench.editor.limit.enabled": true,
+		"workbench.editor.limit.value": 5,
+		"workbench.editor.limit.perEditorGroup": true,
+		"workbench.editor.showTabs": "multiple",
+		"workbench.editor.tabSizing": "fit",
+		"workbench.editor.closeOnFileDelete": true,
+		"workbench.editor.enablePreview": true,
+		"workbench.editor.enablePreviewFromQuickOpen": true,
+		"workbench.editor.showIcons": true,
+		"geminicodeassist.customCommands": {
+			"COMENTARIOS": "Crie um bloco de comentários completo  em portugues/ Brasil no início do arquivo na primeira linha  utilizando para cada tipo de arquiovo seu marcador especifico ou '//'  e com  com as seguintes informações: nome do arquivo como main.py, uma breve descrição indicando que o script realiza a conexão com a API e processa os dados, o autor deve ser identificado como Jean Rosso, e a data deve ser registrada como 28 de março de 2025. O estilo do comentário deve ser claro e bem formatado, adequado para documentação técnica"
+		}
+	}
+}

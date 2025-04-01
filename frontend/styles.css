@@ -1,0 +1,30 @@
+.gradient-text {
+    background: linear-gradient(135deg, #00c6ff, #0072ff, #ff0099, #ff6a00);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-size: 300% 300%;
+    animation: gradientShift 5s ease infinite;
+}
+
+@keyframes gradientShift {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+}
+
+/* Remove carousel-related styles */
+/* Removed empty ruleset for carousel-related styles */
+
+/* Ajuste para o banner */
+.banner-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transform: scale(1.1);
+    transition: transform 0.3s ease-out;
+}
+
+.banner-image.loaded {
+    transform: scale(1);
+}

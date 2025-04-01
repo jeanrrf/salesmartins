@@ -1,0 +1,22 @@
+{
+    "project_name": "Shopee Analytics",
+    "commit_prefix": "[AutoCommit] ",
+    "skip_files": [
+        "__pycache__",
+        "*.pyc",
+        ".git",
+        "*.log",
+        "*.db",
+        ".DS_Store"
+    ],
+    "commit_threshold": 3,
+    "patterns": {
+        "feature": "(feat|feature|add|implement|new):",
+        "fix": "(fix|bug|issue|error|resolve):",
+        "docs": "(doc|documentation|comment):",
+        "refactor": "(refactor|refact|improve|clean):",
+        "style": "(style|format|indent):",
+        "test": "(test|spec|check):",
+        "chore": "(chore|build|ci|tool):"
+    }
+}
