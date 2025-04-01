@@ -14,6 +14,10 @@ mkdir -p /opt/render/project/src
 # Move the populated database to the correct location
 cp $(dirname "$0")/shopee-analytics.db /opt/render/project/src/shopee-analytics.db
 
+# Log to verify if the database was copied successfully
+echo "Verificando se o banco de dados foi copiado:"
+ls -l /opt/render/project/src/shopee-analytics.db
+
 # Create database if it doesn't exist
 python << END
 import sqlite3
