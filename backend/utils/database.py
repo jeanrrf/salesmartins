@@ -5,8 +5,7 @@ This module contains functions for creating and managing database sessions,
 saving and updating products, and searching for products with filters and sorting.
 """
 from sqlalchemy.orm import sessionmaker, Session
-from sqlalchemy import create_engine
-from backend.models import Base, Product
+from backend.models import Base, Product, engine, DB_PATH, save_memory_db_to_disk
 import json
 from datetime import datetime
 import logging
@@ -17,17 +16,8 @@ import os
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
 
-# Database engine configuration (SQLite)
-# Use o mesmo caminho que o models.py para consistência
-if os.environ.get('RENDER'):
-    # No Render, usar o disco persistente
-    DB_PATH = '/data/shopee-analytics.db'
-else:
-    # Localmente, usar o caminho relativo
-    DB_PATH = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))), 'shopee-analytics.db')
-
+# Usando o mesmo engine definido em models.py
 logger.info(f"Tentando conectar ao banco de dados em: {DB_PATH}")
-engine = create_engine(f'sqlite:///{DB_PATH}')
 
 # Create a local session to interact with the database
 SessionLocal = sessionmaker(bind=engine)
@@ -44,6 +34,10 @@ def get_db() -> Session:
     finally: 
         logger.info("Fechando sessão do banco de dados")
         db.close()
+        
+        # Salvar para o disco se estiver usando banco em memória
+        if os.environ.get('RENDER') == "1" and DB_PATH == ":memory:":
+            save_memory_db_to_disk()
 
 def test_connection():
     """
@@ -51,8 +45,14 @@ def test_connection():
     """
     try:
         logger.info("Testando conexão com o banco de dados...")
-        conn = sqlite3.connect(DB_PATH)
-        cursor = conn.cursor()
+        
+        # Se estiver no Render com banco em memória, use o engine SQLAlchemy
+        if os.environ.get('RENDER') == "1" and DB_PATH == ":memory:":
+            conn = engine.raw_connection().connection
+            cursor = conn.cursor()
+        else:
+            conn = sqlite3.connect(DB_PATH)
+            cursor = conn.cursor()
         
         # Get database info
         cursor.execute("SELECT name FROM sqlite_master WHERE type='table';")
@@ -71,15 +71,23 @@ def test_connection():
         return False
     finally:
         if 'conn' in locals():
-            conn.close()
+            if os.environ.get('RENDER') == "1" and DB_PATH == ":memory:":
+                pass  # Não fechar conexão do SQLAlchemy engine
+            else:
+                conn.close()
 
 def get_db_connection():
     """
     Returns a direct SQLite connection for use with functions that need a raw connection.
     This function is used by API endpoints that require direct SQL queries.
     """
-    conn = sqlite3.connect(DB_PATH)
-    conn.row_factory = sqlite3.Row  # This enables accessing columns by name
+    if os.environ.get('RENDER') == "1" and DB_PATH == ":memory:":
+        # Use SQLAlchemy engine's raw connection for in-memory database
+        conn = engine.raw_connection().connection
+    else:
+        # Use direct SQLite connection for file-based database
+        conn = sqlite3.connect(DB_PATH)
+        conn.row_factory = sqlite3.Row  # This enables accessing columns by name
     return conn
 
 async def save_product(product_data, affiliate_data=None):

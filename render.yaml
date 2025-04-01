@@ -11,6 +11,8 @@ services:
         value: 8000
       - key: HOST
         value: 0.0.0.0
+      - key: RENDER
+        value: "1"
       - key: SHOPEE_APP_ID
         sync: false
       - key: SHOPEE_APP_SECRET
