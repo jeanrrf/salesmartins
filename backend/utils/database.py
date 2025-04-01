@@ -11,13 +11,15 @@ import json
 from datetime import datetime
 import logging
 import sqlite3
+import os
 
 # Configuração de logging
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
 
 # Database engine configuration (SQLite)
-DB_PATH = 'shopee-analytics.db'
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+DB_PATH = os.path.join(BASE_DIR, '../../shopee-analytics.db')
 logger.info(f"Tentando conectar ao banco de dados em: {DB_PATH}")
 engine = create_engine(f'sqlite:///{DB_PATH}')
 
