@@ -458,7 +458,7 @@ function searchTrendingProducts() {
     const selectedCategories = Array.from(categoriesSelect.selectedOptions).map(opt => opt.value);
     const excludeExisting = document.getElementById('trending-exclude-existing').checked;
     const minSales = parseInt(document.getElementById('trending-min-sales').value) || 50;
-    const limit = parseInt(document.getElementById('trending-limit').value) || 20;
+    const limit = null; // Removed limit
     
     const resultsContainer = document.getElementById('trending-results-container');
     resultsContainer.innerHTML = '<div class="text-center"><div class="spinner-border" role="status"><span class="visually-hidden">Carregando...</span></div></div>';
