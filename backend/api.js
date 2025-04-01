@@ -1,16 +1,21 @@
 const express = require('express');
 const path = require('path');
+const bodyParser = require('body-parser');
 
 const app = express();
 
+app.use(bodyParser.json());
+
 // Middleware para autenticação
 const adminAuth = (req, res, next) => {
-  const authHeader = req.headers.authorization;
+  const adminEmail = 'salesmartins.siaw@gmail.com';
 
   // Permitir acesso automático para o e-mail do administrador
-  if (req.headers['x-admin-email'] === 'salesmartins.siaw@gmail.com') {
+  if (req.headers['x-admin-email'] === adminEmail) {
     return next();
   }
+
+  const authHeader = req.headers.authorization;
 
   if (!authHeader) {
     return res.status(401).send('Autenticação necessária');
@@ -19,7 +24,7 @@ const adminAuth = (req, res, next) => {
   const credentials = Buffer.from(authHeader.split(' ')[1], 'base64').toString('utf-8');
   const [email, password] = credentials.split(':');
 
-  if (email === 'salesmartins.siaw@gmail.com' && password === 'vvh31676685') {
+  if (email === adminEmail && password === 'vvh31676685') {
     return next();
   }
 
@@ -57,6 +62,19 @@ app.get('/api/search', adminAuth, (req, res) => {
 // Rota protegida para arrumador de categorias
 app.get('/api/category-repair', adminAuth, (req, res) => {
   res.send('Arrumador de categorias');
+});
+
+// Rota para autenticação de login
+app.post('/login', (req, res) => {
+  const { email, password } = req.body;
+  const adminEmail = 'salesmartins.siaw@gmail.com';
+  const adminPassword = 'vvh31676685';
+
+  if (email === adminEmail && password === adminPassword) {
+    return res.status(200).send('Autenticado com sucesso');
+  }
+
+  return res.status(401).send('Credenciais inválidas');
 });
 
 // Inicia o servidor
