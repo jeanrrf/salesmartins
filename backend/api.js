@@ -25,12 +25,32 @@ app.get('/vitrine', (req, res) => {
   res.sendFile(path.join(__dirname, '../frontend/vitrine.html'));
 });
 
+// Rota pública para listar categorias
+app.get('/api/categories', (req, res) => {
+  res.send('Lista de categorias');
+});
+
+// Rota pública para listar produtos
+app.get('/api/products', (req, res) => {
+  res.send('Lista de produtos');
+});
+
 // Middleware para proteger todas as outras rotas
 app.use(adminAuth);
 
 // Exemplo de rota administrativa
 app.get('/admin', (req, res) => {
   res.send('Bem-vindo à área administrativa!');
+});
+
+// Rota protegida para buscador de produtos
+app.get('/api/search', adminAuth, (req, res) => {
+  res.send('Buscador de produtos');
+});
+
+// Rota protegida para arrumador de categorias
+app.get('/api/category-repair', adminAuth, (req, res) => {
+  res.send('Arrumador de categorias');
 });
 
 // Inicia o servidor
