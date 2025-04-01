@@ -38,7 +38,13 @@ class Product(Base):
     item_status = Column(String)
     discount = Column(String)
 
-# Criar o engine e as tabelas usando caminho absoluto
-db_path = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'shopee-analytics.db')
+# Configurar o caminho do banco de dados
+if os.environ.get('RENDER'):
+    # No Render, usar o disco persistente
+    db_path = '/data/shopee-analytics.db'
+else:
+    # Localmente, usar o caminho relativo
+    db_path = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'shopee-analytics.db')
+
 engine = create_engine(f'sqlite:///{db_path}')
 Base.metadata.create_all(engine)
