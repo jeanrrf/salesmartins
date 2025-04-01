@@ -17,7 +17,7 @@ logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
 
 # Database engine configuration (SQLite)
-engine = create_engine('sqlite:///shopee-analytics.db')
+engine = create_engine('sqlite:////opt/render/project/src/shopee-analytics.db')
 # Create a local session to interact with the database
 SessionLocal = sessionmaker(bind=engine)
 
