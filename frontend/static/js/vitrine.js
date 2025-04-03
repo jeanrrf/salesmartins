@@ -5,7 +5,7 @@
 
 // URL da API atualizada para os endpoints corretos
 const DB_API_URL = 'http://localhost:8001';
-const API_URL = '/api';
+const API_URL = 'http://localhost:5000';
 
 // Cache para armazenar dados de categorias e evitar requisições repetidas
 const cache = {
@@ -62,17 +62,9 @@ async function fetchProducts(forceRefresh = false) {
         }
 
         console.log('Buscando produtos da API...');
-        const response = await axios.get(`${API_URL}/products`);
-        let products = response.data;
-        // Garantir que 'products' seja um array
-        if (!Array.isArray(products)) {
-            if (products && Array.isArray(products.products)) {
-                products = products.products;
-            } else {
-                console.error('API retornou dados de produtos inválidos:', response.data);
-                return [];
-            }
-        }
+        const response = await axios.get(`${API_URL}/api/products`);
+        const products = response.data || [];
+        
         if (products.length === 0) {
             console.warn('Nenhum produto encontrado na API');
             return [];
@@ -180,12 +172,12 @@ async function fetchCategories() {
         if (cache.categories) return cache.categories;
 
         console.log('Buscando categorias da API...');
-        const response = await axios.get(`${API_URL}/categories`);
+        const response = await axios.get(`${API_URL}/api/categories`);
         const categories = response.data || [];
 
         if (!categories.length) {
             console.warn('Nenhuma categoria encontrada, usando categorias padrão');
-            cache.categories = defaultCategories;
+            cache.categories = defaultCategories();
             return cache.categories;
         }
 
@@ -194,7 +186,7 @@ async function fetchCategories() {
     } catch (error) {
         console.error('Erro ao buscar categorias:', error);
         // Retornar categorias padrão em caso de erro
-        cache.categories = defaultCategories;
+        cache.categories = defaultCategories();
         return cache.categories;
     }
 }
@@ -202,14 +194,16 @@ async function fetchCategories() {
 /**
  * Retorna categorias padrão caso a API falhe
  */
-const defaultCategories = [
-    { id: "100001", name: "Eletrônicos", level: 1 },
-    { id: "100006", name: "Celulares", level: 1 },
-    { id: "100018", name: "Moda Feminina", level: 1 },
-    { id: "100019", name: "Moda Masculina", level: 1 },
-    { id: "100039", name: "Casa e Decoração", level: 1 },
-    { id: "100041", name: "Beleza", level: 1 },
-];
+function defaultCategories() {
+    return [
+        { id: "100001", name: "Eletrônicos", level: 1 },
+        { id: "100006", name: "Celulares", level: 1 },
+        { id: "100018", name: "Moda Feminina", level: 1 },
+        { id: "100019", name: "Moda Masculina", level: 1 },
+        { id: "100039", name: "Casa e Decoração", level: 1 },
+        { id: "100041", name: "Beleza", level: 1 },
+    ];
+}
 
 /**
  * Obtém o nome da categoria pelo ID
@@ -365,6 +359,7 @@ async function filterProductsByCategory(categoryId) {
         }
 
         const sortedProducts = filteredProducts.sort((a, b) => (b.sales || 0) - (a.sales || 0));
+        const limitedProducts = sortedProducts.slice(0, 100);
 
         // Atualizar título da seção
         if (productsSectionTitle) {
@@ -372,7 +367,7 @@ async function filterProductsByCategory(categoryId) {
         }
 
         // Atualizar produtos
-        filteredProductsContainer.innerHTML = sortedProducts.map(createProductCard).join('');
+        filteredProductsContainer.innerHTML = limitedProducts.map(createProductCard).join('');
 
     } catch (error) {
         console.error('Erro ao filtrar produtos por categoria:', error);
@@ -452,8 +447,11 @@ async function searchProducts(searchTerm) {
             return;
         }
         
+        // Limitar a 100 resultados mais vendidos
+        const limitedProducts = sortedProducts.slice(0, 100);
+        
         // Limpar os placeholders e adicionar os produtos encontrados
-        featuredProductsContainer.innerHTML = sortedProducts.map(createProductCard).join('');
+        featuredProductsContainer.innerHTML = limitedProducts.map(createProductCard).join('');
         
     } catch (error) {
         console.error('Erro ao buscar produtos:', error);
