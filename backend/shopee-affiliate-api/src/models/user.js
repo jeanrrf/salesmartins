@@ -36,22 +36,21 @@ class User {
   }
 
   static async create(userData) {
-    const { username, email, password, name, role } = userData;
+    const { username, email, password, role } = userData;
     
     try {
       const hashedPassword = await bcrypt.hash(password, 10);
       
       const connection = await connectDB();
       const [result] = await connection.query(
-        'INSERT INTO users (username, email, password, name, role) VALUES (?, ?, ?, ?, ?)',
-        [username, email, hashedPassword, name || null, role || 'user']
+        'INSERT INTO users (username, email, password, role) VALUES (?, ?, ?, ?)',
+        [username, email, hashedPassword, role || 'user']
       );
       
       return { 
         id: result.insertId, 
         username, 
         email,
-        name,
         role: role || 'user'
       };
     } catch (error) {

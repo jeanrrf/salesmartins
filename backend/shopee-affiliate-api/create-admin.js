@@ -4,16 +4,16 @@ const User = require('./src/models/user'); // Adjust the path if necessary
 const { connectDB } = require('./src/config/database');
 
 async function createAdminUser() {
+  let connection;
   try {
     // Connect to the MySQL database
-    const connection = await connectDB();
+    connection = await connectDB();
     console.log('Connected to MySQL');
 
     // Check if an admin user already exists
     const existingAdmin = await User.findByUsername(process.env.ADMIN_USERNAME || 'admin');
     if (existingAdmin && existingAdmin.role === 'admin') {
       console.log('Admin user already exists. Exiting script.');
-      connection.end();
       return;
     }
 
@@ -41,9 +41,13 @@ async function createAdminUser() {
     console.error('Error creating admin user:', error);
   } finally {
     // Close the connection
-    if (typeof connection !== 'undefined') {
-      await connection.end();
-      console.log('Disconnected from MySQL');
+    if (connection) {
+      try {
+        await connection.end();
+        console.log('Disconnected from MySQL');
+      } catch (err) {
+        console.error('Error closing database connection:', err);
+      }
     }
   }
 }

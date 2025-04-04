@@ -1,50 +1,45 @@
 {
-    "version": 2,
-    "builds": [
-      {
-        "src": "index.js",
-        "use": "@vercel/node"
-      },
-      {
-        "src": "frontend-react/package.json",
-        "use": "@vercel/static-build",
-        "config": {
-          "distDir": "build"
-        }
+  "version": 2,
+  "builds": [
+    {
+      "src": "index.js",
+      "use": "@vercel/node"
+    },
+    {
+      "src": "frontend-react/package.json",
+      "use": "@vercel/static-build",
+      "config": {
+        "distDir": "build"
       }
-    ],
-    "routes": [
-      {
-        "src": "/api/(.*)",
-        "dest": "index.js"
-      },
-      {
-        "src": "/static/(.*)",
-        "dest": "frontend-react/build/static/$1"
-      },
-      {
-        "src": "/favicon.ico",
-        "dest": "frontend-react/build/favicon.ico"
-      },
-      {
-        "src": "/manifest.json",
-        "dest": "frontend-react/build/manifest.json"
-      },
-      {
-        "src": "/(.*)\\.png",
-        "dest": "frontend-react/build/$1.png"
-      },
-      {
-        "src": "/(.*)\\.jpg",
-        "dest": "frontend-react/build/$1.jpg"
-      },
-      {
-        "src": "/(.*)",
-        "dest": "frontend-react/build/index.html"
-      }
-    ],
-    "env": {
-      "NODE_ENV": "production"
     }
+  ],
+  "routes": [
+    {
+      "src": "/api/(.*)",
+      "dest": "index.js"
+    },
+    {
+      "src": "/images/(.*)",
+      "dest": "frontend-react/src/assets/images/$1"
+    },
+    {
+      "src": "/static/(.*)",
+      "dest": "frontend-react/build/static/$1"
+    },
+    {
+      "src": "/manifest.json",
+      "dest": "frontend-react/build/manifest.json"
+    },
+    {
+      "src": "/(.*)\\.(?:png|jpg|jpeg|gif|ico)$",
+      "dest": "frontend-react/build/$1"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "frontend-react/build/index.html"
+    }
+  ],
+  "env": {
+    "NODE_ENV": "production"
   }
-  
+}

@@ -27,20 +27,8 @@ const connectDB = async () => {
             await connection.query('SELECT 1');
             console.log('MySQL conectado com sucesso');
             
-            // Verify products table exists and has correct structure
-            try {
-                const [tables] = await connection.query('SHOW TABLES LIKE "products"');
-                if (tables.length === 0) {
-                    console.error('Products table not found in database');
-                    throw new Error('Products table not found');
-                }
-                
-                const [columns] = await connection.query('SHOW COLUMNS FROM products');
-                console.log('Products table structure:', columns.map(c => c.Field));
-            } catch (tableError) {
-                console.error('Error checking products table:', tableError);
-                throw tableError;
-            }
+            // Removida a verificação imediata da tabela products
+            // para evitar erros durante a inicialização
             
             return connection;
         } catch (error) {
