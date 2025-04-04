@@ -4,20 +4,33 @@ const mysql = require('mysql2/promise');
 require('dotenv').config();
 
 async function initializeDatabase() {
-  const connection = await mysql.createConnection({
-    host: process.env.MYSQL_HOST,
-    user: process.env.MYSQL_USER,
-    password: process.env.MYSQL_PASSWORD,
-    port: process.env.MYSQL_PORT
-  });
+  const isProduction = process.env.NODE_ENV === 'production';
+  
+  // Usar configurações apropriadas baseadas no ambiente
+  const config = {
+    host: isProduction ? process.env.PROD_DB_HOST : (process.env.MYSQL_HOST || 'localhost'),
+    user: isProduction ? process.env.PROD_DB_USER : (process.env.MYSQL_USER || 'root'),
+    password: isProduction ? process.env.PROD_DB_PASSWORD : (process.env.MYSQL_PASSWORD || ''),
+    port: isProduction ? 
+      parseInt(process.env.PROD_DB_PORT || '51365', 10) : 
+      parseInt(process.env.MYSQL_PORT || '3306', 10)
+  };
+
+  const dbName = isProduction ? process.env.PROD_DB_NAME : (process.env.MYSQL_DATABASE || 'shopee_analytics');
+
+  console.log(`Inicializando banco de dados (${process.env.NODE_ENV || 'development'})...`);
+  console.log(`Host: ${config.host}`);
+  console.log(`Database: ${dbName}`);
+
+  const connection = await mysql.createConnection(config);
 
   try {
     // Criar o banco de dados se não existir
-    await connection.query(`CREATE DATABASE IF NOT EXISTS ${process.env.MYSQL_DATABASE}`);
-    console.log(`Banco de dados ${process.env.MYSQL_DATABASE} criado ou já existe.`);
+    await connection.query(`CREATE DATABASE IF NOT EXISTS ${dbName}`);
+    console.log(`✅ Banco de dados ${dbName} criado ou já existe.`);
 
     // Usar o banco de dados
-    await connection.query(`USE ${process.env.MYSQL_DATABASE}`);
+    await connection.query(`USE ${dbName}`);
 
     // Executar o script SQL
     const sqlFilePath = path.join(__dirname, 'setup.sql');
@@ -33,10 +46,10 @@ async function initializeDatabase() {
       }
     }
     
-    console.log('Tabelas criadas ou já existem.');
-    console.log('Inicialização do banco de dados concluída com sucesso!');
+    console.log('✅ Tabelas criadas ou já existem.');
+    console.log('✅ Inicialização do banco de dados concluída com sucesso!');
   } catch (error) {
-    console.error('Erro durante a inicialização do banco de dados:', error);
+    console.error('❌ Erro durante a inicialização do banco de dados:', error);
     process.exit(1);
   } finally {
     await connection.end();
@@ -48,7 +61,7 @@ if (require.main === module) {
   initializeDatabase()
     .then(() => process.exit(0))
     .catch(err => {
-      console.error('Falha na inicialização do banco de dados:', err);
+      console.error('❌ Falha na inicialização do banco de dados:', err);
       process.exit(1);
     });
 }
