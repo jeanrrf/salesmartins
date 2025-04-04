@@ -815,6 +815,8 @@ class AffiliateController {
 
     async getSpecialProducts(req, res) {
         try {
+            console.log('Getting special products with params:', req.query);
+            
             const { 
                 limit = 12, 
                 sortBy = 'discount',
@@ -841,7 +843,6 @@ class AffiliateController {
                 params.push(parseFloat(minCommission) / 100);
             }
             
-            // Add condition to ensure we only get products with discounts
             query += ' AND original_price > price';
             
             switch(sortBy) {
@@ -864,23 +865,36 @@ class AffiliateController {
             query += ' LIMIT ?';
             params.push(parseInt(limit));
             
-            const [products] = await pool.promise().query(query, params);
+            console.log('Executing query:', query);
+            console.log('With parameters:', params);
             
-            const productsWithLinks = products.map(product => ({
-                id: product.id,
-                itemId: product.item_id || product.id,
-                name: product.name,
-                price: product.price,
-                originalPrice: product.original_price,
-                image: product.image_url,
-                categoryId: product.category_id,
-                categoryName: product.category_name,
-                commissionRate: product.commission_rate,
-                sales: product.sales,
-                createdAt: product.created_at,
-                affiliateUrl: product.affiliate_link || `https://shope.ee/product/${product.item_id || product.id}`,
-                discountPercentage: Math.round(((product.original_price - product.price) / product.original_price) * 100)
-            }));
+            const [products] = await pool.promise().query(query, params);
+            console.log(`Found ${products.length} special products`);
+            
+            if (!Array.isArray(products)) {
+                throw new Error('Expected products to be an array, got: ' + typeof products);
+            }
+            
+            const productsWithLinks = products.map(product => {
+                const discountPercentage = product.original_price && product.price ? 
+                    Math.round(((product.original_price - product.price) / product.original_price) * 100) : 0;
+                
+                return {
+                    id: product.id,
+                    itemId: product.item_id || product.id,
+                    name: product.name,
+                    price: product.price,
+                    originalPrice: product.original_price,
+                    image: product.image_url,
+                    categoryId: product.category_id,
+                    categoryName: product.category_name,
+                    commissionRate: product.commission_rate,
+                    sales: product.sales,
+                    createdAt: product.created_at,
+                    affiliateUrl: product.affiliate_link || `https://shope.ee/product/${product.item_id || product.id}`,
+                    discountPercentage
+                };
+            });
             
             res.status(200).json({
                 success: true,
@@ -890,8 +904,13 @@ class AffiliateController {
                 }
             });
         } catch (error) {
-            console.error('Error fetching special products:', error);
-            res.status(500).json({ success: false, message: error.message });
+            console.error('Error in getSpecialProducts:', error);
+            console.error('Error stack:', error.stack);
+            res.status(500).json({ 
+                success: false, 
+                message: 'Error fetching special products: ' + error.message,
+                error: error.toString()
+            });
         }
     }
 }
