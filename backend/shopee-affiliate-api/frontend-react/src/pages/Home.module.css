@@ -1,0 +1,162 @@
+/* Estilos para a página Home */
+.container {
+    padding: 2rem;
+  }
+  
+  .heroSection {
+    background-color: #1a1a1a;
+    padding: 4rem 0;
+    margin-bottom: 3rem;
+  }
+  
+  .heroTitle {
+    font-family: 'Bruno Ace SC', sans-serif;
+    font-size: 3rem;
+    font-weight: bold;
+    background-size: 300% 300%;
+    background-image: linear-gradient(
+      -45deg,
+      #ff0000,
+      #ff69b4,
+      #00ff00,
+      #ff0000
+    );
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    text-fill-color: transparent;
+    animation: gradientAnimation 5s ease infinite;
+    margin-bottom: 1.5rem;
+  }
+  
+  .heroSubtitle {
+    color: #fff;
+    font-size: 1.2rem;
+    margin-bottom: 2rem;
+  }
+  
+  .heroImage {
+    max-width: 100%;
+    height: auto;
+    border-radius: 10px;
+    box-shadow: 0 0 20px rgba(255, 105, 180, 0.3);
+  }
+  
+  .section {
+    margin-bottom: 2rem;
+    position: relative;
+    overflow: hidden;
+  }
+  
+  .sectionTitle {
+    font-family: 'Bruno Ace SC', sans-serif;
+    font-size: 2rem;
+    background-size: 300% 300%;
+    background-image: linear-gradient(
+      -45deg,
+      #ff0000,
+      #ff69b4,
+      #00ff00,
+      #ff0000
+    );
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    text-fill-color: transparent;
+    animation: gradientAnimation 5s ease infinite;
+    margin-bottom: 1rem;
+    position: relative;
+  }
+  
+  .sectionTitle::after {
+    content: '';
+    position: absolute;
+    width: 100%;
+    height: 2px;
+    bottom: -5px;
+    left: 0;
+    background-image: linear-gradient(
+      -45deg,
+      #ff0000,
+      #ff69b4,
+      #00ff00,
+      #ff0000
+    );
+    background-size: 300% 300%;
+    animation: gradientAnimation 5s ease infinite;
+  }
+  
+  .featureCard {
+    transition: transform 0.3s ease;
+    border: none;
+    background: rgba(255, 255, 255, 0.05);
+    -webkit-backdrop-filter: blur(10px);
+    backdrop-filter: blur(10px);
+  }
+  
+  .featureCard:hover {
+    transform: translateY(-10px);
+  }
+  
+  .statCard {
+    text-align: center;
+    background: transparent;
+    border: none;
+  }
+  
+  .statValue {
+    font-family: 'Bruno Ace SC', sans-serif;
+    font-size: 2.5rem;
+    font-weight: bold;
+    background-size: 300% 300%;
+    background-image: linear-gradient(
+      -45deg,
+      #ff0000,
+      #ff69b4,
+      #00ff00,
+      #ff0000
+    );
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    text-fill-color: transparent;
+    animation: gradientAnimation 5s ease infinite;
+  }
+  
+  .ctaSection {
+    background-color: #1a1a1a;
+    padding: 4rem 0;
+    text-align: center;
+    margin-top: 3rem;
+  }
+  
+  .ctaTitle {
+    font-family: 'Bruno Ace SC', sans-serif;
+    font-size: 2.5rem;
+    background-size: 300% 300%;
+    background-image: linear-gradient(
+      -45deg,
+      #ff0000,
+      #ff69b4,
+      #00ff00,
+      #ff0000
+    );
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    text-fill-color: transparent;
+    animation: gradientAnimation 5s ease infinite;
+    margin-bottom: 1.5rem;
+  }
+  
+  @keyframes gradientAnimation {
+    0% {
+      background-position: 0% 50%;
+    }
+    50% {
+      background-position: 100% 50%;
+    }
+    100% {
+      background-position: 0% 50%;
+    }
+  }

@@ -1,0 +1,177 @@
+@import url('https://fonts.googleapis.com/css2?family=Bruno+Ace+SC&display=swap');
+
+/* Align logo and navigation links perfectly */
+.navbar {
+  background: rgba(26, 26, 26, 0.8);
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  padding: 1rem 0;
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+  font-family: 'Bruno Ace SC', sans-serif;
+}
+
+.navbarBrand {
+  display: flex;
+  align-items: center;
+  padding: 0.5rem 1rem;
+  transition: transform 0.3s ease;
+}
+
+.navbarBrand:hover {
+  transform: scale(1.05);
+}
+
+.logoImage {
+  font-family: 'Bruno Ace SC', sans-serif;
+  font-size: 1.5rem;
+  font-weight: bold;
+  background-size: 300% 300%;
+  background-image: linear-gradient(
+    -45deg,
+    #6a0dad,
+    #ff4500,
+    #1e90ff,
+    #32cd32
+  );
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: gradientAnimation 5s ease infinite;
+  letter-spacing: 1px;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.navbarCollapse {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+/* Efeito nas guias de navegação */
+.navLink {
+  position: relative;
+  padding: 0.5rem 1rem;
+  margin: 0 0.5rem;
+  color: rgba(255, 255, 255, 0.8);
+  text-decoration: none;
+  font-weight: 500;
+  transition: all 0.3s ease;
+  background: transparent;
+}
+
+/* Efeito de sublinhado */
+.navLink::before {
+  content: '';
+  position: absolute;
+  bottom: -2px;
+  left: 0;
+  width: 100%;
+  height: 2px;
+  background-image: linear-gradient(
+    -45deg,
+    #ff0000,
+    #ff69b4,
+    #00ff00,
+    #ff0000
+  );
+  background-size: 300% 300%;
+  transform: scaleX(0);
+  transform-origin: right;
+  transition: transform 0.3s ease;
+  animation: gradientAnimation 5s ease infinite;
+}
+
+.navLink:hover::before,
+.active::before {
+  transform: scaleX(1);
+  transform-origin: left;
+}
+
+.active {
+  font-weight: bold;
+}
+
+.loginButton {
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: white;
+  padding: 0.5rem 1.5rem;
+  border-radius: 50px;
+  transition: all 0.3s ease;
+}
+
+.loginButton:hover {
+  background: linear-gradient(-45deg, #ff0000, #ff69b4, #00ff00);
+  background-size: 300% 300%;
+  animation: gradientAnimation 5s ease infinite;
+  border-color: transparent;
+  transform: translateY(-2px);
+}
+
+.notificationIcon {
+  position: relative;
+  margin-right: 1.5rem;
+  cursor: pointer;
+  color: rgba(255, 255, 255, 0.8);
+  transition: color 0.3s ease;
+}
+
+.notificationIcon:hover {
+  color: white;
+}
+
+.notificationBadge {
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  background: linear-gradient(-45deg, #ff0000, #ff69b4);
+  border: none;
+  animation: pulse 2s infinite;
+}
+
+/* Optimized animations */
+@keyframes gradientAnimation {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+@keyframes pulse {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.1);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+/* Responsividade para mobile */
+@media (max-width: 991px) {
+  .navbarCollapse {
+    background: rgba(26, 26, 26, 0.95);
+    padding: 1rem;
+    border-radius: 10px;
+    margin-top: 1rem;
+  }
+
+  .navLink {
+    margin: 0.5rem 0;
+  }
+
+  .loginButton {
+    margin-top: 1rem;
+    width: 100%;
+  }
+}
