@@ -8,8 +8,6 @@ const authMiddleware = require('../middleware/auth');
 const { validateAffiliateLink } = require('../middleware/validator');
 const { restrictTo, checkPermission } = require('../middleware/roleBasedAccess');
 const shopeeService = require('../services/shopeeService');
-const fs = require('fs');
-const path = require('path');
 
 // Importar rotas de produtos
 const productRoutes = require('./api/productRoutes');
@@ -20,13 +18,14 @@ router.post('/affiliate/link', authMiddleware, validateAffiliateLink, affiliateC
 router.get('/affiliate/links', authMiddleware, affiliateController.getAffiliateLinks);
 router.get('/affiliate/link/:id', authMiddleware, affiliateController.getAffiliateLinkById);
 router.delete('/affiliate/link/:id', authMiddleware, affiliateController.deleteAffiliateLink);
+
+// Search routes
 router.get('/affiliate/search', async (req, res) => {
   try {
     const { keywords, limit = 25 } = req.query;
     if (!keywords) {
       return res.status(400).json({ error: 'Parâmetro "keywords" é obrigatório.' });
     }
-
     const products = await affiliateController.searchProducts({ keywords, limit });
     res.json(products);
   } catch (error) {
@@ -35,15 +34,15 @@ router.get('/affiliate/search', async (req, res) => {
   }
 });
 
-// Fix category routes
+// Category routes - Unificar todas as rotas de categoria para usar o affiliateController
+router.get('/categories', affiliateController.getProductCategories);
 router.get('/affiliate/categories', affiliateController.getProductCategories);
-router.get('/categories', affiliateController.getProductCategories); // Fallback route
 
-// Fix products routes
+// Product routes
 router.get('/affiliate/products', affiliateController.getDatabaseProducts);
 router.get('/affiliate/products/special', productsController.getSpecialProducts);
-router.get('/products', affiliateController.getDatabaseProducts); // Fallback route
-router.get('/products/special', productsController.getSpecialProducts); // Fallback route
+router.get('/products', affiliateController.getDatabaseProducts);
+router.get('/products/special', productsController.getSpecialProducts);
 
 // Rotas restritas apenas para admins
 router.post('/affiliate/bulk-create', authMiddleware, restrictTo('admin'), affiliateController.bulkCreateAffiliateLinks);
@@ -51,68 +50,18 @@ router.post('/affiliate/generate-sequential', authMiddleware, restrictTo('admin'
 router.post('/affiliate/link/:linkId/track', authMiddleware, affiliateController.trackAffiliateClick);
 router.post('/affiliate/link/:linkId/conversion', authMiddleware, affiliateController.recordConversion);
 
-// Evitar conflito de rotas
-// Rotas para produtos especiais (para o componente SpecialProductsSection)
-router.use('/products/special', productRoutes);
-
 // Rota para buscar produtos do banco de dados - Acessível para todos
 router.get('/products', affiliateController.getDatabaseProducts);
 
 // Rotas restritas para admin
-router.get('/uncategorized-products', authMiddleware, restrictTo('admin'), async (req, res) => {
-  const { keyword, limit, page } = req.query;
-  try {
-    const products = await shopeeService.searchProducts(keyword, limit, page);
-    res.json(products);
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
-});
-
-// Rota para reparo de produtos - Restrita a admins
+router.get('/uncategorized-products', authMiddleware, restrictTo('admin'), affiliateController.getUncategorizedProducts);
 router.post('/products/:id/repair', authMiddleware, restrictTo('admin'), affiliateController.repairProductCategories);
-
-// Atualizar /api/categories para servir diretamente os dados das categorias - Acessível para todos
-router.get('/api/categories', async (req, res) => {
-  console.log('Rota /api/categories foi chamada');
-  try {
-    const categories = await shopeeService.getProductCategories();
-    console.log('Categorias retornadas:', categories);
-    res.status(200).json(categories);
-  } catch (error) {
-    console.error('Erro ao buscar categorias:', error);
-    res.status(500).json({ success: false, message: 'Erro ao buscar categorias.' });
-  }
-});
-
-// Endpoint to serve categories from CATEGORIA.json - Acessível para todos
-router.get('/categories', (req, res) => {
-  const filePath = path.join(__dirname, 'CATEGORIA.json');
-
-  fs.readFile(filePath, 'utf8', (err, data) => {
-    if (err) {
-      console.error('Erro ao ler o arquivo CATEGORIA.json:', err);
-      return res.status(500).json({ success: false, message: 'Erro ao carregar categorias.' });
-    }
-
-    try {
-      const categories = JSON.parse(data);
-      res.status(200).json(categories);
-    } catch (parseError) {
-      console.error('Erro ao analisar o arquivo CATEGORIA.json:', parseError);
-      res.status(500).json({ success: false, message: 'Erro ao processar categorias.' });
-    }
-  });
-});
 
 // Authentication routes - Acessíveis para todos
 router.post('/auth/login', authController.login);
 router.post('/auth/register', authController.register);
 router.get('/auth/validate', authController.validateToken);
 router.post('/auth/renew', authMiddleware, authController.renewToken);
-
-// Rota de perfil - Acessível para todos os usuários autenticados
-router.put('/auth/profile', authMiddleware, authController.updateProfile);
 
 // Estatísticas - Restritas a admins
 router.get('/stats', authMiddleware, restrictTo('admin'), statsController.getStats);

@@ -1,10 +1,17 @@
 const express = require('express');
 const affiliateController = require('../controllers/affiliateController');
 const auth = require('../middleware/auth');
+const { createAffiliateLinkValidator } = require('../validators/affiliateValidators');
+const authMiddleware = require('../middlewares/authMiddleware');
 const router = express.Router();
 
 // Route to create an affiliate link
-router.post('/links', auth, affiliateController.createAffiliateLink);
+router.post(
+    '/affiliate-links',
+    authMiddleware,
+    createAffiliateLinkValidator,
+    affiliateController.createAffiliateLink
+);
 
 // Route to get all affiliate links
 router.get('/links', auth, affiliateController.getAffiliateLinks);

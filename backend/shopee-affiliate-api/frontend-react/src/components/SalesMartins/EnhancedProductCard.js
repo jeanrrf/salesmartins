@@ -1,54 +1,40 @@
 import React, { useState } from 'react';
-import { 
-  FaStar, FaStarHalfAlt, FaRegStar, FaFire, FaShippingFast, FaImage, FaShoppingBag 
-} from 'react-icons/fa';
-import styles from '../../pages/SalesMartins/SalesMartins.module.css';
+import { FaImage, FaShoppingBag, FaFire, FaShippingFast } from 'react-icons/fa';
+import styles from './ProductCard.module.css';
+import pageStyles from '../../pages/SalesMartins/SalesMartins.module.css';
 
-// Componente para exibir estrelas de avaliação
-const RatingStars = ({ rating = 0 }) => {
+const RatingStars = ({ rating }) => {
   const stars = [];
-  const fullStars = Math.floor(rating);
-  const hasHalfStar = rating % 1 >= 0.5;
+  const roundedRating = Math.round(rating * 2) / 2;
   
-  for (let i = 0; i < 5; i++) {
-    if (i < fullStars) {
-      stars.push(<FaStar key={i} />);
-    } else if (i === fullStars && hasHalfStar) {
-      stars.push(<FaStarHalfAlt key={i} />);
+  for (let i = 1; i <= 5; i++) {
+    if (i <= roundedRating) {
+      stars.push(<span key={i} className={pageStyles.starFilled}>★</span>);
+    } else if (i - 0.5 === roundedRating) {
+      stars.push(<span key={i} className={pageStyles.starHalf}>★</span>);
     } else {
-      stars.push(<FaRegStar key={i} />);
+      stars.push(<span key={i} className={pageStyles.starEmpty}>★</span>);
     }
   }
   
-  return <div className={styles.productRatingStars}>{stars}</div>;
+  return <div className={pageStyles.productRatingStars}>{stars}</div>;
 };
 
-// Formatar número para exibição de vendas (ex: 1200 -> 1.2k)
-const formatSalesNumber = (sales) => {
-  if (!sales) return '0';
-  
-  const num = typeof sales === 'string' ? parseInt(sales, 10) : sales;
-  
-  if (isNaN(num)) return '0';
-  
-  if (num >= 1000000) {
-    return `${(num / 1000000).toFixed(1)}M`;
-  } else if (num >= 1000) {
-    return `${(num / 1000).toFixed(1)}k`;
-  }
-  
-  return num.toString();
-};
-
-const EnhancedProductCard = ({ product, onClick }) => {
-  // Campos com fallbacks para garantir que o componente não quebre
+const EnhancedProductCard = ({ 
+  product,
+  productImageUrl,
+  price = 0,
+  originalPrice = 0,
+  sales = 0,
+  ratingStar = 0,
+  name = '',
+  featured = false 
+}) => {
   const {
-    name = 'Produto sem nome',
-    price = 0,
-    original_price: originalPrice,
-    image_url: productImageUrl,
-    rating_star: ratingStar = 0,
-    sales = 0,
+    image,
+    image_url,
+    category_id: categoryId,
+    category_name: categoryName,
     discount_percentage: discountPercentage,
     free_shipping: freeShipping = false,
     rating_count: ratingCount = '0',
@@ -57,12 +43,9 @@ const EnhancedProductCard = ({ product, onClick }) => {
     affiliate_url = ''
   } = product || {};
 
-  // Use a reliable fallback image that won't cause ERR_NAME_NOT_RESOLVED
-  const fallbackImage = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzAwIiBoZWlnaHQ9IjMwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjMWExYTFhIi8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtc2l6ZT0iMjYiIGZpbGw9IiM1NTU1NTUiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGFsaWdubWVudC1iYXNlbGluZT0ibWlkZGxlIiBmb250LWZhbWlseT0ic2Fucy1zZXJpZiI+UHJvZHV0bzwvdGV4dD48L3N2Zz4=';
-
   // State for tracking image loading
   const [imageError, setImageError] = useState(false);
-  const imageUrl = productImageUrl || (product && product.image) || '';
+  const imageUrl = productImageUrl || (product && (image_url || image)) || '';
   
   // Handle image loading error
   const handleImageError = () => {
@@ -74,7 +57,21 @@ const EnhancedProductCard = ({ product, onClick }) => {
     (originalPrice && price ? Math.round((1 - price / originalPrice) * 100) : 0);
   
   // Formatar valores para exibição
-  const formattedSales = formatSalesNumber(sales);
+  const formatSalesNumber = (num) => {
+    if (!num) return '0';
+    if (typeof num === 'string') {
+      num = parseInt(num.replace(/[^\d]/g, ''), 10);
+      if (isNaN(num)) return '0';
+    }
+    if (num >= 1000000) {
+      return `${(num / 1000000).toFixed(1)}M`;
+    } else if (num >= 1000) {
+      return `${(num / 1000).toFixed(1)}k`;
+    }
+    return num.toString();
+  };
+
+  const formattedSales = formatSalesNumber(sales || (product && product.sales));
   const formattedRatingCount = typeof ratingCount === 'number' 
     ? formatSalesNumber(ratingCount) 
     : ratingCount;
@@ -82,9 +79,12 @@ const EnhancedProductCard = ({ product, onClick }) => {
   // Verificar se há desconto
   const hasDiscount = calculatedDiscountPercentage > 0 && originalPrice && price;
 
-  // Obter a URL do afiliado, tentando diferentes propriedades possíveis
+  // Obter a URL do afiliado
   const getAffiliateUrl = () => {
-    return affiliateUrl || affiliate_url || (product && product.affiliate_url) || '#';
+    return affiliateUrl || 
+           affiliate_url || 
+           (product && (product.affiliate_url || product.affiliateUrl)) || 
+           '#';
   };
 
   // Formatar preço para exibição
@@ -99,12 +99,12 @@ const EnhancedProductCard = ({ product, onClick }) => {
   };
 
   return (
-    <div className={styles.productCard}>
+    <div className={`${styles.productCard} ${featured ? styles.featured : ''}`}>
       <div className={styles.imageContainer}>
         {!imageError ? (
           <img 
-            src={imageUrl || fallbackImage} 
-            alt={name} 
+            src={imageUrl} 
+            alt={name || (product && product.name)} 
             className={styles.productImage}
             onError={handleImageError}
           />
@@ -122,24 +122,31 @@ const EnhancedProductCard = ({ product, onClick }) => {
         )}
       </div>
       <div className="p-3">
-        <h3 className={styles.productTitle}>{name}</h3>
+        <h3 className={styles.productTitle}>{name || (product && product.name)}</h3>
+        
+        {/* Categoria do produto */}
+        {categoryName && (
+          <div className={styles.categoryTag}>
+            {categoryName}
+          </div>
+        )}
         
         {/* Avaliação com estrelas */}
         <div className={styles.productRatingContainer}>
-          <RatingStars rating={ratingStar} />
+          <RatingStars rating={ratingStar || (product && product.rating_star) || 0} />
           <span className={styles.productRatingCount}>({formattedRatingCount})</span>
         </div>
         
-        {/* Preço e desconto - Sempre mostrar preço original se tiver desconto */}
+        {/* Preço e desconto */}
         <div className={styles.productMeta}>
           <div>
             {hasDiscount && (
               <span className={styles.productOriginalPrice}>
-                {formatPrice(originalPrice)}
+                {formatPrice(originalPrice || (product && product.original_price))}
               </span>
             )}
             <span className={styles.productPrice}>
-              {formatPrice(price)}
+              {formatPrice(price || (product && product.price))}
             </span>
           </div>
           {hasDiscount && (

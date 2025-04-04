@@ -157,13 +157,7 @@ class ProductsController {
             WHEN p.original_price > 0 AND p.price > 0 
             THEN ROUND((1 - p.price / p.original_price) * 100)
             ELSE 0
-          END as discount_percentage,
-          IFNULL(
-            (SELECT JSON_ARRAYAGG(t.tag_name) FROM product_tags pt 
-             JOIN tags t ON pt.tag_id = t.id 
-             WHERE pt.product_id = p.id), 
-            JSON_ARRAY()
-          ) as tags
+          END as discount_percentage
         FROM products p
         WHERE 1=1
       `;
@@ -189,7 +183,6 @@ class ProductsController {
         params.push(categoryId);
       }
 
-      // Adicionar ordenação
       switch(sortBy) {
         case 'discount':
           query += ` ORDER BY discount_percentage DESC`;
@@ -213,9 +206,17 @@ class ProductsController {
       query += ` LIMIT ?`;
       params.push(parseInt(limit));
 
-      const [products] = await pool.promise().query(query, params);
+      console.log('Executing query:', query);
+      console.log('With parameters:', params);
 
-      const enhancedProducts = products.map(product => ({
+      const [products] = await pool.promise().query(query, params);
+      console.log(`Found ${products.length} special products`);
+
+      if (!Array.isArray(products)) {
+        throw new Error('Expected products to be an array, got: ' + typeof products);
+      }
+
+      const productsWithLinks = products.map(product => ({
         id: product.id,
         itemId: product.item_id || product.id,
         name: product.name,
@@ -230,27 +231,23 @@ class ProductsController {
         rating_count: product.rating_count || '1k',
         free_shipping: Boolean(product.free_shipping),
         discount_percentage: product.discount_percentage,
-        tags: product.tags ? JSON.parse(product.tags) : [],
+        tags: [], // Empty array for now since we don't have tags table
         affiliateUrl: product.affiliate_link || `https://shope.ee/product/${product.item_id || product.id}`
       }));
 
-      // Vamos garantir que a resposta está no formato esperado pelo frontend
       res.status(200).json({
         success: true,
         data: {
-          products: enhancedProducts,
-          totalCount: products.length,
-          page: 1,
-          limit: parseInt(limit),
-          hasMore: false
+          products: productsWithLinks,
+          totalCount: products.length
         }
       });
     } catch (error) {
-      console.error('Error fetching special products:', error);
-      res.status(500).json({ 
-        success: false, 
+      console.error('Error in getSpecialProducts:', error);
+      res.status(500).json({
+        success: false,
         message: 'Error fetching special products',
-        error: error.message 
+        error: error.toString()
       });
     }
   }

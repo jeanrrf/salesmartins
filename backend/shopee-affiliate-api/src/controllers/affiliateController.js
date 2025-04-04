@@ -1,3 +1,4 @@
+const { validationResult } = require('express-validator');
 const linkGeneratorService = require('../services/linkGeneratorService');
 const shopeeService = require('../services/shopeeService');
 const Stats = require('../models/stats');
@@ -5,24 +6,23 @@ const { pool } = require('../config/database');
 const AffiliateLink = require('../models/affiliateLink');
 
 class AffiliateController {
-    async createAffiliateLink(req, res) {
+    async createAffiliateLink(req, res, next) {
         try {
-            const { productId } = req.body;
-            const userId = req.user.id;
-            
-            if (!productId) {
-                return res.status(400).json({ success: false, message: 'ID do produto é obrigatório' });
+            // Validação de entrada
+            const errors = validationResult(req);
+            if (!errors.isEmpty()) {
+                return res.status(400).json({ success: false, errors: errors.array() });
             }
-            
-            const options = {
-                campaignId: req.body.campaignId,
-                subId: req.body.subId
-            };
-            
+
+            const { productId, campaignId, subId } = req.body;
+            const userId = req.user.id;
+
+            const options = { campaignId, subId };
             const affiliateLink = await linkGeneratorService.createAffiliateLink(userId, productId, options);
+
             res.status(201).json({ success: true, data: affiliateLink });
         } catch (error) {
-            res.status(500).json({ success: false, message: error.message });
+            next(error); // Encaminha o erro para o middleware global
         }
     }
     
@@ -178,10 +178,25 @@ class AffiliateController {
     
     async getProductCategories(req, res) {
         try {
-            console.log('Fetching categories...');
-            const categories = await shopeeService.getProductCategories();
-            console.log('Categories fetched:', categories);
-            res.status(200).json(categories);
+            console.log('Fetching categories from database...');
+            const [categories] = await pool.promise().query(`
+                SELECT DISTINCT 
+                    category_id as id,
+                    category_name as name,
+                    1 as level
+                FROM products 
+                WHERE category_id IS NOT NULL 
+                AND category_id != '' 
+                AND category_name IS NOT NULL 
+                AND category_name != ''
+                ORDER BY category_name ASC
+            `);
+            
+            console.log('Categories fetched from database:', categories);
+            res.status(200).json({
+                success: true,
+                data: categories
+            });
         } catch (error) {
             console.error('Error fetching categories:', error);
             res.status(500).json({ success: false, message: 'Erro ao buscar categorias.' });

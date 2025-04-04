@@ -81,3 +81,22 @@ CREATE TABLE IF NOT EXISTS `category_repair_logs` (
   `repaired_by` INT NOT NULL,
   `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
+
+-- Tabela de tags
+CREATE TABLE IF NOT EXISTS `tags` (
+  `id` INT AUTO_INCREMENT PRIMARY KEY,
+  `tag_name` VARCHAR(100) NOT NULL UNIQUE,
+  `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
+
+-- Tabela de relação entre produtos e tags
+CREATE TABLE IF NOT EXISTS `product_tags` (
+  `id` INT AUTO_INCREMENT PRIMARY KEY,
+  `product_id` INT NOT NULL,
+  `tag_id` INT NOT NULL,
+  `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (`product_id`) REFERENCES `products`(`id`) ON DELETE CASCADE,
+  FOREIGN KEY (`tag_id`) REFERENCES `tags`(`id`) ON DELETE CASCADE,
+  UNIQUE KEY `product_tag_unique` (`product_id`, `tag_id`)
+);
