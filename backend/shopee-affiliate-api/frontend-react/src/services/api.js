@@ -23,8 +23,18 @@ api.interceptors.request.use((config) => {
 api.interceptors.response.use(
   response => response,
   async error => {
+    console.error('API Error:', {
+      status: error.response?.status,
+      message: error.response?.data?.message || error.message,
+      url: error.config?.url,
+      method: error.config?.method,
+      data: error.config?.data,
+    });
+
     const originalRequest = error.config;
-    if (error.response && error.response.status === 401 && !originalRequest._retry) {
+
+    // Handle 401 Unauthorized errors
+    if (error.response?.status === 401 && !originalRequest._retry) {
       originalRequest._retry = true;
       try {
         const currentToken = localStorage.getItem('token');
@@ -59,7 +69,37 @@ api.interceptors.response.use(
         return Promise.reject(refreshError);
       }
     }
-    return Promise.reject(error);
+
+    // Handle 500 Internal Server Error
+    if (error.response?.status === 500) {
+      return Promise.reject({
+        status: 500,
+        message: error.response.data?.message || 'Erro interno do servidor',
+        details: error.response.data
+      });
+    }
+
+    // Handle network errors
+    if (error.code === 'ERR_NETWORK') {
+      return Promise.reject({
+        status: 0,
+        message: 'Erro de conexão. Verifique sua internet.',
+      });
+    }
+
+    // Handle timeout
+    if (error.code === 'ECONNABORTED') {
+      return Promise.reject({
+        status: 408,
+        message: 'A requisição excedeu o tempo limite.',
+      });
+    }
+
+    return Promise.reject({
+      status: error.response?.status || 0,
+      message: error.message || 'Erro desconhecido',
+      details: error.response?.data
+    });
   }
 );
 

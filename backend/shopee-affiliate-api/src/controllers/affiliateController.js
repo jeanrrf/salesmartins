@@ -178,29 +178,13 @@ class AffiliateController {
     
     async getProductCategories(req, res) {
         try {
-            const query = `
-              SELECT DISTINCT category_id as id, category_name as name
-              FROM products 
-              WHERE category_name IS NOT NULL AND category_id IS NOT NULL
-              ORDER BY category_name`;
-            
-            const [categories] = await pool.query(query);
-            
-            const categoriesWithIcons = categories.map(category => ({
-              ...category,
-              icon: this.getCategoryIcon(category.name)
-            }));
-        
-            res.json({
-              success: true,
-              data: categoriesWithIcons
-            });
+            console.log('Fetching categories...');
+            const categories = await shopeeService.getProductCategories();
+            console.log('Categories fetched:', categories);
+            res.status(200).json(categories);
         } catch (error) {
             console.error('Error fetching categories:', error);
-            res.status(500).json({
-              success: false,
-              error: 'Error fetching categories'
-            });
+            res.status(500).json({ success: false, message: 'Erro ao buscar categorias.' });
         }
     }
 
@@ -826,6 +810,88 @@ class AffiliateController {
                 message: 'Error updating categories', 
                 error: error.message
             });
+        }
+    }
+
+    async getSpecialProducts(req, res) {
+        try {
+            const { 
+                limit = 12, 
+                sortBy = 'discount',
+                minPrice = null,
+                maxPrice = null,
+                minCommission = null
+            } = req.query;
+            
+            let query = 'SELECT * FROM products WHERE 1=1';
+            const params = [];
+            
+            if (minPrice !== null) {
+                query += ' AND price >= ?';
+                params.push(parseFloat(minPrice));
+            }
+            
+            if (maxPrice !== null) {
+                query += ' AND price <= ?';
+                params.push(parseFloat(maxPrice));
+            }
+            
+            if (minCommission !== null) {
+                query += ' AND commission_rate >= ?';
+                params.push(parseFloat(minCommission) / 100);
+            }
+            
+            // Add condition to ensure we only get products with discounts
+            query += ' AND original_price > price';
+            
+            switch(sortBy) {
+                case 'discount':
+                    query += ' ORDER BY ((original_price - price) / original_price) DESC';
+                    break;
+                case 'commission':
+                    query += ' ORDER BY commission_rate DESC';
+                    break;
+                case 'price':
+                    query += ' ORDER BY price ASC';
+                    break;
+                case 'sales':
+                    query += ' ORDER BY sales DESC';
+                    break;
+                default:
+                    query += ' ORDER BY ((original_price - price) / original_price) DESC';
+            }
+            
+            query += ' LIMIT ?';
+            params.push(parseInt(limit));
+            
+            const [products] = await pool.promise().query(query, params);
+            
+            const productsWithLinks = products.map(product => ({
+                id: product.id,
+                itemId: product.item_id || product.id,
+                name: product.name,
+                price: product.price,
+                originalPrice: product.original_price,
+                image: product.image_url,
+                categoryId: product.category_id,
+                categoryName: product.category_name,
+                commissionRate: product.commission_rate,
+                sales: product.sales,
+                createdAt: product.created_at,
+                affiliateUrl: product.affiliate_link || `https://shope.ee/product/${product.item_id || product.id}`,
+                discountPercentage: Math.round(((product.original_price - product.price) / product.original_price) * 100)
+            }));
+            
+            res.status(200).json({
+                success: true,
+                data: {
+                    products: productsWithLinks,
+                    totalCount: products.length
+                }
+            });
+        } catch (error) {
+            console.error('Error fetching special products:', error);
+            res.status(500).json({ success: false, message: error.message });
         }
     }
 }

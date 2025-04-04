@@ -13,8 +13,11 @@ router.get('/links', auth, affiliateController.getAffiliateLinks);
 router.get('/uncategorized-products', affiliateController.getUncategorizedProducts);
 router.post('/products/update-categories', affiliateController.updateProductCategories);
 
-// Routes for categories
+// Routes for categories and products
 router.get('/categories', affiliateController.getProductCategories);
+router.get('/products/special', affiliateController.getSpecialProducts);
+router.get('/products', affiliateController.getDatabaseProducts);
+router.get('/category/:categoryId/products', affiliateController.getProductsByCategory);
 
 // Additional routes can be added here as needed
 

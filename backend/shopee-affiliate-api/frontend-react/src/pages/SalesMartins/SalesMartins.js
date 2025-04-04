@@ -36,20 +36,15 @@ const SalesMartins = () => {
 
   useEffect(() => {
     const fetchCategories = async () => {
-      try {
-        const response = await affiliateService.getCategories();
-        const allCategories = [{ id: 'all', name: 'Todos', icon: <FaSearch /> }, ...response.data];
-        
-        const categoriesWithIcons = allCategories.map(category => ({
-          ...category,
-          icon: getCategoryIcon(category.name)
-        }));
-        
-        setPopularCategories(categoriesWithIcons.slice(0, 8));
-        setOtherCategories(categoriesWithIcons.slice(8));
-      } catch (error) {
-        console.error('Erro ao carregar categorias:', error);
-      }
+        try {
+            const response = await affiliateService.getCategories();
+            setPopularCategories(response.data.slice(0, 8));
+            setOtherCategories(response.data.slice(8));
+        } catch (error) {
+            console.error('Erro ao carregar categorias:', error);
+            setPopularCategories([]);
+            setOtherCategories([]);
+        }
     };
 
     fetchCategories();
