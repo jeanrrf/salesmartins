@@ -13,6 +13,7 @@ const path = require('path');
 
 // Importar rotas de produtos
 const productRoutes = require('./api/productRoutes');
+const productsController = require('../controllers/productsController');
 
 // Affiliate routes - Acessíveis para todos os usuários autenticados
 router.post('/affiliate/link', authMiddleware, validateAffiliateLink, affiliateController.createAffiliateLink);
@@ -34,9 +35,15 @@ router.get('/affiliate/search', async (req, res) => {
   }
 });
 
-// Rota para categorias de produtos - Acessível para todos
+// Fix category routes
 router.get('/affiliate/categories', affiliateController.getProductCategories);
-router.get('/affiliate/category/:categoryId/products', affiliateController.getProductsByCategory);
+router.get('/categories', affiliateController.getProductCategories); // Fallback route
+
+// Fix products routes
+router.get('/affiliate/products', affiliateController.getDatabaseProducts);
+router.get('/affiliate/products/special', productsController.getSpecialProducts);
+router.get('/products', affiliateController.getDatabaseProducts); // Fallback route
+router.get('/products/special', productsController.getSpecialProducts); // Fallback route
 
 // Rotas restritas apenas para admins
 router.post('/affiliate/bulk-create', authMiddleware, restrictTo('admin'), affiliateController.bulkCreateAffiliateLinks);

@@ -79,51 +79,21 @@ export const affiliateService = {
   getLinkById: (id) => api.get(`/affiliate/link/${id}`), // Verifique se a rota '/affiliate/link/:id' existe no backend
   deleteLink: (id) => api.delete(`/affiliate/link/${id}`), // Verifique se a rota '/affiliate/link/:id' existe no backend
   searchProducts: (searchParams) => api.get('/affiliate/search', { params: searchParams }), // Verifique se a rota '/affiliate/search' existe no backend
-  getCategories: () => api.get('/categories'), // Verifique se a rota '/categories' existe no backend
+  getCategories: () => api.get('/affiliate/categories'), // Verifique se a rota '/affiliate/categories' existe no backend
   getProductsByCategory: (categoryId, params) => api.get(`/affiliate/category/${categoryId}/products`, { params }), // Verifique se a rota '/affiliate/category/:categoryId/products' existe no backend
   trackClick: (linkId) => api.post(`/affiliate/link/${linkId}/track`), // Verifique se a rota '/affiliate/link/:linkId/track' existe no backend
   recordConversion: (linkId, conversionData) => api.post(`/affiliate/link/${linkId}/conversion`, conversionData), // Verifique se a rota '/affiliate/link/:linkId/conversion' existe no backend
-  getDatabaseProducts: (params) => {
-    // If we have a specific categoryId, use the category-specific endpoint
-    if (params && params.categoryId && params.categoryId !== 'all') {
-      return api.get(`/affiliate/category/${params.categoryId}/products`, { 
-        params: {
-          ...params,
-          categoryId: undefined // Remove categoryId as it's already in the URL
-        }
-      });
-    }
-    
-    // For all categories or no category specified
-    return api.get('/products', { params });
-  },
-  
-  // Novo método para buscar produtos com filtros específicos
-  getSpecialProducts: (params = {}) => {
-    return api.get('/products/special', { params });
-  },
-  
-  // Método para obter produtos em promoção
-  getDiscountProducts: (limit = 4, minDiscount = 20) => {
-    return api.get('/products/special', { 
-      params: {
-        limit,
-        sortBy: 'discount',
-        minDiscount
-      }
-    });
-  },
-  
-  // Método para obter produtos bem avaliados
-  getTopRatedProducts: (limit = 4, minRating = 4.5) => {
-    return api.get('/products/special', { 
-      params: {
-        limit,
-        sortBy: 'rating',
-        minRating
-      }
-    });
-  },
+  getSpecialProducts: (params) => api.get('/affiliate/products/special', { params }),
+  getDatabaseProducts: (params) => api.get('/affiliate/products', { params }),
+  getProductsByCategory: (categoryId, params) => api.get(`/affiliate/category/${categoryId}/products`, { params })
+};
+
+// Serviços para produtos
+export const productsService = {
+  getAll: (params) => api.get('/products', { params }),
+  getSpecial: (params) => api.get('/products/special', { params }),
+  getCategories: () => api.get('/categories'),
+  getByCategory: (categoryId, params) => api.get(`/category/${categoryId}/products`, { params })
 };
 
 // Serviços para estatísticas

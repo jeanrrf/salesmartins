@@ -4,7 +4,7 @@ import { Line, Bar, Pie } from 'react-chartjs-2';
 import { Chart, CategoryScale, LinearScale, PointElement, LineElement, BarElement, ArcElement, Title, Tooltip, Legend } from 'chart.js';
 import styled from 'styled-components';
 import { statsService } from '../../services/api';
-import { formatCurrency, formatPercent, getTrendColor, getTrendIcon, calculatePercentageDifference } from '../../utils/helpers';
+import { formatCurrency, formatPercent, getTrendColor, getTrendIcon, calculatePercentageDifference } from '../../utils/helper';
 import LoadingSpinner from '../../components/LoadingSpinner';
 
 // Registre os componentes necessários do Chart.js
