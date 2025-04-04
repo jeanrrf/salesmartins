@@ -42,7 +42,6 @@ const CategoryRepair = () => {
 
   const fetchCategories = async () => {
     try {
-      // Use the categories from CATEGORIA.json
       const response = await api.get('/categories');
       console.log('Categorias carregadas:', response.data);
       if (response.data && response.data.data) {
@@ -51,23 +50,12 @@ const CategoryRepair = () => {
         setCategories(response.data);
       } else {
         console.error('Invalid category data format:', response.data);
-        // Use a local fallback if API fails
-        import('../../data/CATEGORIA.json')
-          .then(categoriesData => {
-            console.log('Categorias carregadas do arquivo local:', categoriesData.default);
-            setCategories(categoriesData.default || []);
-          })
-          .catch(err => console.error('Failed to load local categories:', err));
+        setCategories([]);
       }
     } catch (error) {
       console.error('Error fetching categories:', error);
-      // Load from local file if API fails
-      import('../../data/CATEGORIA.json')
-        .then(categoriesData => {
-          console.log('Categorias carregadas do arquivo local após erro:', categoriesData.default);
-          setCategories(categoriesData.default || []);
-        })
-        .catch(err => console.error('Failed to load local categories:', err));
+      setCategories([]);
+      setErrorMessage('Erro ao carregar categorias: ' + (error.response?.data?.message || error.message));
     }
   };
 

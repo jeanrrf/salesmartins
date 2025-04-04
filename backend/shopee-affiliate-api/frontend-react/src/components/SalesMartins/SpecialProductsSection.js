@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { Container, Row, Col, Spinner } from 'react-bootstrap';
 import { affiliateService } from '../../services/api';
 import EnhancedProductCard from './EnhancedProductCard';
-import styles from './ProductCatalog.module.css';
 import pageStyles from '../../pages/SalesMartins/SalesMartins.module.css';
 
 const SpecialProductsSection = ({ 

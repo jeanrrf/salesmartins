@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { FaImage, FaShoppingBag, FaFire, FaShippingFast } from 'react-icons/fa';
 import styles from './ProductCard.module.css';
-import pageStyles from '../../pages/SalesMartins/SalesMartins.module.css';
 
 const RatingStars = ({ rating }) => {
   const stars = [];
@@ -9,54 +8,49 @@ const RatingStars = ({ rating }) => {
   
   for (let i = 1; i <= 5; i++) {
     if (i <= roundedRating) {
-      stars.push(<span key={i} className={pageStyles.starFilled}>★</span>);
+      stars.push(<span key={i} className={styles.starFilled}>★</span>);
     } else if (i - 0.5 === roundedRating) {
-      stars.push(<span key={i} className={pageStyles.starHalf}>★</span>);
+      stars.push(<span key={i} className={styles.starHalf}>★</span>);
     } else {
-      stars.push(<span key={i} className={pageStyles.starEmpty}>★</span>);
+      stars.push(<span key={i} className={styles.starEmpty}>★</span>);
     }
   }
   
-  return <div className={pageStyles.productRatingStars}>{stars}</div>;
+  return <div className={styles.ratingStars}>{stars}</div>;
 };
 
 const EnhancedProductCard = ({ 
   product,
   productImageUrl,
-  price = 0,
-  originalPrice = 0,
-  sales = 0,
-  ratingStar = 0,
-  name = '',
   featured = false 
 }) => {
   const {
     image,
     image_url,
-    category_id: categoryId,
+    name,
     category_name: categoryName,
+    price,
+    original_price: originalPrice,
+    rating_star: ratingStar = 0,
     discount_percentage: discountPercentage,
     free_shipping: freeShipping = false,
     rating_count: ratingCount = '0',
+    sales = 0,
     tags = [],
     affiliateUrl = '',
     affiliate_url = ''
   } = product || {};
 
-  // State for tracking image loading
   const [imageError, setImageError] = useState(false);
   const imageUrl = productImageUrl || (product && (image_url || image)) || '';
   
-  // Handle image loading error
   const handleImageError = () => {
     setImageError(true);
   };
 
-  // Calcular o percentual de desconto se não fornecido
   const calculatedDiscountPercentage = discountPercentage || 
     (originalPrice && price ? Math.round((1 - price / originalPrice) * 100) : 0);
   
-  // Formatar valores para exibição
   const formatSalesNumber = (num) => {
     if (!num) return '0';
     if (typeof num === 'string') {
@@ -71,23 +65,19 @@ const EnhancedProductCard = ({
     return num.toString();
   };
 
-  const formattedSales = formatSalesNumber(sales || (product && product.sales));
+  const formattedSales = formatSalesNumber(sales);
   const formattedRatingCount = typeof ratingCount === 'number' 
     ? formatSalesNumber(ratingCount) 
     : ratingCount;
 
-  // Verificar se há desconto
   const hasDiscount = calculatedDiscountPercentage > 0 && originalPrice && price;
 
-  // Obter a URL do afiliado
   const getAffiliateUrl = () => {
     return affiliateUrl || 
            affiliate_url || 
-           (product && (product.affiliate_url || product.affiliateUrl)) || 
            '#';
   };
 
-  // Formatar preço para exibição
   const formatPrice = (price) => {
     if (!price) return 'R$ 0,00';
     if (typeof price === 'string' && price.includes('R$')) return price;
@@ -104,7 +94,7 @@ const EnhancedProductCard = ({
         {!imageError ? (
           <img 
             src={imageUrl} 
-            alt={name || (product && product.name)} 
+            alt={name} 
             className={styles.productImage}
             onError={handleImageError}
           />
@@ -116,50 +106,55 @@ const EnhancedProductCard = ({
         )}
         
         {hasDiscount && (
-          <div className={styles.discountBadge}>
-            {calculatedDiscountPercentage}% OFF
+          <div className={styles.discountTag}>
+            -{calculatedDiscountPercentage}%
           </div>
         )}
       </div>
-      <div className="p-3">
-        <h3 className={styles.productTitle}>{name || (product && product.name)}</h3>
+      <div className={styles.contentContainer}>
+        <h3 className={styles.productTitle}>{name}</h3>
         
-        {/* Categoria do produto */}
         {categoryName && (
-          <div className={styles.categoryTag}>
+          <div className={styles.categoryName}>
             {categoryName}
           </div>
         )}
         
-        {/* Avaliação com estrelas */}
-        <div className={styles.productRatingContainer}>
-          <RatingStars rating={ratingStar || (product && product.rating_star) || 0} />
-          <span className={styles.productRatingCount}>({formattedRatingCount})</span>
+        <div className={styles.ratingContainer}>
+          <RatingStars rating={parseFloat(ratingStar) || 0} />
+          <span className={styles.ratingCount}>({formattedRatingCount})</span>
         </div>
         
-        {/* Preço e desconto */}
-        <div className={styles.productMeta}>
-          <div>
-            {hasDiscount && (
-              <span className={styles.productOriginalPrice}>
-                {formatPrice(originalPrice || (product && product.original_price))}
+        <div className={styles.priceContainer}>
+          {hasDiscount ? (
+            <>
+              <div className={styles.originalPriceWrapper}>
+                <span className={styles.originalPrice}>
+                  {formatPrice(originalPrice)}
+                </span>
+              </div>
+              <div className={styles.currentPriceWrapper}>
+                <span className={styles.currentPrice}>
+                  {formatPrice(price)}
+                </span>
+                <span className={styles.discountPill}>
+                  Economize {calculatedDiscountPercentage}%
+                </span>
+              </div>
+            </>
+          ) : (
+            <div className={styles.currentPriceWrapper}>
+              <span className={styles.currentPrice}>
+                {formatPrice(price)}
               </span>
-            )}
-            <span className={styles.productPrice}>
-              {formatPrice(price || (product && product.price))}
-            </span>
-          </div>
-          {hasDiscount && (
-            <span className={styles.productDiscount}>{calculatedDiscountPercentage}% OFF</span>
+            </div>
           )}
         </div>
         
-        {/* Vendas */}
         <div className={styles.productSales}>
           <FaFire /> {formattedSales} vendidos
         </div>
         
-        {/* Tags e frete */}
         <div className={styles.productTags}>
           {freeShipping && (
             <span className={`${styles.productTag} ${styles.freeShipping}`}>
@@ -175,9 +170,9 @@ const EnhancedProductCard = ({
           href={getAffiliateUrl()}
           target="_blank" 
           rel="noopener noreferrer"
-          className={styles.productButton}
+          className={styles.buyButton}
         >
-          <FaShoppingBag className="me-2" /> Ver Oferta
+          <FaShoppingBag className={styles.bagIcon} /> Ver Oferta
         </a>
       </div>
     </div>
