@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Container, Row, Col, Spinner, Pagination } from 'react-bootstrap';
 import { affiliateService } from '../../services/api';
 import EnhancedProductCard from './EnhancedProductCard';
-import styles from '../../pages/SalesMartins/SalesMartins.module.css';
+import styles from './ProductCatalog.module.css';
 
 const ProductCatalog = ({ 
   categoryId = 'all', 
@@ -37,18 +37,14 @@ const ProductCatalog = ({
         
         let response;
         if (categoryId && categoryId !== 'all') {
-          response = await affiliateService.getProductsByCategory(categoryId, params);
+          params.category = categoryId;
+          response = await affiliateService.getDatabaseProducts(params);
         } else {
           response = await affiliateService.getDatabaseProducts(params);
         }
         
         if (response.data?.data) {
           const { products, totalCount } = response.data.data;
-          setProducts(products || []);
-          setTotalProducts(totalCount || 0);
-          setTotalPages(Math.ceil(totalCount / limit) || 1);
-        } else if (response.data?.products) {
-          const { products, totalCount } = response.data;
           setProducts(products || []);
           setTotalProducts(totalCount || 0);
           setTotalPages(Math.ceil(totalCount / limit) || 1);
@@ -170,12 +166,18 @@ const ProductCatalog = ({
   if (error || products.length === 0) {
     return (
       <Container>
-        <div className={`${styles.comingSoonMessage} text-center py-5`}>
-          <div className={styles.comingSoonIcon}>✨</div>
-          <h3 className={styles.comingSoonTitle}>Em Breve Novidades!</h3>
-          <p className={styles.comingSoonText}>
-            Estamos trabalhando para trazer as melhores ofertas para você.
-          </p>
+        <div className={styles.emptyStateCard}>
+          <div className={styles.comingSoonMessage}>
+            <div className={styles.comingSoonIcon}>✨</div>
+            <h3 className={styles.comingSoonTitle}>
+              {error ? 'Ops! Algo deu errado' : 'Nenhum produto encontrado'}
+            </h3>
+            <p className={styles.comingSoonText}>
+              {error 
+                ? 'Tente novamente mais tarde' 
+                : 'Tente ajustar os filtros ou fazer uma nova busca'}
+            </p>
+          </div>
         </div>
       </Container>
     );
@@ -183,18 +185,17 @@ const ProductCatalog = ({
 
   return (
     <Container>
-      <div className="mb-3 d-flex justify-content-between">
+      <div className="mb-3 d-flex justify-content-between align-items-center">
         <span className="text-muted">
           Mostrando {products.length} de {totalProducts} produtos
         </span>
+        {loading && (
+          <div className="d-flex align-items-center">
+            <Spinner animation="border" size="sm" className="me-2" />
+            <span>Atualizando...</span>
+          </div>
+        )}
       </div>
-      
-      {loading && (
-        <div className="text-center py-3">
-          <Spinner animation="border" size="sm" variant="primary" />
-          <span className="ms-2">Atualizando produtos...</span>
-        </div>
-      )}
       
       <Row>
         {products.map((product) => (

@@ -29,22 +29,35 @@ const SalesMartins = () => {
   const [videoVisible, setVideoVisible] = useState(false);
   const [backgroundImageLoaded, setBackgroundImageLoaded] = useState(true);
   
-  // Refs para rolagem automática
   const videoRef = useRef(null);
   const productsSectionRef = useRef(null);
   const categoryWrapperRef = useRef(null);
 
   useEffect(() => {
     const fetchCategories = async () => {
-        try {
-            const response = await affiliateService.getCategories();
-            setPopularCategories(response.data.slice(0, 8));
-            setOtherCategories(response.data.slice(8));
-        } catch (error) {
-            console.error('Erro ao carregar categorias:', error);
-            setPopularCategories([]);
-            setOtherCategories([]);
+      try {
+        const response = await affiliateService.getCategories();
+        if (response.data?.data) {
+          // Get all categories and sort by name
+          const allCategories = response.data.data.sort((a, b) => 
+            a.name.localeCompare(b.name)
+          );
+          
+          // Add icons to categories
+          const categoriesWithIcons = allCategories.map(cat => ({
+            ...cat,
+            icon: getCategoryIcon(cat.name)
+          }));
+
+          // Separate into popular (first 8) and others
+          setPopularCategories(categoriesWithIcons.slice(0, 8));
+          setOtherCategories(categoriesWithIcons.slice(8));
         }
+      } catch (error) {
+        console.error('Erro ao carregar categorias:', error);
+        setPopularCategories([]);
+        setOtherCategories([]);
+      }
     };
 
     fetchCategories();
@@ -62,8 +75,6 @@ const SalesMartins = () => {
 
   const handleSearch = (e) => {
     e.preventDefault();
-    // The search query will be passed to ProductCatalog component
-    // Rolar para a seção de produtos após pesquisa
     if (productsSectionRef.current) {
       productsSectionRef.current.scrollIntoView({ behavior: 'smooth' });
     }
@@ -82,26 +93,25 @@ const SalesMartins = () => {
     if (name.includes('jogo') || name.includes('game')) return <FaGamepad />;
     if (name.includes('esporte')) return <FaRunning />;
     if (name.includes('saúde') || name.includes('saude')) return <FaHeartbeat />;
-    if (name.includes('livro') || name.includes('educação')) return <FaBook />;
+    if (name.includes('livro') || name.includes('livraria')) return <FaBook />;
     if (name.includes('bebê') || name.includes('bebe') || name.includes('infantil')) return <FaBabyCarriage />;
-    if (name.includes('cozinha') || name.includes('utensilio')) return <FaUtensils />;
-    if (name.includes('joia') || name.includes('acessório')) return <GiJewelCrown />;
     if (name.includes('pet') || name.includes('animal')) return <FaPaw />;
-    if (name.includes('alimento')) return <GiFruitBowl />;
-    if (name.includes('fitness')) return <GiSportMedal />;
-    
-    return <FaSearch />;
+    if (name.includes('joia') || name.includes('acessório')) return <GiJewelCrown />;
+    if (name.includes('alimento') || name.includes('comida')) return <FaUtensils />;
+    if (name.includes('fruta') || name.includes('hortifruti')) return <GiFruitBowl />;
+    return <GiSportMedal />;
   };
 
   const toggleVideo = () => {
     if (videoRef.current) {
-      if (isVideoPlaying) {
-        videoRef.current.pause();
-      } else {
-        setVideoVisible(true);
+      setVideoVisible(!videoVisible);
+      if (!isVideoPlaying) {
         videoRef.current.play();
+        setIsVideoPlaying(true);
+      } else {
+        videoRef.current.pause();
+        setIsVideoPlaying(false);
       }
-      setIsVideoPlaying(!isVideoPlaying);
     }
   };
 
@@ -116,7 +126,6 @@ const SalesMartins = () => {
     console.log('Category selected:', categoryId);
     setSelectedCategory(categoryId);
     
-    // Rolar para a seção de produtos quando uma categoria é selecionada
     setTimeout(() => {
       if (productsSectionRef.current) {
         productsSectionRef.current.scrollIntoView({ behavior: 'smooth' });
@@ -126,7 +135,7 @@ const SalesMartins = () => {
 
   return (
     <div className={styles.pageWrapper}>
-      {/* Header com efeito glass black piano - Agora como header principal */}
+      {/* Header com efeito glass black piano */}
       <header className={styles.header}>
         <Container>
           <div className={styles.headerInner}>
@@ -211,7 +220,7 @@ const SalesMartins = () => {
         </div>
       </div>
 
-      {/* Categorias em linha com efeito glass - PRIMEIRA LINHA (principais) - agora mais compactas */}
+      {/* Categorias em linha com efeito glass */}
       <div className={styles.categoryWrapper} ref={categoryWrapperRef}>
         <Container>
           <div className={styles.categoryList}>
@@ -228,7 +237,6 @@ const SalesMartins = () => {
             ))}
           </div>
           
-          {/* SEGUNDA LINHA (categorias secundárias) */}
           <div className={styles.categoryListSecondary}>
             {otherCategories.map((category) => (
               <Button
@@ -270,7 +278,7 @@ const SalesMartins = () => {
         </Form>
       </Container>
 
-      {/* Seção de descontos - Usando dados reais do banco */}
+      {/* Seção de descontos */}
       <SpecialProductsSection 
         title="Caution Descontos!" 
         icon={<FaPercent />} 
@@ -282,19 +290,19 @@ const SalesMartins = () => {
         limit={4}
       />
 
-      {/* Products Section - Usando nosso componente de catálogo com o card melhorado */}
+      {/* Products Section */}
       <div ref={productsSectionRef}>
         <Container>
           <h2 className={styles.sectionTitle}>Produtos Campeões em Economia</h2>
           <ProductCatalog 
             categoryId={selectedCategory} 
             searchQuery={searchQuery} 
-            CardComponent={EnhancedProductCard} // Usar o componente de card melhorado
+            CardComponent={EnhancedProductCard}
           />
         </Container>
       </div>
 
-      {/* Seção de mais bem avaliados - Usando dados reais do banco */}
+      {/* Seção de mais bem avaliados */}
       <SpecialProductsSection 
         title="Mais Bem Avaliados" 
         icon={<FaTrophy />} 
@@ -306,7 +314,7 @@ const SalesMartins = () => {
         limit={4}
       />
 
-      {/* Footer personalizado para a página Sales Martins */}
+      {/* Footer personalizado */}
       <footer className={styles.footer}>
         <Container>
           <div className={styles.footerContent}>

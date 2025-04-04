@@ -1,19 +1,14 @@
 {
-  "short_name": "ShopeeAnalytics",
-  "name": "Shopee Analytics",
+  "short_name": "Shopee Analytics",
+  "name": "Shopee Analytics - Sistema de análise de produtos e afiliados",
   "icons": [
     {
-      "src": "/images/logo192.png",
-      "type": "image/png",
-      "sizes": "192x192"
-    },
-    {
-      "src": "/images/logo512.png",
-      "type": "image/png",
-      "sizes": "512x512"
+      "src": "/Logo192.jpg",
+      "sizes": "192x192",
+      "type": "image/jpeg"
     }
   ],
-  "start_url": "/",
+  "start_url": ".",
   "display": "standalone",
   "theme_color": "#000000",
   "background_color": "#ffffff"

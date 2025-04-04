@@ -2,7 +2,8 @@ import axios from 'axios';
 
 // Cria uma instância do axios com configurações base
 const api = axios.create({
-  baseURL: process.env.REACT_APP_API_URL || 'http://localhost:3001/api', // Certifique-se de que a baseURL está correta
+  // Use relative path instead of absolute URL
+  baseURL: '/api',
   timeout: 10000,
   headers: {
     'Content-Type': 'application/json',

@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import { Routes, Route } from 'react-router-dom';
 import Layout from './components/Layout';
 import PrivateRoute from './components/PrivateRoute';
@@ -13,35 +13,29 @@ import SalesMartins from './pages/SalesMartins/SalesMartins';
 import './App.css';
 import { ProductProvider } from './contexts/ProductContext';
 import { AuthProvider } from './contexts/AuthContext';
-import { useAuth } from './contexts/AuthContext';
+
+function AppRoutes() {
+  return (
+    <Routes>
+      <Route path="/login" element={<Login />} />
+      <Route path="/sales-martins" element={<SalesMartins />} />
+      <Route path="/" element={<Layout />}>
+        <Route index element={<PrivateRoute><Home /></PrivateRoute>} />
+        <Route path="/champion-products" element={<PrivateRoute><ChampionProducts /></PrivateRoute>} />
+        <Route path="/vitrine" element={<Vitrine />} />
+        <Route path="/performance-analysis" element={<PrivateRoute><PerformanceAnalysis /></PrivateRoute>} />
+        <Route path="/category-repair" element={<CategoryRepair />} />
+        <Route path="/produto/:id" element={<ProductDetails />} />
+      </Route>
+    </Routes>
+  );
+}
 
 function App() {
-  const { isAuthenticated, user } = useAuth();
-
-  useEffect(() => {
-    if (isAuthenticated && user && user.role !== 'admin') {
-      const currentPath = window.location.pathname;
-      if (!currentPath.includes('/sales-martins')) {
-        window.location.href = '/sales-martins';
-      }
-    }
-  }, [isAuthenticated, user]);
-
   return (
     <AuthProvider>
       <ProductProvider>
-        <Routes>
-          <Route path="/login" element={<Login />} />
-          <Route path="/sales-martins" element={<SalesMartins />} />
-          <Route path="/" element={<Layout />}>
-            <Route index element={<PrivateRoute><Home /></PrivateRoute>} />
-            <Route path="/champion-products" element={<PrivateRoute><ChampionProducts /></PrivateRoute>} />
-            <Route path="/vitrine" element={<Vitrine />} />
-            <Route path="/performance-analysis" element={<PrivateRoute><PerformanceAnalysis /></PrivateRoute>} />
-            <Route path="/category-repair" element={<CategoryRepair />} />
-            <Route path="/produto/:id" element={<ProductDetails />} />
-          </Route>
-        </Routes>
+        <AppRoutes />
       </ProductProvider>
     </AuthProvider>
   );
