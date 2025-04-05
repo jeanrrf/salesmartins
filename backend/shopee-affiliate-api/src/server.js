@@ -21,7 +21,44 @@ ModuleLoader.registerGlobalMiddleware(app, injectScripts);
 ModuleLoader.registerGlobalMiddleware(app, disableHeaderNavigation);
 
 // Always load core routes (Sales Martins and basic data access)
-app.use('/api/products', require('./routes/productRoutes'));
+app.use('/api/products', (req, res, next) => {
+    try {
+        const { category, categoryOnly } = req.query; // Capture categoryOnly parameter too
+        const productsData = require('./data/products.json'); // Load product data
+
+        // Se o parâmetro categoryOnly estiver presente, retorna apenas as categorias
+        if (categoryOnly === 'true') {
+            // Extrair categorias únicas dos produtos
+            const categoriesMap = {};
+            productsData.data.forEach(product => {
+                if (product.category_id && product.category_name) {
+                    categoriesMap[product.category_id] = product.category_name;
+                }
+            });
+
+            const categories = Object.keys(categoriesMap).map(id => ({
+                id: parseInt(id),
+                name: categoriesMap[id]
+            }));
+
+            return res.json({
+                success: true,
+                data: categories
+            });
+        }
+
+        // Normal product filtering by category
+        const products = productsData.data || [];
+        const filteredProducts = category
+            ? products.filter(product => product.category_id === parseInt(category))
+            : products;
+
+        res.json({ success: true, data: filteredProducts });
+    } catch (error) {
+        console.error('Error in /api/products:', error);
+        res.status(500).json({ success: false, message: 'Internal Server Error', error: error.message });
+    }
+});
 app.use('/api/affiliate', require('./routes/affiliateRoutes'));
 
 // Configuração para acesso público total sem autenticação
