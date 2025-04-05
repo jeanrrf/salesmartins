@@ -1,21 +1,22 @@
-/* Categories positioning - independent and fixed at the top */
+/* Categories positioning - fixed to the left and full height */
 .categoriesContainer {
   position: fixed;
   top: 0;
   left: 0;
-  right: 0;
-  width: 100%;
+  width: 250px;
+    /* Fixed width for the sidebar */
+    height: 100%;
+    /* Full height of the screen */
   background: linear-gradient(90deg, #ff007a, #01b4ff);
   color: white;
   z-index: 100;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  box-shadow: 2px 0 4px rgba(0, 0, 0, 0.1);
   display: flex;
-  justify-content: space-around;
-  /* Adjusted for better spacing */
+  flex-direction: column;
+    justify-content: flex-start;
   align-items: center;
-  padding: 0.5rem 1rem;
+  padding: 1rem 0;
   margin: 0;
-  /* Remove any extra space */
 }
 
 /* Remove redundant category descriptions */
@@ -26,27 +27,38 @@
   margin: 0 0.5rem;
 }
 
-/* Main container - no dependency on the navigation bar */
+/* Adjust main container to account for the sidebar */
 .container {
   display: flex;
   flex-direction: column;
-    width: 100%;
+  width: calc(100% - 250px);
+    /* Subtract sidebar width */
+    margin-left: 250px;
+    /* Align content next to the sidebar */
     padding-top: 70px;
     /* Ensure content starts below the fixed nav bar */
 }
 
+/* Main content adjustments */
 .mainContent {
   flex: 1;
   width: 100%;
-    padding: 1rem;
+  padding: 1rem;
   }
   
   @media (max-width: 640px) {
     .categoriesContainer {
-      padding: 0.5rem;
-      font-size: 0.9rem;
+    width: 200px;
+      /* Adjust sidebar width for smaller screens */
+      padding: 0.5rem 0;
     }
-  
+    
+    .container {
+      width: calc(100% - 200px);
+      /* Adjust content width */
+      margin-left: 200px;
+    }
+    
     .mainContent {
       padding: 0.5rem;
     }
