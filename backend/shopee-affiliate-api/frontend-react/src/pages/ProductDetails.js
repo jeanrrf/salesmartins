@@ -1,11 +1,8 @@
-import React, { useRef } from 'react';
+import React, { useRef, useEffect, useState, useCallback } from 'react';
 import { useParams } from 'react-router-dom';
 import styled from 'styled-components';
 import { affiliateService } from '../services/api';
-import { useEffect, useState } from 'react';
-
-// Replace local image import with URL constant
-const PLACEHOLDER_IMAGE = "https://via.placeholder.com/400x300?text=Product+Image";
+import { DEFAULT_PRODUCT_IMAGE } from '../constants/images';
 
 const ProductDetailsContainer = styled.div`
   padding: 2rem;
@@ -118,6 +115,21 @@ const ProductDetails = () => {
   const [selectedCategory, setSelectedCategory] = useState(null);
   const relatedProductsRef = useRef(null);
 
+  const fetchRelatedProducts = useCallback(async (categoryId) => {
+    try {
+      const response = await affiliateService.getProductsByCategory(categoryId, { limit: 8 });
+      if (response.data && response.data.data && response.data.data.products) {
+        // Filter out the current product from related products
+        const filteredProducts = response.data.data.products.filter(
+          relatedProduct => relatedProduct.id !== parseInt(id)
+        );
+        setRelatedProducts(filteredProducts);
+      }
+    } catch (error) {
+      console.error('Erro ao buscar produtos relacionados:', error);
+    }
+  }, [id]);
+
   useEffect(() => {
     const fetchProductDetails = async () => {
       try {
@@ -137,22 +149,7 @@ const ProductDetails = () => {
     };
 
     fetchProductDetails();
-  }, [id]);
-
-  const fetchRelatedProducts = async (categoryId) => {
-    try {
-      const response = await affiliateService.getProductsByCategory(categoryId, { limit: 8 });
-      if (response.data && response.data.data && response.data.data.products) {
-        // Filter out the current product from related products
-        const filteredProducts = response.data.data.products.filter(
-          relatedProduct => relatedProduct.id !== parseInt(id)
-        );
-        setRelatedProducts(filteredProducts);
-      }
-    } catch (error) {
-      console.error('Erro ao buscar produtos relacionados:', error);
-    }
-  };
+  }, [id, fetchRelatedProducts]);
 
   const handleCategoryClick = (categoryId, categoryName) => {
     setSelectedCategory(categoryId);
@@ -162,6 +159,10 @@ const ProductDetails = () => {
     if (relatedProductsRef && relatedProductsRef.current) {
       relatedProductsRef.current.scrollIntoView({ behavior: 'smooth' });
     }
+  };
+
+  const getImageUrl = (image) => {
+    return image || DEFAULT_PRODUCT_IMAGE;
   };
 
   if (loading) {
@@ -174,14 +175,7 @@ const ProductDetails = () => {
 
   return (
     <ProductDetailsContainer>
-      <ProductImage 
-        src={product.image || PLACEHOLDER_IMAGE} 
-        alt={product.name} 
-        onError={(e) => {
-          e.target.onerror = null;
-          e.target.src = PLACEHOLDER_IMAGE;
-        }}
-      />
+      <ProductImage src={getImageUrl(product?.image)} alt={product?.name} />
       <ProductTitle>{product.name}</ProductTitle>
       <ProductPrice>{new Intl.NumberFormat('pt-BR', {
         style: 'currency',
@@ -210,11 +204,11 @@ const ProductDetails = () => {
             {relatedProducts.map(relatedProduct => (
               <RelatedProductCard key={relatedProduct.id}>
                 <RelatedProductImage 
-                  src={relatedProduct.image_url || PLACEHOLDER_IMAGE} 
+                  src={relatedProduct.image_url || DEFAULT_PRODUCT_IMAGE} 
                   alt={relatedProduct.name}
                   onError={(e) => {
                     e.target.onerror = null;
-                    e.target.src = PLACEHOLDER_IMAGE;
+                    e.target.src = DEFAULT_PRODUCT_IMAGE;
                   }}
                 />
                 <RelatedProductInfo>

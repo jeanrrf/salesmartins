@@ -12,7 +12,7 @@ passport.deserializeUser(async (id, done) => {
     const user = await prisma.user.findUnique({ where: { id } });
     done(null, user);
   } catch (error) {
-    done(error, null);
+    done(error);
   }
 });
 
@@ -23,25 +23,21 @@ passport.use(new GoogleStrategy({
   },
   async (accessToken, refreshToken, profile, done) => {
     try {
-      let user = await prisma.user.findUnique({
-        where: { googleId: profile.id }
+      const user = await prisma.user.upsert({
+        where: { googleId: profile.id },
+        update: {
+          lastLoginAt: new Date()
+        },
+        create: {
+          email: profile.emails[0].value,
+          name: profile.displayName,
+          googleId: profile.id,
+          picture: profile.photos[0]?.value,
+        }
       });
-
-      if (!user) {
-        user = await prisma.user.create({
-          data: {
-            googleId: profile.id,
-            email: profile.emails[0].value,
-            name: profile.displayName,
-            picture: profile.photos[0].value,
-            role: 'CLIENT'
-          }
-        });
-      }
-
       done(null, user);
     } catch (error) {
-      done(error, null);
+      done(error);
     }
   }
 ));

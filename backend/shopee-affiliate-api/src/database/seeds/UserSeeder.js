@@ -2,8 +2,40 @@ const bcrypt = require('bcryptjs');
 const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
 
+async function validateConnection() {
+  try {
+    await prisma.$connect();
+    // Verify if users table exists
+    const tableExists = await prisma.$queryRaw`
+      SELECT EXISTS (
+        SELECT FROM information_schema.tables 
+        WHERE table_schema = 'public'
+        AND table_name = 'users'
+      );
+    `;
+
+    if (!tableExists[0].exists) {
+      console.error('❌ Database tables not found. Please run migrations first:');
+      console.log('npx prisma migrate dev --name init');
+      return false;
+    }
+
+    console.log('✅ Database connection and schema verified successfully');
+    return true;
+  } catch (error) {
+    console.error('❌ Database connection failed:', error.message);
+    console.log('Please check your DATABASE_URL in .env file');
+    console.log('Current connection string format should be: postgresql://USER:PASSWORD@HOST:PORT/DATABASE?schema=public');
+    return false;
+  }
+}
+
 async function seedUsers() {
   try {
+    if (!(await validateConnection())) {
+      process.exit(1);
+    }
+
     // Create super admin user
     await prisma.user.upsert({
       where: { email: 'admin' },
@@ -45,7 +77,7 @@ async function seedUsers() {
 
     console.log('✅ Users seeded successfully');
   } catch (error) {
-    console.error('❌ Error seeding users:', error);
+    console.error('❌ Error seeding users:', error.message);
     process.exit(1);
   } finally {
     await prisma.$disconnect();
@@ -55,6 +87,6 @@ async function seedUsers() {
 // Execute seeding
 seedUsers()
   .catch((error) => {
-    console.error('❌ Seed failed:', error);
+    console.error('❌ Seed failed:', error.message);
     process.exit(1);
   });

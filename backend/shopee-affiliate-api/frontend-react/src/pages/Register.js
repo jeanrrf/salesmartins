@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Container, Form, Button, Alert } from 'react-bootstrap';
+import { Container, Form, Button } from 'react-bootstrap';
 import { useNavigate } from 'react-router-dom';
 
 const Register = () => {
@@ -11,16 +11,21 @@ const Register = () => {
   const [error, setError] = useState('');
   const navigate = useNavigate();
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    // Add registration logic here
-    navigate('/login');
+    try {
+      // Add registration logic here
+      navigate('/login');
+    } catch (err) {
+      setError(err.response?.data?.message || 'Error during registration');
+    }
   };
 
   return (
     <Container className="mt-5">
       <h2>Register</h2>
       <Form onSubmit={handleSubmit}>
+        {error && <div className="alert alert-danger">{error}</div>}
         <Form.Group className="mb-3">
           <Form.Label>Email</Form.Label>
           <Form.Control
