@@ -68,6 +68,54 @@ const SalesMartins = () => {
     fetchCategories();
   }, []);
 
+  // Função auxiliar para obter ícone com base no nome da categoria
+  const getCategoryIcon = (categoryName) => {
+    const name = categoryName ? categoryName.toLowerCase() : '';
+
+    if (name.includes('eletrônico')) return <FaTools />;
+    if (name.includes('ferramenta') || name.includes('construção')) return <FaTools />;
+    if (name.includes('beleza') || name.includes('cuidado')) return <FaBaby />;
+    if (name.includes('casa') || name.includes('decoração')) return <FaCouch />;
+    if (name.includes('moda')) return <FaTshirt />;
+    if (name.includes('automotivo')) return <FaCar />;
+
+    // Ícone padrão
+    return <FaHome />;
+  };
+
+  // Função para simplificar nomes de categorias
+  const getShortCategoryName = (name) => {
+    if (!name) return '';
+
+    // Mapeamento para nomes mais curtos e elegantes
+    const nameMap = {
+      'Eletrônicos': 'Eletrôn.',
+      'Eletrônicos e Celulares': 'Tech',
+      'Celulares': 'Celulares',
+      'Moda Feminina': 'Feminino',
+      'Moda Masculina': 'Masculino',
+      'Moda Infantil': 'Kids',
+      'Calçados': 'Calçados',
+      'Casa e Decoração': 'Casa',
+      'Cozinha': 'Cozinha',
+      'Beleza e Saúde': 'Beleza',
+      'Esportes': 'Esportes',
+      'Ferramentas': 'Tools',
+      'Automotivo': 'Auto'
+    };
+
+    // Verificar se existe mapeamento direto
+    if (nameMap[name]) return nameMap[name];
+
+    // Caso contrário, retorna os primeiros 8 caracteres
+    if (name.length > 8) {
+      return name.substring(0, 7) + '.';
+    }
+
+    return name;
+  };
+
+  // Carrega a imagem de fundo
   useEffect(() => {
     const img = new Image();
     img.src = heroBackground;
@@ -234,74 +282,127 @@ const SalesMartins = () => {
         </div>
       </div>
 
-      {/* Categorias em linha com efeito glass */}
-      <div className={styles.categoryWrapper} ref={categoryWrapperRef}>
-        <Container>
-          <div className={styles.categoryList}>
-            {popularCategories.map((category) => (
+      {/* Conteúdo Principal - Categorias laterais e produtos */}
+      <Container fluid className="px-0"> {/* Changed to fluid with no padding */}
+        <div className={styles.mainContentWrapper} ref={categoryWrapperRef}>
+          {/* Sidebar com categorias */}
+          <aside className={styles.sidebarCategories}>
+            <h3>Categorias</h3>
+            <div className={styles.verticalCategoryList}>
+              {/* Botão para mostrar todos os produtos */}
               <Button
-                key={category.id}
-                variant={selectedCategory === category.id ? 'primary' : 'outline-light'}
-                onClick={() => handleCategoryClick(category.id)}
-                className={`${styles.categoryButton} ${selectedCategory === category.id ? styles.active : ''}`}
+                variant={selectedCategory === null ? 'primary' : 'outline-light'}
+                onClick={() => {
+                  setSelectedCategory(null);
+                  fetchProducts();
+                }}
+                className={`${styles.categoryButton} ${selectedCategory === null ? styles.active : ''}`}
+                aria-label="Ver todos os produtos"
               >
-                <span className={styles.categoryIcon}>{category.icon}</span>
-                <span className={styles.categoryName}>{category.name}</span>
+                <span className={styles.categoryIcon}><FaHome /></span>
+                <span className={styles.categoryName}>Todos</span>
               </Button>
-            ))}
-          </div>
-          
-          <div className={styles.scrollIndicator}>
-            <div className={`${styles.scrollDot} ${styles.active}`}></div>
-            <div className={styles.scrollDot}></div>
-            <div className={styles.scrollDot}></div>
-          </div>
-        </Container>
-      </div>
 
-      {/* Seção de descontos */}
-      <SpecialProductsSection 
-        title="Caution Descontos!" 
-        icon={<FaPercent />} 
-        sectionClass="discountSection"
-        filterParams={{
-          sortBy: 'discount',
-          minDiscount: 20
-        }}
-        limit={4}
-      />
+              {/* Renderiza as categorias dinamicamente */}
+              {categoryLoading ? (
+                <div className="text-center py-2">
+                  <Spinner animation="border" size="sm" variant="light" aria-label="Carregando categorias" />
+                </div>
+              ) : error || popularCategories.length === 0 ? (
+                <div className="text-center py-2">
+                  <p className="text-light mb-0">Não foi possível carregar as categorias</p>
+                </div>
+              ) : (
+                popularCategories.map((category) => (
+                  <Button
+                    key={category.id}
+                    variant={selectedCategory === category.id ? 'primary' : 'outline-light'}
+                    onClick={() => handleCategoryClick(category.id)}
+                    className={`${styles.categoryButton} ${selectedCategory === category.id ? styles.active : ''}`}
+                    aria-label={`Ver produtos da categoria ${category.name}`}
+                  >
+                    <span className={styles.categoryIcon}>{category.icon}</span>
+                    <span className={styles.categoryName} title={category.name}>{getShortCategoryName(category.name)}</span>
+                  </Button>
+                ))
+              )}
+            </div>
+          </aside>
 
-      {/* Products Section */}
-      <div ref={productsSectionRef}>
-        <Container>
-          <h2 className={styles.sectionTitle}>Produtos Campeões em Economia</h2>
+          {/* Área principal de conteúdo */}
+          <main className={styles.productsContentArea}>
+            {/* Search bar */}
+            <div className={styles.compactSearchContainer}>
+              <Form onSubmit={handleSearch} className={styles.compactSearchForm}>
+                <Form.Control
+                  type="text"
+                  placeholder="Buscar produtos..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className={styles.compactSearchInput}
+                  id="productSearch"
+                  name="productSearch"
+                  aria-label="Busca de produtos"
+                />
+                <Button
+                  type="submit"
+                  variant="primary"
+                  className={styles.compactSearchButton}
+                  aria-label="Buscar"
+                >
+                  <FaSearch />
+                </Button>
+              </Form>
+            </div>
 
-          {/* Add search bar here, directly above the product catalog */}
-          <div className={styles.compactSearchContainer}>
-            <Form onSubmit={handleSearch} className={styles.compactSearchForm}>
-              <Form.Control
-                type="text"
-                placeholder="Buscar produtos..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className={styles.compactSearchInput}
-                id="productSearch"
-                name="productSearch"
-                aria-label="Busca de produtos"
-              />
-              <Button type="submit" variant="primary" className={styles.compactSearchButton}>
-                <FaSearch />
-              </Button>
-            </Form>
-          </div>
+            {/* Products Section - Principal catálogo de produtos */}
+            <div ref={productsSectionRef}>
+              <h2 className={styles.sectionTitle}>
+                {selectedCategory
+                  ? `${popularCategories.find(c => c.id === selectedCategory)?.name || ''}`
+                  : 'Produtos Campeões em Economia'}
+              </h2>
 
-          <ProductCatalog 
-            categoryId={selectedCategory} 
-            searchQuery={searchQuery} 
-            CardComponent={EnhancedProductCard}
-          />
-        </Container>
-      </div>
+              {/* Show loading, error, or products */}
+              {loading ? (
+                <div className="text-center py-5">
+                  <Spinner animation="border" variant="primary" aria-label="Carregando produtos" />
+                  <p className="mt-3">Carregando produtos...</p>
+                </div>
+              ) : error ? (
+                <div className="text-center py-5">
+                  <p className="text-danger">{error}</p>
+                  <Button
+                    variant="outline-primary"
+                    onClick={() => fetchProducts(selectedCategory)}
+                    aria-label="Tentar carregar produtos novamente"
+                  >
+                    Tentar novamente
+                  </Button>
+                </div>
+              ) : products.length === 0 ? (
+                <div className="text-center py-5">
+                  <p>Nenhum produto encontrado nesta categoria.</p>
+                  <Button
+                    variant="outline-primary"
+                    onClick={() => {
+                      setSelectedCategory(null);
+                      fetchProducts();
+                    }}
+                    aria-label="Ver todos os produtos disponíveis"
+                  >
+                    Ver todos os produtos
+                  </Button>
+                </div>
+              ) : (
+                      <ProductCatalog
+                        products={products}
+                        searchQuery={searchQuery}
+                        CardComponent={EnhancedProductCard}
+                        cardStyle={{ maxWidth: '220px' }}
+                      />
+              )}
+            </div>
 
             {/* Seções condicionais com base na categoria selecionada */}
             {selectedCategory ? (
