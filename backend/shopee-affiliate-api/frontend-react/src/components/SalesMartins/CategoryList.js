@@ -2,16 +2,23 @@ import React from 'react';
 import styles from './CategoryList.module.css';
 import { 
   FaHome, 
-  FaTshirt, 
-  FaCouch, 
-  FaSprayCan, 
-  FaCar, 
-  FaTools, 
-  FaMobile, 
+  FaShoppingBag,
   FaLaptop, 
-  FaGamepad, 
-  FaBaby, 
-  FaUtensils 
+  FaTshirt, 
+  FaGem,
+  FaHeart,
+  FaBabyCarriage,
+  FaFootballBall,
+  FaUtensils,
+  FaGuitar,
+  FaBook,
+  FaPlane,
+  FaCar,
+  FaCouch,
+  FaMobileAlt,
+  FaHeadphones,
+  FaGamepad,
+  FaTools
 } from 'react-icons/fa';
 
 const CategoryList = ({ categories, selectedCategory, onCategoryClick }) => {
@@ -20,15 +27,21 @@ const CategoryList = ({ categories, selectedCategory, onCategoryClick }) => {
 
     const name = categoryName.toLowerCase();
     if (name.includes('eletrônico')) return <FaLaptop />;
-    if (name.includes('celular') || name.includes('smartphone')) return <FaMobile />;
+    if (name.includes('celular') || name.includes('smartphone')) return <FaMobileAlt />;
     if (name.includes('game') || name.includes('jogo')) return <FaGamepad />;
     if (name.includes('ferramenta') || name.includes('construção')) return <FaTools />;
-    if (name.includes('beleza') || name.includes('cuidado')) return <FaSprayCan />;
+    if (name.includes('beleza') || name.includes('cuidado')) return <FaGem />;
     if (name.includes('casa') || name.includes('decoração')) return <FaCouch />;
-    if (name.includes('moda')) return <FaTshirt />;
+    if (name.includes('moda')) return <FaShoppingBag />;
     if (name.includes('automotivo')) return <FaCar />;
-    if (name.includes('bebê') || name.includes('infantil')) return <FaBaby />;
+    if (name.includes('bebê') || name.includes('infantil') || name.includes('criança')) return <FaBabyCarriage />;
     if (name.includes('cozinha') || name.includes('utensílios')) return <FaUtensils />;
+    if (name.includes('livro') || name.includes('educação')) return <FaBook />;
+    if (name.includes('esporte')) return <FaFootballBall />;
+    if (name.includes('música') || name.includes('instrumento')) return <FaGuitar />;
+    if (name.includes('viagem')) return <FaPlane />;
+    if (name.includes('saúde')) return <FaHeart />;
+    if (name.includes('audio') || name.includes('som')) return <FaHeadphones />;
     return <FaHome />;
   };
 

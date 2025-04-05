@@ -62,7 +62,9 @@
   color: #fff;
   padding-left: 20px;
   padding-right: 20px;
-  margin-left: 15px;
+  margin: 15px auto; /* Changed from margin-left to center the banner */
+  max-width: 95%; /* Added max-width to prevent full bleed */
+  border-radius: 12px; /* Added border radius for better appearance */
 }
 
 .backgroundImage {
@@ -73,7 +75,7 @@
   bottom: 0;
   background-size: cover;
   background-position: center;
-  filter: brightness(0.3) saturate(1.2);
+  filter: brightness(0.4) saturate(1.2);
   transform: scale(1.05);
   transition: transform 10s ease;
   z-index: 1;
@@ -220,8 +222,10 @@
 
 /* Layout para categorias e produtos */
 .mainContentWrapper {
-  display: block;
+  display: flex;
+    flex-direction: column;
   margin-top: 2rem;
+  width: 100%;
 }
 
 .productsContentArea {
@@ -230,16 +234,17 @@
   padding: 0;
   padding-left: 20px;
   padding-right: 20px;
-  order: 10;
+  order: 3;
 }
 
 /* Estilo de cabeçalho de categoria */
 .categoryHeader {
-  background: rgba(0, 0, 0, 0.6);
-  border: 1px solid rgba(255, 255, 255, 0.05);
+  background: linear-gradient(to right, rgba(1, 180, 255, 0.2), rgba(255, 0, 122, 0.1));
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-left: 4px solid #01b4ff;
   border-radius: 12px;
-  padding: 1.5rem;
-  margin-bottom: 2rem;
+  padding: 1.75rem;
+    margin-bottom: 2.5rem;
   text-align: center;
   animation: fadeInUp 0.6s ease;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
@@ -338,32 +343,40 @@
 
 /* Compact search bar styles */
 .compactSearchContainer {
+  order: 1;
   margin-bottom: 2rem;
   width: 70%;
   margin-left: auto;
   margin-right: auto;
-  order: 5;
 }
 
 .compactSearchForm {
   display: flex;
   position: relative;
-  background: rgba(255, 255, 255, 0.05);
-  border-radius: 8px;
-  padding: 0.25rem;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.08);
+    border-radius: 12px;
+    padding: 0.35rem;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+  }
+  
+  .compactSearchForm:hover {
+    border-color: rgba(255, 0, 122, 0.5);
+    box-shadow: 0 4px 20px rgba(255, 0, 122, 0.15);
 }
 
 .compactSearchInput {
   background: transparent;
   border: none;
   color: white;
-  padding: 0.5rem 1rem;
+  padding: 0.7rem 1.2rem;
   flex-grow: 1;
+  font-size: 1rem;
 }
 
 .compactSearchInput::placeholder {
-  color: rgba(255, 255, 255, 0.5);
+  color: rgba(255, 255, 255, 0.6);
 }
 
 .compactSearchInput:focus {
@@ -374,14 +387,16 @@
 
 .compactSearchButton {
   border-radius: 8px;
-  padding: 0.5rem 0.75rem;
+  padding: 0.7rem 1.2rem;
   background: linear-gradient(90deg, #ff007a, #01b4ff);
   border: none;
-  box-shadow: 0 0 10px rgba(255, 0, 122, 0.3);
-  min-width: 40px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  box-shadow: 0 4px 15px rgba(255, 0, 122, 0.3);
+    transition: all 0.3s ease;
+  }
+  
+  .compactSearchButton:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(255, 0, 122, 0.4);
 }
 
 /* Novo container para categorias horizontais após a barra de busca */
@@ -434,13 +449,7 @@
   padding: 1.5rem 0;
   position: relative;
   /* Add higher order value to position after main catalog */
-  order: 20;
-}
-
-/* Add a container to control ordering of sections */
-.pageContentOrder {
-  display: flex;
-  flex-direction: column;
+  order: 4;
 }
 
 /* Hide special sections when search is active */
@@ -456,12 +465,6 @@
 }
 
 /* Novas seções de produtos especiais */
-.specialSection {
-  margin: 2.5rem 0;
-  padding: 1.5rem 0;
-  position: relative;
-}
-
 .discountSection {
   background: linear-gradient(to right, rgba(255, 0, 0, 0.1), rgba(255, 0, 0, 0.05), transparent);
   border-left: 5px solid #ff0000;
@@ -500,6 +503,24 @@
   animation: gradientAnimation 5s ease infinite;
 }
 
+/* Search results styling */
+.searchResultsHeader {
+  background: linear-gradient(to right, rgba(255, 0, 122, 0.2), rgba(1, 180, 255, 0.1));
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-left: 4px solid #ff007a;
+  border-radius: 12px;
+  padding: 1.25rem;
+  margin-bottom: 1.5rem;
+  text-align: center;
+  animation: fadeInUp 0.5s ease;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+}
+
+.searchResultsHeader .sectionTitle {
+  margin: 0;
+  font-size: 1.6rem;
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+}
 /* Dynamic Category Cards */
 .categoriesCardContainer {
   display: grid;
@@ -796,16 +817,19 @@
   }
 }
 
-/* Footer personalizado */
+/* Footer personalizado - enhanced */
 .footer {
-  background: rgba(0, 0, 0, 0.8);
-  -webkit-backdrop-filter: blur(10px);
-  backdrop-filter: blur(10px);
-  border-top: 1px solid rgba(255, 255, 255, 0.05);
-  padding: 2rem 0;
-  margin-top: 4rem;
+  background: rgba(0, 0, 0, 0.9);
+    -webkit-backdrop-filter: blur(15px);
+    backdrop-filter: blur(15px);
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    padding: 2rem 0 1rem;
+    /* Reduced padding */
+    margin-top: 3rem;
+    /* Reduced margin */
   padding-left: 30px;
   padding-right: 30px;
+  box-shadow: 0 -5px 20px rgba(0, 0, 0, 0.3);
 }
 
 .footerContent {
@@ -813,11 +837,34 @@
   justify-content: space-between;
   align-items: center;
   flex-wrap: wrap;
-  color: rgba(255, 255, 255, 0.7);
+  color: rgba(255, 255, 255, 0.8);
   font-size: 0.9rem;
   gap: 20px;
 }
 
+.footerInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.contactInfo {
+  display: flex;
+  gap: 1.5rem;
+  flex-wrap: wrap;
+}
+
+.contactItem {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: rgba(255, 255, 255, 0.7);
+  transition: color 0.3s ease;
+}
+
+.contactItem:hover {
+  color: #ff007a;
+}
 .sentinnelLogo {
   font-family: 'Bruno Ace SC', sans-serif;
   font-weight: 600;
@@ -831,6 +878,156 @@
   -webkit-text-fill-color: transparent;
   background-size: 300% 300%;
   animation: gradientAnimation 5s ease infinite;
+  font-size: 1.1rem;
+    letter-spacing: 0.5px;
+  }
+  
+  .poweredBy {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  
+  /* Slider Controls */
+  .sliderButton {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    background: rgba(0, 0, 0, 0.5);
+    color: white;
+    border: none;
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    opacity: 0.6;
+    transition: all 0.3s ease;
+    z-index: 4;
+  }
+  
+  .sliderButton:hover {
+    opacity: 1;
+    background: rgba(255, 0, 122, 0.7);
+  }
+  
+  .prevButton {
+    left: 20px;
+  }
+  
+  .nextButton {
+    right: 20px;
+  }
+  
+  .sliderIndicators {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    position: absolute;
+    bottom: 30px;
+    left: 0;
+    right: 0;
+    z-index: 4;
+  }
+  
+  .sliderDot {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.4);
+    border: none;
+    cursor: pointer;
+    transition: all 0.3s ease;
+  }
+  
+  .activeDot {
+    background: #ff007a;
+    transform: scale(1.2);
+  }
+  
+  /* Contact options */
+  .contactButton {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+  
+  .contactOptions {
+    position: absolute;
+    z-index: 10;
+    margin-top: 10px;
+    animation: fadeIn 0.3s ease;
+    right: 0; /* Position to the right instead of left */
+    top: 100%; /* Position below the button */
+  }
+  
+  .contactCard {
+    background: rgba(25, 25, 25, 0.9);
+    backdrop-filter: blur(10px);
+    border-radius: 12px;
+    padding: 1rem;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+  }
+  
+  .contactLink {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: linear-gradient(to right, rgba(255, 0, 122, 0.2), rgba(1, 180, 255, 0.1));
+    color: white;
+    padding: 0.8rem 1.2rem;
+    border-radius: 8px;
+    transition: all 0.2s ease;
+    text-decoration: none;
+    font-weight: 500;
+  }
+  
+  .contactLink:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(255, 0, 122, 0.2);
+    background: linear-gradient(to right, rgba(255, 0, 122, 0.3), rgba(1, 180, 255, 0.2));
+    color: white;
+  }
+  
+  .contactIcon {
+    font-size: 1.3rem;
+    color: #ff007a;
+  }
+  
+  .contactCloseButton {
+    background: rgba(255, 255, 255, 0.1);
+    color: white;
+    border: none;
+    padding: 0.5rem;
+    border-radius: 8px;
+    cursor: pointer;
+    margin-top: 0.5rem;
+    transition: all 0.2s ease;
+  }
+  
+  .contactCloseButton:hover {
+    background: rgba(255, 255, 255, 0.2);
+  }
+  
+  .returnMessage {
+    text-align: center;
+    margin-top: 1.5rem;
+    color: rgba(255, 255, 255, 0.7);
+    font-weight: 500;
+    font-size: 1.1rem;
+    animation: pulse 2s infinite;
+    background-image: linear-gradient(45deg,
+        #ff007a,
+        #01b4ff);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
 }
 
 /* Animações */
@@ -872,14 +1069,17 @@
 
 @keyframes pulse {
   0% {
+    opacity: 0.7;
     transform: scale(1);
   }
 
   50% {
+    opacity: 1;
     transform: scale(1.05);
   }
 
   100% {
+    opacity: 0.7;
     transform: scale(1);
   }
 }
@@ -898,6 +1098,17 @@
   }
 }
 
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
 /* Media queries para responsividade */
 @media (max-width: 992px) {
   .mainContentWrapper {
@@ -943,10 +1154,17 @@
 
   .footerContent {
     flex-direction: column;
-    gap: 1rem;
+    gap: 1.5rem;
     text-align: center;
   }
 
+                .contactInfo {
+                  justify-content: center;
+                }
+        
+                .footerInfo {
+                  align-items: center;
+                }
   .headerInner {
     flex-direction: column;
     gap: 1rem;
@@ -976,4 +1194,11 @@
   .categoryListSecondary {
     gap: 0.4rem;
   }
+.compactSearchInput {
+  padding: 0.6rem 1rem;
+}
+
+.compactSearchButton {
+  padding: 0.6rem 1rem;
+}
 }

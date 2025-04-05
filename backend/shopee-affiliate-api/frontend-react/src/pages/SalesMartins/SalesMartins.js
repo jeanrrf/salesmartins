@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Container, Row, Col, Button, Form, Spinner } from 'react-bootstrap';
 import { 
-  FaSearch, FaHome, FaPlay, FaPause, FaPercent, FaTrophy, FaTshirt, FaCouch, FaBaby, FaCar, FaTools
+  FaSearch, FaHome, FaArrowRight, FaArrowLeft, FaPercent, FaTrophy, FaTshirt,
+  FaCouch, FaBaby, FaCar, FaTools, FaCommentDots, FaWhatsapp, FaEnvelope
 } from 'react-icons/fa';
 import axios from 'axios';
 import styles from './SalesMartins.module.css';
@@ -9,45 +10,45 @@ import ProductCatalog from '../../components/SalesMartins/ProductCatalog';
 import SpecialProductsSection from '../../components/SalesMartins/SpecialProductsSection';
 import EnhancedProductCard from '../../components/SalesMartins/EnhancedProductCard';
 import CategoryList from '../../components/CategoryList';
-import promoVideo from '../../assets/videos/promo.mp4';
 import heroBackground from '../../assets/images/hero-background.jpg';
-import posterImage from '../../assets/images/sales-martins-logo.jpg';
 
 const SalesMartins = () => {
   const [popularCategories, setPopularCategories] = useState([]);
   const [selectedCategory, setSelectedCategory] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
-  const [isVideoPlaying, setIsVideoPlaying] = useState(false);
-  const [videoVisible, setVideoVisible] = useState(false);
+  const [isSearchActive, setIsSearchActive] = useState(false);
   const [backgroundImageLoaded, setBackgroundImageLoaded] = useState(true);
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [currentSlide, setCurrentSlide] = useState(0);
+  const [showContactForm, setShowContactForm] = useState(false);
   
-  const videoRef = useRef(null);
+  const slideImages = [
+    heroBackground,
+    'https://images.unsplash.com/photo-1607082350899-7e105aa886ae?ixlib=rb-4.0.3&auto=format&fit=crop&w=2070&q=80',
+    'https://images.unsplash.com/photo-1607083206968-13611e3d76db?ixlib=rb-4.0.3&auto=format&fit=crop&w=2070&q=80',
+  ];
+
   const productsSectionRef = useRef(null);
   const categoryWrapperRef = useRef(null);
 
-  // Carrega as categorias
   useEffect(() => {
     const fetchCategories = async () => {
       try {
         setError(null);
 
-        // Fetch categories directly from the API
         const response = await axios.get('/api/products', {
           params: { categoryOnly: true }
         });
 
         if (response.data?.success && response.data?.data) {
-          // Garantir que as categorias estão no formato esperado e não têm duplicatas
           const categories = response.data.data.map(cat => ({
             id: cat.id,
             name: cat.name,
-            icon: getCategoryIcon(cat.name) // Adiciona ícones com base no nome da categoria
+            icon: getCategoryIcon(cat.name)
           }));
 
-          // Eliminar duplicatas com base no ID
           const uniqueCategories = categories.filter(
             (cat, index, self) => index === self.findIndex((c) => c.id === cat.id)
           );
@@ -65,7 +66,6 @@ const SalesMartins = () => {
     fetchCategories();
   }, []);
 
-  // Função auxiliar para obter ícone com base no nome da categoria
   const getCategoryIcon = (categoryName) => {
     const name = categoryName ? categoryName.toLowerCase() : '';
 
@@ -76,11 +76,9 @@ const SalesMartins = () => {
     if (name.includes('moda')) return <FaTshirt />;
     if (name.includes('automotivo')) return <FaCar />;
 
-    // Ícone padrão
     return <FaHome />;
   };
 
-  // Carrega a imagem de fundo
   useEffect(() => {
     const img = new Image();
     img.src = heroBackground;
@@ -91,7 +89,6 @@ const SalesMartins = () => {
     img.onload = () => setBackgroundImageLoaded(true);
   }, []);
 
-  // Carrega produtos com tratamento de erros melhorado
   const fetchProducts = async (categoryId = null) => {
     try {
       setLoading(true);
@@ -119,36 +116,46 @@ const SalesMartins = () => {
     }
   };
 
-  // Carrega todos os produtos inicialmente
   useEffect(() => {
     fetchProducts();
   }, []);
 
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentSlide(prev => (prev + 1) % slideImages.length);
+    }, 5000);
+
+    return () => clearInterval(interval);
+  }, [slideImages.length]);
+
   const handleSearch = (e) => {
     e.preventDefault();
+
+    const isActive = searchQuery.trim().length > 0;
+    setIsSearchActive(isActive);
+
     if (productsSectionRef.current) {
       productsSectionRef.current.scrollIntoView({ behavior: 'smooth' });
     }
   };
 
-  const toggleVideo = () => {
-    if (videoRef.current) {
-      setVideoVisible(!videoVisible);
-      if (!isVideoPlaying) {
-        videoRef.current.play();
-        setIsVideoPlaying(true);
-      } else {
-        videoRef.current.pause();
-        setIsVideoPlaying(false);
-      }
+  const handleSearchInputChange = (e) => {
+    setSearchQuery(e.target.value);
+    if (e.target.value.trim() === '') {
+      setIsSearchActive(false);
     }
   };
 
-  const onVideoEnded = () => {
-    setIsVideoPlaying(false);
-    setTimeout(() => {
-      setVideoVisible(false);
-    }, 300);
+  const nextSlide = () => {
+    setCurrentSlide(prev => (prev + 1) % slideImages.length);
+  };
+
+  const prevSlide = () => {
+    setCurrentSlide(prev => (prev === 0 ? slideImages.length - 1 : prev - 1));
+  };
+
+  const toggleContactForm = () => {
+    setShowContactForm(!showContactForm);
   };
 
   const handleCategoryClick = (categoryId) => {
@@ -165,7 +172,6 @@ const SalesMartins = () => {
 
   return (
     <div className={styles.pageWrapper}>
-      {/* Header */}
       <header className={styles.header}>
         <Container>
           <div className={styles.headerInner}>
@@ -174,17 +180,19 @@ const SalesMartins = () => {
         </Container>
       </header>
 
-      {/* Banner Hero */}
       <div className={styles.heroBanner}>
         <div 
           className={styles.backgroundImage} 
-          style={!backgroundImageLoaded ? {
-            backgroundColor: '#151515',
-            backgroundImage: 'linear-gradient(45deg, #151515 25%, #252525 25%, #252525 50%, #151515 50%, #151515 75%, #252525 75%, #252525 100%)',
-            backgroundSize: '10px 10px'
-          } : { backgroundImage: `url(${heroBackground})` }}
+          style={{ backgroundImage: `url(${slideImages[currentSlide]})` }}
         ></div>
         
+        <button className={styles.sliderButton + ' ' + styles.prevButton} onClick={prevSlide} aria-label="Imagem anterior">
+          <FaArrowLeft />
+        </button>
+        <button className={styles.sliderButton + ' ' + styles.nextButton} onClick={nextSlide} aria-label="Próxima imagem">
+          <FaArrowRight />
+        </button>
+
         <div className={styles.contentContainer}>
           <Container>
             <Row className="align-items-center">
@@ -209,64 +217,69 @@ const SalesMartins = () => {
                   >
                     Ver Ofertas
                   </Button>
-                  <Button 
-                    variant="outline-light" 
-                    size="lg" 
-                    className={`mb-2 ${styles.videoButton}`}
-                    onClick={toggleVideo}
-                    aria-label={isVideoPlaying ? "Pausar vídeo de demonstração" : "Assistir vídeo de demonstração"}
-                  >
-                    {isVideoPlaying ? <FaPause className="me-2" /> : <FaPlay className="me-2" />}
-                    {isVideoPlaying ? 'Pausar Vídeo' : 'Ver Destaques'}
-                  </Button>
+                  <div className={styles.contactButtonWrapper}>
+                    <Button
+                      variant="outline-light"
+                      size="lg" 
+                      className={`mb-2 ${styles.contactButton}`}
+                      onClick={toggleContactForm}
+                      aria-label="Entrar em contato"
+                    >
+                      <FaCommentDots className="me-2" />
+                      Fale Conosco
+                    </Button>
+
+                    {showContactForm && (
+                      <div className={styles.contactOptions}>
+                        <div className={styles.contactCard}>
+                          <a href="https://wa.me/+5500000000000" target="_blank" rel="noopener noreferrer" className={styles.contactLink}>
+                            <FaWhatsapp className={styles.contactIcon} />
+                            <span>WhatsApp</span>
+                          </a>
+                          <a href="mailto:salesmartins.siaw@gmail.com" className={styles.contactLink}>
+                            <FaEnvelope className={styles.contactIcon} />
+                            <span>Email</span>
+                          </a>
+                          <button className={styles.contactCloseButton} onClick={toggleContactForm}>
+                            Fechar
+                          </button>
+                        </div>
+                      </div>
+                    )}
+                  </div>
                 </div>
               </Col>
-              <Col md={5} className={styles.videoColumn}>
-                <div className={`${styles.videoWrapper} ${videoVisible ? styles.videoVisible : ''}`}>
-                  <video 
-                    ref={videoRef}
-                    className={styles.promoVideo}
-                    src={promoVideo}
-                    poster={posterImage}
-                    onEnded={onVideoEnded}
-                    onClick={toggleVideo}
-                    playsInline
-                    aria-label="Vídeo promocional de ofertas"
-                  ></video>
-                  {!isVideoPlaying && (
-                    <div className={styles.videoOverlay} role="button" aria-label="Iniciar vídeo">
-                      <div className={styles.playButton}>
-                        <FaPlay />
-                      </div>
-                    </div>
-                  )}
-                </div>
+              <Col md={5} className={styles.sliderIndicators}>
+                {slideImages.map((_, index) => (
+                  <button
+                    key={index}
+                    className={`${styles.sliderDot} ${currentSlide === index ? styles.activeDot : ''}`}
+                    onClick={() => setCurrentSlide(index)}
+                    aria-label={`Ir para slide ${index + 1}`}
+                  />
+                ))}
               </Col>
             </Row>
           </Container>
         </div>
       </div>
 
-      {/* Conteúdo Principal - Categorias laterais e produtos */}
-      <Container fluid="lg">
-        <div className={styles.mainContentWrapper} ref={categoryWrapperRef}>
-          {/* Barra lateral de categorias */}
+      <Container fluid>
+        <div className={`${styles.mainContentWrapper} ${isSearchActive ? styles.searchActive : ''}`} ref={categoryWrapperRef}>
           <CategoryList
             categories={popularCategories}
             selectedCategory={selectedCategory}
             onCategoryClick={handleCategoryClick}
           />
 
-          {/* Área principal de conteúdo */}
           <main className={styles.productsContentArea}>
-            {/* Search bar */}
             <div className={styles.compactSearchContainer}>
               <Form onSubmit={handleSearch} className={styles.compactSearchForm}>
                 <Form.Control
                   type="text"
                   placeholder="Buscar produtos..."
                   value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
+                  onChange={handleSearchInputChange}
                   className={styles.compactSearchInput}
                   id="productSearch"
                   name="productSearch"
@@ -283,8 +296,7 @@ const SalesMartins = () => {
               </Form>
             </div>
 
-            {/* Cabeçalho da Categoria */}
-            {selectedCategory ? (
+            {selectedCategory && !isSearchActive ? (
               <div className={styles.categoryHeader}>
                 <h2 className={styles.categoryTitle}>
                   {popularCategories.find(c => c.id === selectedCategory)?.name || ''}
@@ -293,32 +305,37 @@ const SalesMartins = () => {
                   Explore produtos exclusivos desta categoria
                 </p>
               </div>
-            ) : (
-              <>
-                {/* Seção de descontos - só aparece quando não há categoria selecionada */}
-                <SpecialProductsSection
-                  title="Caution Descontos!"
-                  icon={<FaPercent />}
-                  sectionClass="discountSection"
-                  filterParams={{
-                    sortBy: 'discount',
-                    minDiscount: 20,
-                    categoryId: null
-                  }}
-                  limit={4}
-                />
-              </>
+            ) : null}
+
+            {isSearchActive && (
+              <div className={styles.searchResultsHeader}>
+                <h2 className={styles.sectionTitle}>
+                  Resultados para "{searchQuery}"
+                </h2>
+              </div>
             )}
 
-            {/* Products Section - Principal catálogo de produtos */}
-            <div ref={productsSectionRef}>
-              <h2 className={styles.sectionTitle}>
-                {selectedCategory
-                  ? '' // Remove the duplicate category name display here
-                  : 'Produtos Campeões em Economia'}
-              </h2>
+            {!selectedCategory && !isSearchActive && (
+              <SpecialProductsSection
+                title="Caution Descontos!"
+                icon={<FaPercent />}
+                sectionClass="discountSection"
+                filterParams={{
+                  sortBy: 'discount',
+                  minDiscount: 20,
+                  categoryId: null
+                }}
+                limit={4}
+              />
+            )}
 
-              {/* Show loading, error, or products */}
+            <div ref={productsSectionRef}>
+              {!isSearchActive && !selectedCategory && (
+                <h2 className={styles.sectionTitle}>
+                  Produtos Campeões em Economia
+                </h2>
+              )}
+
               {loading ? (
                 <div className="text-center py-5">
                   <Spinner animation="border" variant="primary" aria-label="Carregando produtos" />
@@ -359,60 +376,73 @@ const SalesMartins = () => {
               )}
             </div>
 
-            {/* Seções condicionais com base na categoria selecionada */}
-            {selectedCategory ? (
-              /* Quando uma categoria está selecionada, mostramos seções filtradas por essa categoria */
+            {!isSearchActive && (
               <>
-                <SpecialProductsSection
-                  title="Melhores Descontos desta Categoria"
-                  icon={<FaPercent />}
-                  sectionClass="discountSection"
-                  filterParams={{
-                    sortBy: 'discount',
-                    minDiscount: 5,
-                    categoryId: selectedCategory
-                  }}
-                  limit={4}
-                />
+                {selectedCategory ? (
+                  <>
+                    <SpecialProductsSection
+                      title="Melhores Descontos desta Categoria"
+                      icon={<FaPercent />}
+                      sectionClass="discountSection"
+                      filterParams={{
+                        sortBy: 'discount',
+                        minDiscount: 5,
+                        categoryId: selectedCategory
+                      }}
+                      limit={4}
+                    />
 
-                <SpecialProductsSection
-                  title="Mais Bem Avaliados desta Categoria"
-                  icon={<FaTrophy />}
-                  sectionClass="topRatedSection"
-                  filterParams={{
-                    sortBy: 'rating',
-                    minRating: 4.0,
-                    categoryId: selectedCategory
-                  }}
-                  limit={4}
-                />
+                    <SpecialProductsSection
+                      title="Mais Bem Avaliados desta Categoria"
+                      icon={<FaTrophy />}
+                      sectionClass="topRatedSection"
+                      filterParams={{
+                        sortBy: 'rating',
+                        minRating: 4.0,
+                        categoryId: selectedCategory
+                      }}
+                      limit={4}
+                    />
+                  </>
+                ) : (
+                    <SpecialProductsSection
+                      title="Mais Bem Avaliados"
+                      icon={<FaTrophy />}
+                      sectionClass="topRatedSection"
+                      filterParams={{
+                        sortBy: 'rating',
+                        minRating: 4.5,
+                        categoryId: null
+                      }}
+                      limit={4}
+                    />
+                )}
               </>
-            ) : (
-              /* Quando nenhuma categoria está selecionada, mostramos seção de mais bem avaliados geral */
-              <SpecialProductsSection
-                title="Mais Bem Avaliados"
-                icon={<FaTrophy />}
-                sectionClass="topRatedSection"
-                filterParams={{
-                  sortBy: 'rating',
-                    minRating: 4.5,
-                    categoryId: null
-                  }}
-                  limit={4}
-                />
             )}
           </main>
         </div>
       </Container>
 
-      {/* Footer */}
       <footer className={styles.footer}>
         <Container>
           <div className={styles.footerContent}>
-            <p>© {new Date().getFullYear()} Sales Martins. Todos os direitos reservados.</p>
+            <div className={styles.footerInfo}>
+              <p>© {new Date().getFullYear()} Sales Martins. Todos os direitos reservados.</p>
+              <p className={styles.contactInfo}>
+                <span className={styles.contactItem}>
+                  <i className="fas fa-envelope"></i> salesmartins.siaw@gmail.com
+                </span>
+                <span className={styles.contactItem}>
+                  <i className="fas fa-map-marker-alt"></i> Criciuma/SC
+                </span>
+              </p>
+            </div>
             <p className={styles.poweredBy}>
-              Powered by <span className={styles.sentinnelLogo}>SENTINNELL Analytics</span>
+              Powered by <span className={styles.sentinnelLogo}>SENTINNELL IA WORKSPACE</span>
             </p>
+          </div>
+          <div className={styles.returnMessage}>
+            <span>Volte Sempre!</span>
           </div>
         </Container>
       </footer>

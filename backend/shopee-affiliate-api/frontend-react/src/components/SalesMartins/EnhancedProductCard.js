@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
-import { FaStar, FaShoppingCart } from 'react-icons/fa';
+import { FaStar, FaShoppingCart, FaInfoCircle } from 'react-icons/fa';
 import styles from './EnhancedProductCard.module.css';
 
 const EnhancedProductCard = ({ product }) => {
   const [imageError, setImageError] = useState(false);
+  const [showFullDescription, setShowFullDescription] = useState(false);
   
   const handleImageError = () => {
     setImageError(true);
@@ -45,6 +46,13 @@ const EnhancedProductCard = ({ product }) => {
     return stars;
   };
 
+  // Toggle description visibility
+  const toggleDescription = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setShowFullDescription(!showFullDescription);
+  };
+
   return (
     <div className={styles.card}>
       <div className={styles.imageWrapper}>
@@ -70,7 +78,34 @@ const EnhancedProductCard = ({ product }) => {
       </div>
 
       <div className={styles.content}>
-        <h3 className={styles.title} title={product.name}>{product.name}</h3>
+        <div className={styles.titleContainer}>
+          <h3 className={styles.title} title={product.name}>{product.name}</h3>
+          {product.description && (
+            <button
+              className={styles.infoButton}
+              onClick={toggleDescription}
+              aria-label="Ver detalhes do produto"
+            >
+              <FaInfoCircle />
+            </button>
+          )}
+        </div>
+
+        {/* Full description overlay that appears on hover/click */}
+        {showFullDescription && product.description && (
+          <div className={styles.descriptionOverlay}>
+            <div className={styles.descriptionContent}>
+              <h4>{product.name}</h4>
+              <p>{product.description}</p>
+              <button
+                className={styles.closeButton}
+                onClick={toggleDescription}
+              >
+                Fechar
+              </button>
+            </div>
+          </div>
+        )}
         
         <div className={styles.priceRow}>
           <div className={styles.priceWrapper}>

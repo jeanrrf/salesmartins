@@ -65,63 +65,68 @@
 .categorySidebar {
   position: fixed;
   top: 70px;
-    /* Alterado de 0 para 70px para começar abaixo do cabeçalho */
   left: 0;
   height: calc(100% - 70px);
-    /* Ajustado para não ultrapassar o limite da página */
-  width: 60px;
-  background: rgba(20, 20, 20, 0.9);
+  width: 65px;
+    /* Slightly wider for better visibility */
+    background: rgba(15, 15, 15, 0.9);
   border-right: 1px solid rgba(255, 255, 255, 0.1);
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 1rem 0;
+  padding: 1.5rem 0;
   z-index: 1000;
-  transition: width 0.3s ease;
+  transition: width 0.3s ease, background 0.3s ease;
   overflow: hidden;
+  box-shadow: 2px 0 15px rgba(0, 0, 0, 0.3);
 }
 
 .categorySidebar:hover {
-  width: 200px;
+  width: 210px;
+    background: rgba(10, 10, 10, 0.95);
 }
 
 .categorySidebar .categoryItem {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
-  padding: 0.5rem 1rem;
-  width: 100%;
+  gap: 0.75rem;
+    padding: 0.75rem 1rem;
+    margin: 0.2rem 0;
+    width: 90%;
   color: rgba(255, 255, 255, 0.8);
   text-decoration: none;
-  font-size: 0.9rem;
-  border-radius: 8px;
+  font-size: 0.95rem;
+    border-radius: 10px;
   transition: all 0.3s ease;
   overflow: hidden;
   white-space: nowrap;
 }
 
 .categorySidebar .categoryItem:hover {
-  background: linear-gradient(135deg, rgba(255, 0, 122, 0.3), rgba(1, 180, 255, 0.3));
+  background: linear-gradient(135deg, rgba(255, 0, 122, 0.2), rgba(1, 180, 255, 0.1));
   color: white;
+  transform: translateX(3px);
 }
 
 .categorySidebar .categoryItem.active {
-  background: linear-gradient(135deg, rgba(255, 0, 122, 0.5), rgba(1, 180, 255, 0.5));
+  background: linear-gradient(135deg, rgba(255, 0, 122, 0.5), rgba(1, 180, 255, 0.3));
   color: white;
-  font-weight: bold;
+  font-weight: 600;
+    box-shadow: 0 3px 10px rgba(255, 0, 122, 0.3);
 }
 
 .categorySidebar .categoryIcon {
-  font-size: 1.8rem;
-    /* Increased size for creative icons */
+  font-size: 1.5rem;
     color: #ff007a;
-    /* Updated color for better visibility */
-    transition: transform 0.3s ease;
+  transition: transform 0.3s ease, color 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 24px;
   }
-  
-  .categorySidebar .categoryIcon:hover {
-    transform: scale(1.2);
-    /* Add hover effect */
+.categorySidebar .categoryItem:hover .categoryIcon {
+  transform: scale(1.15);
+  color: #01b4ff;
 }
 
 .categorySidebar .categoryLabel {

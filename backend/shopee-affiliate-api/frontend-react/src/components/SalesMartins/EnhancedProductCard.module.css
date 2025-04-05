@@ -71,6 +71,32 @@
   height: 2.7rem; /* Fixed height for 2 lines */
 }
 
+.titleContainer {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.infoButton {
+  background: transparent;
+  border: none;
+  color: rgba(255, 255, 255, 0.6);
+  padding: 0;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.infoButton:hover {
+  color: #ff007a;
+  transform: scale(1.1);
+}
 .priceRow {
   display: flex;
   align-items: center;
@@ -175,4 +201,73 @@
   box-shadow: 0 2px 8px rgba(255, 0, 0, 0.3);
   text-align: center;
   min-width: 40px;
+}
+
+.descriptionOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.8);
+  backdrop-filter: blur(5px);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  animation: fadeIn 0.3s ease;
+}
+
+.descriptionContent {
+  max-width: 500px;
+  width: 90%;
+  background: rgba(35, 35, 35, 0.95);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  padding: 1.5rem;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+  max-height: 80vh;
+  overflow-y: auto;
+}
+
+.descriptionContent h4 {
+  font-size: 1.2rem;
+  color: #ff007a;
+  margin-bottom: 1rem;
+  font-weight: 600;
+}
+
+.descriptionContent p {
+  color: white;
+  font-size: 1rem;
+  line-height: 1.6;
+}
+
+.closeButton {
+  background: linear-gradient(90deg, #ff007a, #01b4ff);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 0.6rem 1.5rem;
+  margin-top: 1rem;
+  width: 100%;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.closeButton:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 5px 15px rgba(255, 0, 122, 0.3);
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
 }

@@ -1,11 +1,12 @@
 .catalogContainer {
-  padding: 1rem 0;
-  margin-bottom: 2rem;
-  background: rgba(20, 20, 20, 0.8);
+  padding: 1.5rem;
+    margin-bottom: 2.5rem;
+    background: rgba(15, 15, 15, 0.5);
+    /* Lightened background for better visibility */
   border-radius: 16px;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.4);
   color: #fff;
-    display: flex;
+  display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
@@ -13,12 +14,29 @@
     overflow: hidden;
     z-index: 1;
   width: 100%;
+  max-width: 100%;
+    /* Ensure full width */
   scroll-margin-top: 100px;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  }
+  
+  .catalogContainer::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: linear-gradient(to right, #ff007a, #01b4ff);
+    z-index: 2;
 }
 
 .productsRow {
   margin-right: -8px;
   margin-left: -8px;
+  width: 100%;
+    /* Make sure row takes full width */
+    max-width: 100%;
 }
 
 .errorMessage {
@@ -143,11 +161,59 @@
   box-shadow: 0 2px 8px rgba(255, 0, 122, 0.3);
 }
 
-/* Pagination styles */
+/* Enhanced pagination styling */
 .pagination {
   display: flex;
   justify-content: center;
-  margin-top: 2rem;
+  margin-top: 2.5rem;
+    gap: 0.3rem;
+  }
+  
+  .pagination :global(.pagination-item) {
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.1);
+    color: white;
+    transition: all 0.3s ease;
+  }
+  
+  .pagination :global(.pagination-item:hover) {
+    background: rgba(255, 0, 122, 0.3);
+    transform: translateY(-2px);
+  }
+  
+  .pagination :global(.pagination-item.active) {
+    background: linear-gradient(135deg, #ff007a, #01b4ff);
+    box-shadow: 0 4px 15px rgba(255, 0, 122, 0.3);
+  }
+  
+  /* Search result specific styles - enhanced */
+  .searchResult {
+    animation: fadeInUp 0.5s ease;
+    border: 1px solid rgba(255, 0, 122, 0.2);
+  }
+  
+  .searchResultMessage {
+    text-align: center;
+    color: rgba(255, 255, 255, 0.8);
+    padding: 1.5rem;
+    font-size: 1.2rem;
+    margin: 1.5rem 0;
+    background: rgba(0, 0, 0, 0.3);
+    border-radius: 12px;
+    width: 100%;
+    border-left: 4px solid #ff007a;
+    line-height: 1.6;
+  }
+  
+  .searchResultHighlight {
+    color: #ff007a;
+    font-weight: bold;
+    text-shadow: 0 0 10px rgba(255, 0, 122, 0.3);
 }
 
 @media (max-width: 768px) {

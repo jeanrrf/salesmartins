@@ -106,7 +106,7 @@ const SpecialProductsSection = ({
 
   return (
     <div className={`${pageStyles.specialSection} ${pageStyles[sectionClass]}`}>
-      <Container>
+      <Container fluid> {/* Changed from Container to Container fluid for full width */}
         <div className={pageStyles.sectionHeader}>
           <span className={pageStyles.sectionIcon}>{icon}</span>
           <h2 className={pageStyles.sectionTitle}>{title}</h2>
@@ -119,7 +119,7 @@ const SpecialProductsSection = ({
         ) : error ? (
           <p className="text-center text-danger">{error}</p>
         ) : (
-              <Row className={styles.productsRow}>
+              <Row className={`${styles.productsRow} w-100`}> {/* Added w-100 for full width */}
                 {products.map(product => (
                   <Col key={product.id} xs={6} sm={4} md={3} lg={3} className={styles.productCol}>
                     <CardComponent product={product} />

@@ -134,9 +134,9 @@ const ProductCatalog = ({
 
   return (
     <div className={styles.catalogContainer} ref={catalogRef}>
-      <Row className={styles.productsRow}>
+      <Row className={`${styles.productsRow} w-100`}> {/* Added w-100 for full width */}
         {paginatedProducts.map((product) => (
-          <Col key={product.id || product.shopee_id} xl={3} lg={4} md={6} sm={6} className="mb-4">
+          <Col key={product.id || product.shopee_id} xl={3} lg={3} md={4} sm={6} xs={6} className="mb-4"> {/* Added xs-6 for better mobile display */}
             <CardComponent product={product} />
           </Col>
         ))}
