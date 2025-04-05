@@ -22,7 +22,6 @@ const SalesMartins = () => {
   const [backgroundImageLoaded, setBackgroundImageLoaded] = useState(true);
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [categoryLoading, setCategoryLoading] = useState(true);
   const [error, setError] = useState(null);
   
   const videoRef = useRef(null);
@@ -33,7 +32,6 @@ const SalesMartins = () => {
   useEffect(() => {
     const fetchCategories = async () => {
       try {
-        setCategoryLoading(true);
         setError(null);
 
         // Fetch categories directly from the API
@@ -61,8 +59,6 @@ const SalesMartins = () => {
       } catch (err) {
         console.error('Erro ao carregar categorias:', err);
         setError('Erro ao carregar categorias. Tente novamente.');
-      } finally {
-        setCategoryLoading(false);
       }
     };
 
@@ -318,7 +314,7 @@ const SalesMartins = () => {
             <div ref={productsSectionRef}>
               <h2 className={styles.sectionTitle}>
                 {selectedCategory
-                  ? `Produtos da Categoria ${popularCategories.find(c => c.id === selectedCategory)?.name || ''}`
+                  ? popularCategories.find(c => c.id === selectedCategory)?.name || ''
                   : 'Produtos Campeões em Economia'}
               </h2>
 

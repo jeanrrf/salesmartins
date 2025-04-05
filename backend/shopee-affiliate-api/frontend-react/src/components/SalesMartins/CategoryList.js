@@ -1,18 +1,34 @@
 import React from 'react';
 import styles from './CategoryList.module.css';
-import { FaHome, FaTshirt, FaCouch, FaBaby, FaCar, FaTools } from 'react-icons/fa';
+import { 
+  FaHome, 
+  FaTshirt, 
+  FaCouch, 
+  FaSprayCan, 
+  FaCar, 
+  FaTools, 
+  FaMobile, 
+  FaLaptop, 
+  FaGamepad, 
+  FaBaby, 
+  FaUtensils 
+} from 'react-icons/fa';
 
 const CategoryList = ({ categories, selectedCategory, onCategoryClick }) => {
   const getCategoryIcon = (categoryName) => {
     if (!categoryName) return <FaHome />;
 
     const name = categoryName.toLowerCase();
-    if (name.includes('eletrônico')) return <FaTools />;
+    if (name.includes('eletrônico')) return <FaLaptop />;
+    if (name.includes('celular') || name.includes('smartphone')) return <FaMobile />;
+    if (name.includes('game') || name.includes('jogo')) return <FaGamepad />;
     if (name.includes('ferramenta') || name.includes('construção')) return <FaTools />;
-    if (name.includes('beleza') || name.includes('cuidado')) return <FaBaby />;
+    if (name.includes('beleza') || name.includes('cuidado')) return <FaSprayCan />;
     if (name.includes('casa') || name.includes('decoração')) return <FaCouch />;
     if (name.includes('moda')) return <FaTshirt />;
     if (name.includes('automotivo')) return <FaCar />;
+    if (name.includes('bebê') || name.includes('infantil')) return <FaBaby />;
+    if (name.includes('cozinha') || name.includes('utensílios')) return <FaUtensils />;
     return <FaHome />;
   };
 

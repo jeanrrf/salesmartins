@@ -115,7 +115,8 @@
   display: flex;
   flex-wrap: wrap;
   gap: 0.5rem;
-  justify-content: flex-end;
+  justify-content: center;
+    /* Adjusted to center categories */
   margin: 0;
   padding: 0;
 }
@@ -130,6 +131,7 @@
   font-size: 0.9rem;
   transition: all 0.3s ease;
 }
+
 .category:hover {
   background: linear-gradient(135deg, rgba(255, 0, 122, 0.15), rgba(1, 180, 255, 0.15));
   border-color: rgba(255, 255, 255, 0.2);
