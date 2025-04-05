@@ -1,22 +1,51 @@
+const express = require('express');
+const path = require('path');
 const cors = require('cors');
+require('dotenv').config();
 
-const allowedOrigins = ['https://seusite.com', 'https://outrosite.com'];
-app.use(cors({
-    origin: (origin, callback) => {
-        if (!origin || allowedOrigins.includes(origin)) {
-            callback(null, true);
-        } else {
-            callback(new Error('Origem não permitida pelo CORS'));
-        }
-    },
-}));
+// Cria a aplicação Express
+const app = express();
 
-const rateLimit = require('express-rate-limit');
+// Middleware
+app.use(cors());
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
-const limiter = rateLimit({
-    windowMs: 15 * 60 * 1000, // 15 minutos
-    max: 100, // Limite de 100 requisições por IP
-    message: 'Muitas requisições vindas deste IP, tente novamente mais tarde.',
+// Servir arquivos estáticos
+app.use(express.static(path.join(__dirname, '../public')));
+
+// Rotas da API
+app.get('/api/health', (req, res) => {
+    res.json({ status: 'ok', environment: process.env.NODE_ENV });
 });
 
-app.use('/api/', limiter);
+// Importar outras rotas se existirem
+try {
+    const productRoutes = require('./routes/products');
+    app.use('/api/products', productRoutes);
+} catch (error) {
+    console.log('Products routes not available');
+}
+
+// Rota para redirecionar para sales-martins
+app.get('/', (req, res) => {
+    res.redirect('/sales-martins');
+});
+
+// Rota para sales-martins
+app.get('/sales-martins', (req, res) => {
+    res.sendFile(path.join(__dirname, '../public/index.html'));
+});
+
+// Handler para erros 404
+app.use((req, res) => {
+    res.status(404).json({ error: 'Not Found' });
+});
+
+// Handler global de erros
+app.use((err, req, res, next) => {
+    console.error(err.stack);
+    res.status(500).json({ error: 'Internal Server Error' });
+});
+
+module.exports = app;

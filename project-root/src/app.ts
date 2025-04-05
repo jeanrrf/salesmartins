@@ -1,16 +1,18 @@
 import express from 'express';
 import { json } from 'body-parser';
-import { router as buscadorRouter } from './modules/buscador/controllers/BuscadorController';
-import { router as reparadorRouter } from './modules/reparador/controllers/ReparadorController';
+import BuscadorController from './modules/buscador/controllers/BuscadorController';
+import ReparadorController from './modules/reparador/controllers/ReparadorController';
 
 const app = express();
 
 app.use(json());
-app.use('/buscador', buscadorRouter);
-app.use('/reparador', reparadorRouter);
+app.use('/buscador', new BuscadorController().getRouter());
+app.use('/reparador', new ReparadorController().getRouter());
 
 const PORT = process.env.PORT || 3000;
 
 app.listen(PORT, () => {
     console.log(`Server is running on port ${PORT}`);
 });
+
+export default app;

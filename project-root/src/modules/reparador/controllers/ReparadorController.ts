@@ -1,11 +1,26 @@
-import { Request, Response } from 'express';
-import ReparadorService from '../services/ReparadorService';
+import { Router, Request, Response } from 'express';
+import { ReparadorService } from '../services/ReparadorService';
 
 class ReparadorController {
     private reparadorService: ReparadorService;
+    private router: Router;
 
     constructor() {
         this.reparadorService = new ReparadorService();
+        this.router = Router();
+        this.initializeRoutes();
+    }
+
+    private initializeRoutes() {
+        this.router.post('/', this.create.bind(this));
+        this.router.get('/', this.getAll.bind(this));
+        this.router.get('/:id', this.getById.bind(this));
+        this.router.put('/:id', this.update.bind(this));
+        this.router.delete('/:id', this.delete.bind(this));
+    }
+
+    public getRouter(): Router {
+        return this.router;
     }
 
     public async create(req: Request, res: Response): Promise<Response> {

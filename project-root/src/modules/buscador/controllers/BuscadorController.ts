@@ -1,11 +1,23 @@
-import { Request, Response } from 'express';
-import BuscadorService from '../services/BuscadorService';
+import { Router, Request, Response } from 'express';
+import { BuscadorService } from '../services/BuscadorService';
 
 class BuscadorController {
     private buscadorService: BuscadorService;
+    private router: Router;
 
     constructor() {
         this.buscadorService = new BuscadorService();
+        this.router = Router();
+        this.initializeRoutes();
+    }
+
+    private initializeRoutes() {
+        this.router.get('/', this.buscar.bind(this));
+        this.router.post('/', this.criar.bind(this));
+    }
+
+    public getRouter(): Router {
+        return this.router;
     }
 
     public async buscar(req: Request, res: Response): Promise<Response> {
