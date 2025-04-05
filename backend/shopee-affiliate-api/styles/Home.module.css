@@ -1,0 +1,11 @@
+.container {
+  /* Ajuste o display para permitir posicionamento relativo */
+  display: flex;
+  /* Adicione um padding-left para compensar o espaço que a sidebar ocupará */
+  padding-left: 250px; /* Deve corresponder à largura do categoriesContainer */
+}
+
+.mainContent {
+  /* Garanta que o conteúdo principal ocupe o espaço disponível */
+  flex: 1;
+}

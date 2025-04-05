@@ -5,7 +5,6 @@ import {
   FaStar, FaStarHalfAlt, FaRegStar 
 } from 'react-icons/fa';
 import styles from './ProductCard.module.css';
-import pageStyles from '../../pages/SalesMartins/SalesMartins.module.css';
 
 // Componente para exibir estrelas de avaliação
 const RatingStars = ({ rating = 0 }) => {
@@ -15,15 +14,15 @@ const RatingStars = ({ rating = 0 }) => {
   
   for (let i = 0; i < 5; i++) {
     if (i < fullStars) {
-      stars.push(<FaStar key={i} />);
+      stars.push(<FaStar key={i} className={styles.starFilled} />);
     } else if (i === fullStars && hasHalfStar) {
-      stars.push(<FaStarHalfAlt key={i} />);
+      stars.push(<FaStarHalfAlt key={i} className={styles.starHalf} />);
     } else {
-      stars.push(<FaRegStar key={i} />);
+      stars.push(<FaRegStar key={i} className={styles.starEmpty} />);
     }
   }
   
-  return <div className={pageStyles.productRatingStars}>{stars}</div>;
+  return <div className={styles.ratingStars}>{stars}</div>;
 };
 
 const ProductCard = ({ product }) => {
@@ -110,7 +109,7 @@ const ProductCard = ({ product }) => {
           className={styles.productImage}
         />
         {discount > 0 && (
-          <Badge className={pageStyles.discountBadge}>-{discount}%</Badge>
+          <Badge className={styles.discountTag}>-{discount}%</Badge>
         )}
         <button 
           className={styles.favoriteButton}
@@ -123,26 +122,26 @@ const ProductCard = ({ product }) => {
           }
         </button>
       </div>
-      <Card.Body>
+      <Card.Body className={styles.contentContainer}>
         <Card.Title className={styles.productTitle}>{product.name}</Card.Title>
         
         {/* Avaliação com estrelas */}
-        <div className={pageStyles.productRatingContainer}>
+        <div className={styles.ratingContainer}>
           <RatingStars rating={rating} />
-          <span className={pageStyles.productRatingCount}>({formattedRatingCount})</span>
+          <span className={styles.ratingCount}>({formattedRatingCount})</span>
         </div>
         
         <div className={styles.priceContainer}>
           {/* Sempre mostrar o preço original se houver desconto */}
           {discount > 0 && (
-            <span className={pageStyles.productOriginalPrice}>
+            <span className={styles.originalPrice}>
               {formatPrice(originalPrice)}
             </span>
           )}
           <span className={styles.currentPrice}>{formatPrice(product.price)}</span>
         </div>
         {discount > 0 && (
-          <div className={pageStyles.productDiscount}>
+          <div className={styles.discountPill}>
             {discount}% OFF
           </div>
         )}
