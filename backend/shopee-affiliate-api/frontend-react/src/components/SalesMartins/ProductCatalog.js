@@ -1,87 +1,49 @@
 import React, { useState, useEffect } from 'react';
-import { Container, Row, Col, Spinner, Pagination } from 'react-bootstrap';
-import { affiliateService } from '../../services/api';
+import { Container, Row, Col, Pagination } from 'react-bootstrap';
 import EnhancedProductCard from './EnhancedProductCard';
 import styles from './ProductCatalog.module.css';
 
 const ProductCatalog = ({ 
-  categoryId = 'all', 
+  products = [],
   searchQuery = '',
-  limit = 12,
+  limit = 16, // Aumentado para caber mais produtos por página
   CardComponent = EnhancedProductCard
 }) => {
-  const [products, setProducts] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const [filteredProducts, setFilteredProducts] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
-  const [totalProducts, setTotalProducts] = useState(0);
-  const [isFilterChange, setIsFilterChange] = useState(false);
 
+  // Filtra produtos com base na busca
   useEffect(() => {
-    setCurrentPage(1);
-    setIsFilterChange(true);
-  }, [categoryId, searchQuery]);
+    let result = [...products];
 
-  useEffect(() => {
-    const fetchProducts = async () => {
-      try {
-        setLoading(true);
-        setError(null);
-        
-        const params = {
-          page: currentPage,
-          limit,
-          search: searchQuery || undefined
-        };
-        
-        let response;
-        if (categoryId && categoryId !== 'all') {
-          params.category = categoryId;
-          response = await affiliateService.getDatabaseProducts(params);
-        } else {
-          response = await affiliateService.getDatabaseProducts(params);
-        }
-        
-        if (response.data?.data) {
-          const { products, totalCount } = response.data.data;
-          setProducts(products || []);
-          setTotalProducts(totalCount || 0);
-          setTotalPages(Math.ceil(totalCount / limit) || 1);
-        } else {
-          setProducts([]);
-          setTotalProducts(0);
-          setTotalPages(1);
-        }
-        
-        setIsFilterChange(false);
-      } catch (err) {
-        console.error('Erro ao buscar produtos:', err);
-        setError('Não foi possível carregar os produtos.');
-        setProducts([]);
-        setTotalProducts(0);
-        setTotalPages(1);
-        setIsFilterChange(false);
-      } finally {
-        setLoading(false);
-      }
-    };
+    // Filtrar por busca
+    if (searchQuery) {
+      const query = searchQuery.toLowerCase();
+      result = result.filter(product =>
+        (product.name?.toLowerCase().includes(query)) ||
+        (product.description?.toLowerCase().includes(query))
+      );
+    }
 
-    fetchProducts();
-  }, [categoryId, searchQuery, currentPage, limit]);
+    setFilteredProducts(result);
+    setTotalPages(Math.ceil(result.length / limit) || 1);
+    setCurrentPage(1); // Reset para a primeira página quando há nova filtragem
+  }, [products, searchQuery, limit]);
 
   const handlePageChange = (page) => {
-    if (page !== currentPage) {
-      const currentScrollPosition = window.scrollY;
-      setCurrentPage(page);
-      setTimeout(() => {
-        window.scrollTo({
-          top: currentScrollPosition,
-          behavior: 'instant'
-        });
-      }, 100);
-    }
+    setCurrentPage(page);
+    window.scrollTo({
+      top: 0,
+      behavior: 'smooth'
+    });
   };
+
+  // Produtos paginados
+  const paginatedProducts = filteredProducts.slice(
+    (currentPage - 1) * limit,
+    currentPage * limit
+  );
 
   const renderPagination = () => {
     if (totalPages <= 1) return null;
@@ -96,6 +58,7 @@ const ProductCatalog = ({
         key="prev" 
         onClick={() => handlePageChange(Math.max(1, currentPage - 1))}
         disabled={currentPage === 1}
+        aria-label="Página anterior"
       />
     );
     
@@ -104,7 +67,7 @@ const ProductCatalog = ({
         <Pagination.Item 
           key={1} 
           onClick={() => handlePageChange(1)}
-          active={currentPage === 1}
+          aria-label="Ir para página 1"
         >
           1
         </Pagination.Item>
@@ -118,8 +81,10 @@ const ProductCatalog = ({
       items.push(
         <Pagination.Item 
           key={page} 
+          active={page === currentPage}
           onClick={() => handlePageChange(page)}
-          active={currentPage === page}
+          aria-label={`Ir para página ${page}`}
+          aria-current={page === currentPage ? 'page' : undefined}
         >
           {page}
         </Pagination.Item>
@@ -134,7 +99,7 @@ const ProductCatalog = ({
         <Pagination.Item 
           key={totalPages} 
           onClick={() => handlePageChange(totalPages)}
-          active={currentPage === totalPages}
+          aria-label={`Ir para página ${totalPages}`}
         >
           {totalPages}
         </Pagination.Item>
@@ -146,67 +111,33 @@ const ProductCatalog = ({
         key="next" 
         onClick={() => handlePageChange(Math.min(totalPages, currentPage + 1))}
         disabled={currentPage === totalPages}
+        aria-label="Próxima página"
       />
     );
     
-    return (
-      <Pagination className="justify-content-center mt-4">{items}</Pagination>
-    );
+    return <Pagination className="justify-content-center mt-4">{items}</Pagination>;
   };
 
-  if (loading && isFilterChange) {
+  if (filteredProducts.length === 0 && searchQuery) {
     return (
-      <Container className="text-center py-5">
-        <Spinner animation="border" variant="primary" />
-        <p className="mt-3">Carregando produtos...</p>
-      </Container>
-    );
-  }
-
-  if (error || products.length === 0) {
-    return (
-      <Container>
-        <div className={styles.emptyStateCard}>
-          <div className={styles.comingSoonMessage}>
-            <div className={styles.comingSoonIcon}>✨</div>
-            <h3 className={styles.comingSoonTitle}>
-              {error ? 'Ops! Algo deu errado' : 'Nenhum produto encontrado'}
-            </h3>
-            <p className={styles.comingSoonText}>
-              {error 
-                ? 'Tente novamente mais tarde' 
-                : 'Tente ajustar os filtros ou fazer uma nova busca'}
-            </p>
-          </div>
-        </div>
-      </Container>
+      <div className="text-center py-4">
+        <p>Nenhum produto encontrado para a busca "{searchQuery}"</p>
+      </div>
     );
   }
 
   return (
-    <Container>
-      <div className="mb-3 d-flex justify-content-between align-items-center">
-        <span className="text-muted">
-          Mostrando {products.length} de {totalProducts} produtos
-        </span>
-        {loading && (
-          <div className="d-flex align-items-center">
-            <Spinner animation="border" size="sm" className="me-2" />
-            <span>Atualizando...</span>
-          </div>
-        )}
-      </div>
-      
+    <div className={styles.catalogContainer}>
       <Row>
-        {products.map((product) => (
-          <Col key={product.id || product.itemId} lg={3} md={4} sm={6} className="mb-4">
+        {paginatedProducts.map((product) => (
+          <Col key={product.id || product.shopee_id} xl={3} lg={4} md={6} sm={6} className="mb-4">
             <CardComponent product={product} />
           </Col>
         ))}
       </Row>
       
       {renderPagination()}
-    </Container>
+    </div>
   );
 };
 
