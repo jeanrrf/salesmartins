@@ -14,6 +14,23 @@ class ShopeeService {
     this.categoriesFilePath = path.join(__dirname, '../routes/CATEGORIA.json');
     this.productsJsonPath = path.join(__dirname, '../data/products.json');
 
+    // Garantir que o diretório data existe
+    const dataDir = path.join(__dirname, '../data');
+    if (!fs.existsSync(dataDir)) {
+      fs.mkdirSync(dataDir, { recursive: true });
+    }
+
+    // Criar arquivo de categorias se não existir
+    if (!fs.existsSync(this.categoriesFilePath)) {
+      fs.writeFileSync(this.categoriesFilePath, JSON.stringify([
+        { category_id: "1", category_name: "Eletrônicos" },
+        { category_id: "2", category_name: "Moda" },
+        { category_id: "3", category_name: "Casa & Decoração" },
+        { category_id: "4", category_name: "Beleza & Saúde" },
+        { category_id: "5", category_name: "Esportes" }
+      ]), 'utf-8');
+    }
+
     this.instance = axios.create({
       baseURL: this.baseUrl,
       headers: {
@@ -162,17 +179,31 @@ class ShopeeService {
   }
 
   /**
-   * Obtém as categorias de produtos do arquivo CATEGORIA.json
-   * @returns {Promise<Array>} - Lista de categorias
+   * Obtém as categorias de produtos
    */
   async getProductCategories() {
     try {
-      const categoriesData = fs.readFileSync(this.categoriesFilePath, 'utf-8');
-      const categories = JSON.parse(categoriesData);
-      return { success: true, data: categories };
+      // Tentar carregar do arquivo de cache primeiro
+      if (fs.existsSync(this.categoriesFilePath)) {
+        const categoriesData = fs.readFileSync(this.categoriesFilePath, 'utf-8');
+        const categories = JSON.parse(categoriesData);
+        return { success: true, data: categories };
+      }
+      
+      // Se não conseguir do arquivo, tentar da API
+      // Implementar chamada à API Shopee aqui quando disponível
+      // Por enquanto, retorna categorias padrão
+      return { 
+        success: false, 
+        message: "Categories file not found and API call not implemented" 
+      };
     } catch (error) {
-      console.error('Error loading categories from file:', error);
-      throw new Error('Failed to load categories.');
+      console.error('Error loading categories:', error);
+      return { 
+        success: false, 
+        message: 'Failed to load categories',
+        error: error.message 
+      };
     }
   }
 

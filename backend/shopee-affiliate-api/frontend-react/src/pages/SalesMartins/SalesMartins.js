@@ -28,12 +28,15 @@ const SalesMartins = () => {
   useEffect(() => {
     const fetchCategories = async () => {
       try {
+        // Usar a rota de produtos para obter categorias
         const response = await affiliateService.getCategories();
         if (response.data?.data) {
-          const categories = response.data.data.map(category => ({
-            id: category.category_id,
-            name: category.category_name
-          }));
+          const categories = Array.isArray(response.data.data) 
+            ? response.data.data.map(category => ({
+                id: category.category_id,
+                name: category.category_name
+              }))
+            : [];
           setPopularCategories(categories);
         }
       } catch (error) {

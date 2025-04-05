@@ -1,5 +1,5 @@
 const ShopeeService = require('../services/shopeeService');
-const Product = require('../models/Product'); // Ensure the Product model is imported
+const Product = require('../models/Product'); // Certifique-se de que este modelo exista
 
 class AffiliateController {
     async getDatabaseProducts(req, res) {
@@ -92,21 +92,58 @@ class AffiliateController {
 
     async getCategories(req, res) {
         try {
-            const categories = await Product.aggregate([
-                { $group: { _id: "$category_name" } },
-                { $sort: { _id: 1 } }
-            ]);
+            const result = await ShopeeService.getProductCategories();
+            
+            if (result && result.success && result.data) {
+                res.status(200).json({ 
+                    success: true, 
+                    data: result.data 
+                });
+            } else {
+                // Caso não consiga obter categorias da API, tenta do banco de dados
+                const categories = await Product.aggregate([
+                    { $group: { _id: "$category_id", name: { $first: "$category_name" } } },
+                    { $sort: { name: 1 } }
+                ]);
 
-            const formattedCategories = categories.map(category => ({
-                category_id: category._id,
-                category_name: category._id
-            }));
+                const formattedCategories = categories.map(category => ({
+                    category_id: category._id,
+                    category_name: category.name || category._id
+                }));
 
-            res.status(200).json({ success: true, data: formattedCategories });
+                res.status(200).json({ 
+                    success: true, 
+                    data: formattedCategories 
+                });
+            }
         } catch (error) {
             console.error('Error fetching categories:', error);
-            res.status(500).json({ success: false, message: 'Failed to fetch categories' });
+            res.status(500).json({ 
+                success: false, 
+                message: 'Failed to fetch categories',
+                error: error.message 
+            });
         }
+    }
+
+    async searchProducts(req, res) {
+        res.status(501).json({ message: "Not implemented yet" });
+    }
+
+    async createAffiliateLink(req, res) {
+        res.status(501).json({ message: "Not implemented yet" });
+    }
+
+    async getAffiliateLinks(req, res) {
+        res.status(501).json({ message: "Not implemented yet" });
+    }
+
+    async getAffiliateLinkById(req, res) {
+        res.status(501).json({ message: "Not implemented yet" });
+    }
+
+    async deleteAffiliateLink(req, res) {
+        res.status(501).json({ message: "Not implemented yet" });
     }
 }
 

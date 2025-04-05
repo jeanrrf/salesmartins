@@ -9,6 +9,27 @@ class ProductsController {
       const products = ShopeeService.getProductsFromJson();
       console.log('Total products available:', products.length);
       
+      // Se o parâmetro categoryOnly estiver presente, retorna apenas as categorias
+      if (req.query.categoryOnly === 'true') {
+        // Extrair categorias únicas dos produtos
+        const categoriesMap = {};
+        products.forEach(product => {
+          if (product.category_id && product.category_name) {
+            categoriesMap[product.category_id] = product.category_name;
+          }
+        });
+        
+        const categories = Object.keys(categoriesMap).map(id => ({
+          category_id: id,
+          category_name: categoriesMap[id]
+        }));
+        
+        return res.status(200).json({ 
+          success: true, 
+          data: categories 
+        });
+      }
+      
       const { 
         page = 1, 
         limit = 12, 
