@@ -1,6 +1,18 @@
 .catalogContainer {
   padding: 1rem 0;
     margin-bottom: 2rem;
+  background: rgba(20, 20, 20, 0.8);
+    border-radius: 16px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+  
+    color: #fff;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    overflow: hidden;
+    z-index: 1;
   width: 100%;
     scroll-margin-top: 100px;
     /* Add scroll margin to account for sticky header */
@@ -25,14 +37,14 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 2rem;
+  padding: 1rem;
   color: #fff;
 }
 
 .loadMoreContainer {
   display: flex;
   justify-content: center;
-  margin: 2rem 0;
+  margin: 1rem 0;
 }
 
 .loadMoreButton {
@@ -99,4 +111,28 @@
 .emptyStateCard p {
   color: rgba(255, 255, 255, 0.7);
   font-size: 1.1rem;
+}
+
+.categorySection {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  justify-content: flex-end;
+  /* Align categories to the end of the window */
+  margin: 0;
+  /* Remove any margin */
+  padding: 0;
+  /* Remove any padding */
+}
+
+.categorySection .category {
+  /* Use the reusable category class */
+  display: inline-block;
+  padding: 0.5rem 1rem;
+  border-radius: 50px;
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
+  margin: 0.25rem;
+  font-size: 0.9rem;
+  transition: all 0.3s ease;
 }
