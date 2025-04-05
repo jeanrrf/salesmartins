@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
-import { FaImage, FaShoppingBag, FaFire, FaShippingFast } from 'react-icons/fa';
+import { FaShoppingBag, FaFire, FaShippingFast } from 'react-icons/fa';
 import styles from './ProductCard.module.css';
+import { DEFAULT_PRODUCT_IMAGE } from '../../constants/images';
 
 const RatingStars = ({ rating }) => {
   const stars = [];
@@ -48,6 +49,11 @@ const EnhancedProductCard = ({
     setImageError(true);
   };
 
+  const getImageUrl = () => {
+    if (imageError) return DEFAULT_PRODUCT_IMAGE;
+    return imageUrl || DEFAULT_PRODUCT_IMAGE;
+  };
+
   const calculatedDiscountPercentage = discountPercentage || 
     (originalPrice && price ? Math.round((1 - price / originalPrice) * 100) : 0);
   
@@ -91,19 +97,12 @@ const EnhancedProductCard = ({
   return (
     <div className={`${styles.productCard} ${featured ? styles.featured : ''}`}>
       <div className={styles.imageContainer}>
-        {!imageError ? (
-          <img 
-            src={imageUrl} 
-            alt={name} 
-            className={styles.productImage}
-            onError={handleImageError}
-          />
-        ) : (
-          <div className={styles.fallbackImageContainer}>
-            <FaImage className={styles.fallbackImageIcon} />
-            <div>Imagem não disponível</div>
-          </div>
-        )}
+        <img 
+          src={getImageUrl()}
+          alt={name}
+          className={styles.productImage}
+          onError={handleImageError}
+        />
         
         {hasDiscount && (
           <div className={styles.discountTag}>

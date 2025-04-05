@@ -7,6 +7,7 @@ const securityHeaders = (req, res, next) => {
   res.setHeader('X-XSS-Protection', '1; mode=block');
   res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
   
+<<<<<<< HEAD
   // Add CORS headers
   const allowedOrigins = process.env.ALLOWED_ORIGINS.split(',');
   const origin = req.headers.origin;
@@ -23,6 +24,8 @@ const securityHeaders = (req, res, next) => {
     return res.status(204).end();
   }
 
+=======
+>>>>>>> 3fbd867e94ef973fb779444846fcfcee10c73c87
   next();
 };
 

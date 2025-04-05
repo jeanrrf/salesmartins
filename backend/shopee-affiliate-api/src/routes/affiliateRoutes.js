@@ -1,31 +1,19 @@
 const express = require('express');
-const affiliateController = require('../controllers/affiliateController');
-const auth = require('../middleware/auth');
-const { createAffiliateLinkValidator } = require('../validators/affiliateValidators');
-const authMiddleware = require('../middlewares/authMiddleware');
 const router = express.Router();
+const affiliateController = require('../controllers/affiliateController');
 
-// Route to create an affiliate link
-router.post(
-    '/affiliate-links',
-    authMiddleware,
-    createAffiliateLinkValidator,
-    affiliateController.createAffiliateLink
-);
-
-// Route to get all affiliate links
-router.get('/links', auth, affiliateController.getAffiliateLinks);
-
-// Routes for uncategorized products or category issues
-router.get('/uncategorized-products', affiliateController.getUncategorizedProducts);
-router.post('/products/update-categories', affiliateController.updateProductCategories);
-
-// Routes for categories and products
-router.get('/categories', affiliateController.getProductCategories);
-router.get('/products/special', affiliateController.getSpecialProducts);
+// Rotas para produtos
 router.get('/products', affiliateController.getDatabaseProducts);
+router.get('/products/special', affiliateController.getSpecialProducts);
 router.get('/category/:categoryId/products', affiliateController.getProductsByCategory);
 
-// Additional routes can be added here as needed
+// Rotas para links de afiliado
+router.post('/link', affiliateController.createAffiliateLink);
+router.get('/links', affiliateController.getAffiliateLinks);
+router.get('/link/:id', affiliateController.getAffiliateLinkById);
+router.delete('/link/:id', affiliateController.deleteAffiliateLink);
+
+// Rotas para busca
+router.get('/search', affiliateController.searchProducts);
 
 module.exports = router;

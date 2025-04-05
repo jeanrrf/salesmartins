@@ -1,36 +1,54 @@
-const path = require('path');
-require('dotenv').config({
-  path: path.resolve(__dirname, '../.env')
-});
 const express = require('express');
 const cors = require('cors');
-const { connectDB } = require('./config/database');
+const config = require('./config/database');
+const ModuleLoader = require('./utils/moduleLoader');
+
+// Initialize express app
 const app = express();
-const PORT = process.env.PORT || 3001;
-
-// Connect to the database
-connectDB();
-
-// Middleware
-app.use(cors({
-  origin: ['http://localhost:3000', 'https://salesmartins-wheat.vercel.app', 'https://salesmartins.vercel.app'],
-  credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization']
-}));
-
 app.use(express.json());
+app.use(cors());
 
-// Serve static files
-app.use('/images', express.static(path.join(__dirname, '../frontend-react/src/assets/images')));
+// Always load core routes (Sales Martins and basic data access)
+app.use('/api/products', require('./routes/productRoutes'));
 
-// Routes
-app.use('/api', require('./routes/api'));
+// Conditionally load development-only routes
+ModuleLoader.registerRoutesIfEnabled(app, 'categoryRepair', (app) => {
+    app.use('/api/category-repair', require('./routes/categoryRepairRoutes'));
+});
 
-// Error handling middleware
-app.use(require('./middleware/errorHandler'));
+ModuleLoader.registerRoutesIfEnabled(app, 'searchModule', (app) => {
+    app.use('/api/search', require('./routes/searchRoutes'));
+});
+
+ModuleLoader.registerRoutesIfEnabled(app, 'adminPanel', (app) => {
+    // Only load auth middleware in development
+    const authMiddleware = require('./middleware/authMiddleware');
+    app.use('/api/admin', authMiddleware, require('./routes/adminRoutes'));
+});
+
+ModuleLoader.registerRoutesIfEnabled(app, 'dataManagement', (app) => {
+    // Only load auth middleware in development
+    const authMiddleware = require('./middleware/authMiddleware');
+    app.use('/api/data', authMiddleware, require('./routes/dataRoutes'));
+});
+
+// Simple environment info endpoint
+app.get('/api/environment', (req, res) => {
+    res.json({
+        environment: config.environment.isProduction ? 'production' : 'development',
+        modules: Object.entries(config.modules)
+            .filter(([_, enabled]) => enabled)
+            .map(([name]) => name)
+    });
+});
 
 // Start the server
+const PORT = process.env.PORT || 3001;
 app.listen(PORT, () => {
-    console.log(`Server is running on http://localhost:${PORT}`);
+    console.log(`Server running in ${config.environment.isProduction ? 'PRODUCTION' : 'DEVELOPMENT'} mode on port ${PORT}`);
+    console.log('Enabled modules:', Object.entries(config.modules)
+        .filter(([_, enabled]) => enabled)
+        .map(([name]) => name)
+        .join(', ')
+    );
 });
