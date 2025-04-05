@@ -36,7 +36,7 @@ const SalesMartins = () => {
   useEffect(() => {
     const fetchCategories = async () => {
       try {
-        const response = await affiliateService.get('/categories');
+        const response = await affiliateService.getCategories(); // Correct method
         if (response.data?.data) {
           const categories = response.data.data.map(category => ({
             id: category.category_id,
