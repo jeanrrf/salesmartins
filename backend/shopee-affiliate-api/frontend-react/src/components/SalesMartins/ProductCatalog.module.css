@@ -1,24 +1,26 @@
 .catalogContainer {
   padding: 1rem 0;
-  margin-bottom: 2rem;
+    margin-bottom: 2rem;
   background: rgba(20, 20, 20, 0.8);
-  border-radius: 16px;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
-  color: #fff;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    position: relative;
-    overflow: hidden;
-    z-index: 1;
-  width: 100%;
-  scroll-margin-top: 100px;
-}
+  border-radius: 16px;  
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
 
-.productsRow {
-  margin-right: -8px;
-  margin-left: -8px;
+  color: #fff;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  overflow: hidden;
+  z-index: 1;
+  width: 100%;
+    scroll-margin-top: 100px;
+    /* Add scroll margin to account for sticky header */
+  }
+  
+  .productsRow {
+    margin-right: -8px;
+    margin-left: -8px;
 }
 
 .errorMessage {
@@ -109,48 +111,4 @@
 .emptyStateCard p {
   color: rgba(255, 255, 255, 0.7);
   font-size: 1.1rem;
-}
-
-.categorySection {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.5rem;
-  justify-content: flex-end;
-  margin: 0;
-  padding: 0;
-}
-
-.category {
-  display: inline-block;
-  padding: 0.5rem 1rem;
-  border-radius: 50px;
-  background: rgba(255, 255, 255, 0.1);
-  color: #fff;
-  margin: 0.25rem;
-  font-size: 0.9rem;
-  transition: all 0.3s ease;
-}
-.category:hover {
-  background: linear-gradient(135deg, rgba(255, 0, 122, 0.15), rgba(1, 180, 255, 0.15));
-  border-color: rgba(255, 255, 255, 0.2);
-}
-
-.category.active {
-  background: linear-gradient(135deg, rgba(255, 0, 122, 0.3), rgba(1, 180, 255, 0.3));
-  border-color: rgba(255, 255, 255, 0.3);
-  box-shadow: 0 2px 8px rgba(255, 0, 122, 0.3);
-}
-
-/* Pagination styles */
-.pagination {
-  display: flex;
-  justify-content: center;
-  margin-top: 2rem;
-}
-
-@media (max-width: 768px) {
-  .productsRow {
-    margin-right: -4px;
-    margin-left: -4px;
-  }
 }

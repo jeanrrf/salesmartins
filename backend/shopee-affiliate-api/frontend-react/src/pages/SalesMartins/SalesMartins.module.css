@@ -42,7 +42,7 @@
   font-size: 1.5rem;
   font-weight: bold;
   background-size: 300% 300%;
-    background-image: linear-gradient(-45deg,
+  background-image: linear-gradient(-45deg,
         #ff007a,
         #b155ff,
         #01b4ff,
@@ -217,13 +217,16 @@
 .mainContentWrapper {
   display: flex;
   flex-direction: row;
-  gap: 2rem;
+  gap: 0;
+    /* Reduzimos o gap para eliminar espaço extra */
   margin-top: 2rem;
+  width: 100%;
+    padding: 0;
+    /* Remover padding */
 }
 
 .sidebarCategories {
   flex: 0 0 180px;
-  /* Diminuir a largura da barra lateral */
   position: sticky;
   top: 80px;
   height: fit-content;
@@ -231,9 +234,13 @@
   -webkit-backdrop-filter: blur(15px);
   backdrop-filter: blur(15px);
   border: 1px solid rgba(255, 255, 255, 0.05);
-  border-radius: 12px;
+  border-radius: 0 12px 12px 0;
+    /* Arredondar apenas os cantos direitos */
   padding: 1rem;
-  /* Reduzir o padding */
+  margin-left: 0;
+    /* Garantir que não há margem à esquerda */
+    left: 0;
+    /* Alinhar à esquerda */
   box-shadow: 0 4px 30px rgba(0, 0, 0, 0.3);
 }
 
@@ -247,9 +254,12 @@
 
 .productsContentArea {
   flex: 1;
-  max-width: 100%;
-  padding: 0 1rem;
-  /* Adicionar padding para evitar corte nas laterais */
+  max-width: calc(100% - 180px);
+    /* Ajustar largura com base no tamanho da sidebar */
+    padding-left: 1rem;
+    /* Adicionar padding apenas à esquerda */
+    padding-right: 1rem;
+    /* Manter padding à direita */
 }
 
 .productCard {
@@ -318,7 +328,7 @@
 .categoryButton {
   padding: 0.4rem 0.8rem;
   border-radius: 8px;
-    background: rgba(255, 255, 255, 0.05);
+  background: rgba(255, 255, 255, 0.05);
   border: 1px solid rgba(255, 255, 255, 0.1);
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   width: 100%;
@@ -326,7 +336,7 @@
   align-items: center;
   gap: 0.5rem;
   text-align: left;
-    font-size: 0.85rem;
+  font-size: 0.85rem;
 }
 
 .categoryIcon {
@@ -371,7 +381,7 @@
   text-align: center;
   position: relative;
   background-image: linear-gradient(-45deg,
-        #ff007a,
+      #ff007a,
         #b155ff,
         #01b4ff,
         #ff007a);
@@ -422,7 +432,7 @@
   box-shadow: 0 0 10px rgba(255, 0, 122, 0.3);
   min-width: 40px;
   display: flex;
-    align-items: center;
+  align-items: center;
     justify-content: center;
 }
 
@@ -460,15 +470,15 @@
   font-weight: bold;
   margin: 0;
   background-image: linear-gradient(-45deg,
-        #ff007a,
+      #ff007a,
         #b155ff,
         #01b4ff,
         #ff007a);
-    -webkit-background-clip: text;
-    background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-size: 300% 300%;
-    animation: gradientAnimation 5s ease infinite;
+        -webkit-background-clip: text;
+        background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-size: 300% 300%;
+        animation: gradientAnimation 5s ease infinite;
 }
 
 /* Footer personalizado */

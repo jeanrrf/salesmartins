@@ -251,7 +251,7 @@ const SalesMartins = () => {
       </div>
 
       {/* Conteúdo Principal - Categorias laterais e produtos */}
-      <Container fluid="lg">
+      <Container fluid className="px-0"> {/* Changed to fluid with no padding */}
         <div className={styles.mainContentWrapper} ref={categoryWrapperRef}>
           {/* Sidebar com categorias */}
           <aside className={styles.sidebarCategories}>

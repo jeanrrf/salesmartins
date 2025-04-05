@@ -1,0 +1,13 @@
+.categoriesContainer {
+  /* Remove ou reduza qualquer padding/margin que esteja criando espaço à esquerda */
+  padding-left: 0;
+  margin-left: 0;
+  /* Garanta que esteja alinhado à esquerda */
+  position: absolute;
+  left: 0;
+  /* Ajuste a largura conforme necessário */
+  width: 250px;
+  /* Se necessário, ajuste outros estilos para melhorar a aparência */
+  height: 100%;
+  overflow-y: auto;
+}

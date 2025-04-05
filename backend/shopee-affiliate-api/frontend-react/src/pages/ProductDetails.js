@@ -114,7 +114,6 @@ const ProductDetails = () => {
   const [relatedProducts, setRelatedProducts] = useState([]);
   const [selectedCategory, setSelectedCategory] = useState(null);
   const relatedProductsRef = useRef(null);
-  const imgRef = useRef(null);
 
   const fetchRelatedProducts = useCallback(async (categoryId) => {
     try {
@@ -152,12 +151,6 @@ const ProductDetails = () => {
     fetchProductDetails();
   }, [id, fetchRelatedProducts]);
 
-  useEffect(() => {
-    if (imgRef.current) {
-      console.log('Image reference is set:', imgRef.current);
-    }
-  }, []);
-
   const handleCategoryClick = (categoryId, categoryName) => {
     setSelectedCategory(categoryId);
     fetchRelatedProducts(categoryId);
@@ -182,7 +175,7 @@ const ProductDetails = () => {
 
   return (
     <ProductDetailsContainer>
-      <ProductImage ref={imgRef} src={getImageUrl(product?.image)} alt={product?.name} />
+      <ProductImage src={getImageUrl(product?.image)} alt={product?.name} />
       <ProductTitle>{product.name}</ProductTitle>
       <ProductPrice>{new Intl.NumberFormat('pt-BR', {
         style: 'currency',
