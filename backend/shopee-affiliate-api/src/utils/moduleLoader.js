@@ -37,6 +37,15 @@ class ModuleLoader {
       console.log(`Routes for ${moduleName} not registered (disabled in this environment)`);
     }
   }
+
+  /**
+   * Register middleware for all routes
+   * @param {Object} app - Express app instance
+   * @param {Function} middleware - The middleware function to register
+   */
+  static registerGlobalMiddleware(app, middleware) {
+    app.use(middleware);
+  }
 }
 
 module.exports = ModuleLoader;

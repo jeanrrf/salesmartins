@@ -10,6 +10,7 @@ const adminUser = {
 module.exports = {
   findByUsername: (username) => {
     if (username === adminUser.username) {
+      // For simplicity, directly return the admin user if the username matches
       return { ...adminUser };
     }
     return null;

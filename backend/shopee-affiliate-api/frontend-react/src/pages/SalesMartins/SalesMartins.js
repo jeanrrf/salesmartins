@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Container, Row, Col, Button, Form } from 'react-bootstrap';
-import { Link } from 'react-router-dom';
 import { 
   FaSearch, FaHome, FaPlay, FaPause, FaPercent, FaTrophy 
 } from 'react-icons/fa';
@@ -102,12 +101,6 @@ const SalesMartins = () => {
         <Container>
           <div className={styles.headerInner}>
             <div className={styles.logo}>Sales Martins</div>
-            <div className={styles.headerNav}>
-              <Link to="/" className={styles.returnLink}>
-                <FaHome className={styles.homeIcon} />
-                <span>Voltar ao Dashboard</span>
-              </Link>
-            </div>
           </div>
         </Container>
       </header>
@@ -207,25 +200,6 @@ const SalesMartins = () => {
         </Container>
       </div>
 
-      {/* Search Bar */}
-      <Container className={styles.searchContainer}>
-        <Form onSubmit={handleSearch} className={styles.searchForm}>
-          <Form.Control
-            type="text"
-            placeholder="Buscar produtos com melhor preço..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className={styles.searchInput}
-            id="productSearch"
-            name="productSearch"
-            aria-label="Busca de produtos"
-          />
-          <Button type="submit" variant="primary" className={styles.searchButton}>
-            <FaSearch className="me-2" /> Buscar
-          </Button>
-        </Form>
-      </Container>
-
       {/* Seção de descontos */}
       <SpecialProductsSection 
         title="Caution Descontos!" 
@@ -242,6 +216,26 @@ const SalesMartins = () => {
       <div ref={productsSectionRef}>
         <Container>
           <h2 className={styles.sectionTitle}>Produtos Campeões em Economia</h2>
+
+          {/* Add search bar here, directly above the product catalog */}
+          <div className={styles.compactSearchContainer}>
+            <Form onSubmit={handleSearch} className={styles.compactSearchForm}>
+              <Form.Control
+                type="text"
+                placeholder="Buscar produtos..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className={styles.compactSearchInput}
+                id="productSearch"
+                name="productSearch"
+                aria-label="Busca de produtos"
+              />
+              <Button type="submit" variant="primary" className={styles.compactSearchButton}>
+                <FaSearch />
+              </Button>
+            </Form>
+          </div>
+
           <ProductCatalog 
             categoryId={selectedCategory} 
             searchQuery={searchQuery} 
