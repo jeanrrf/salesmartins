@@ -215,68 +215,16 @@
 
 /* Layout para categorias e produtos */
 .mainContentWrapper {
-  display: flex;
-  flex-direction: row;
-  gap: 2rem;
+  /* Changed from flex layout to block */
+    display: block;
   margin-top: 2rem;
 }
 
-.sidebarCategories {
-  flex: 0 0 180px;
-  /* Diminuir a largura da barra lateral */
-  position: sticky;
-  top: 80px;
-  height: fit-content;
-  background: rgba(0, 0, 0, 0.6);
-  -webkit-backdrop-filter: blur(15px);
-  backdrop-filter: blur(15px);
-  border: 1px solid rgba(255, 255, 255, 0.05);
-  border-radius: 12px;
-  padding: 1rem;
-  /* Reduzir o padding */
-  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.3);
-}
-
-.sidebarCategories h3 {
-  font-size: 1.1rem;
-  margin-bottom: 1rem;
-  color: #ffffff;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-  padding-bottom: 0.5rem;
-}
-
 .productsContentArea {
-  flex: 1;
+  /* Changed from flex: 1 to 100% width */
+    width: 100%;
   max-width: 100%;
-  padding: 0 1rem;
-  /* Adicionar padding para evitar corte nas laterais */
-}
-
-.productCard {
-  width: 100%;
-  /* Garantir que os cards ocupem toda a largura disponível */
-  max-width: 220px;
-  /* Aumentar a largura máxima dos cards */
-  margin: 0 auto;
-  /* Centralizar os cards */
-  text-align: center;
-}
-
-.productName {
-  font-size: 0.9rem;
-  /* Ajustar o tamanho do texto do nome do produto */
-  font-weight: 600;
-  margin-top: 0.5rem;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.productPrice {
-  font-size: 1rem;
-  font-weight: bold;
-  color: #ff007a;
-  margin-top: 0.3rem;
+  padding: 0;
 }
 
 /* Estilo de cabeçalho de categoria */
