@@ -6,7 +6,9 @@
   /* Smooth scrolling */
   html {
     scroll-behavior: smooth;
-    -webkit-text-size-adjust: 50%;
+    -webkit-text-size-adjust: 100%;
+      -moz-text-size-adjust: 100%;
+      text-size-adjust: 100%;
   }
   
   body {
@@ -114,3 +116,12 @@
     text-align: -webkit-match-parent;
     text-align: inherit;
   }
+/* Add vendor prefixes for masks */
+.masked-element {
+  -webkit-mask-image: var(--mask-image);
+  mask-image: var(--mask-image);
+  -webkit-mask-position: center;
+  mask-position: center;
+  -webkit-mask-size: contain;
+  mask-size: contain;
+}

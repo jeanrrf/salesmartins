@@ -1,36 +1,61 @@
 const path = require('path');
-require('dotenv').config({
-  path: path.resolve(__dirname, '../.env')
-});
 const express = require('express');
 const cors = require('cors');
-const { connectDB } = require('./config/database');
+const session = require('express-session');
+const passport = require('./config/passport');
+const apiRoutes = require('./routes/api');
+
 const app = express();
 const PORT = process.env.PORT || 3001;
 
-// Connect to the database
-connectDB();
+// Middleware for logging
+app.use((req, res, next) => {
+    console.log(`${new Date().toISOString()} - ${req.method} ${req.url}`);
+    next();
+});
 
 // Middleware
-app.use(cors({
-  origin: ['http://localhost:3000', 'https://salesmartins-wheat.vercel.app', 'https://salesmartins.vercel.app'],
-  credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization']
-}));
-
+app.use(cors({ credentials: true, origin: true }));
 app.use(express.json());
+app.use(session({
+    secret: process.env.JWT_SECRET,
+    resave: false,
+    saveUninitialized: false
+}));
+app.use(passport.initialize());
+app.use(passport.session());
 
-// Serve static files
-app.use('/images', express.static(path.join(__dirname, '../frontend-react/src/assets/images')));
+// API Routes
+app.use('/api', apiRoutes);
+app.get('/auth/google',
+  passport.authenticate('google', { scope: ['profile', 'email'] })
+);
+app.get('/auth/google/callback',
+  passport.authenticate('google', { failureRedirect: '/login' }),
+  (req, res) => res.redirect('/dashboard')
+);
 
-// Routes
-app.use('/api', require('./routes/api'));
+// Error handler
+app.use((err, req, res, next) => {
+    console.error('Error occurred:', err);
+    res.status(500).json({ 
+        success: false, 
+        message: 'Something went wrong!',
+        error: process.env.NODE_ENV === 'development' ? err.message : undefined
+    });
+});
 
-// Error handling middleware
-app.use(require('./middleware/errorHandler'));
-
-// Start the server
-app.listen(PORT, () => {
+// Start server
+const server = app.listen(PORT, () => {
     console.log(`Server is running on http://localhost:${PORT}`);
+});
+
+// Handle server errors
+server.on('error', (error) => {
+    console.error('Server error occurred:', error);
+    process.exit(1);
+});
+
+process.on('unhandledRejection', (reason, promise) => {
+    console.error('Unhandled Rejection at:', promise, 'reason:', reason);
 });

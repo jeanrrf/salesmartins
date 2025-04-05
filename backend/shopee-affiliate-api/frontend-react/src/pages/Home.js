@@ -3,7 +3,20 @@ import { Container, Row, Col, Card, Button, Carousel } from 'react-bootstrap';
 import { Link } from 'react-router-dom';
 import styles from './Home.module.css';
 
+// Using public URLs instead of local images
+const IMAGES = {
+  dashboardPreview: "https://cdn.pixabay.com/photo/2017/02/07/10/33/computer-2045379_1280.jpg",
+  featureAnalytics: "https://cdn.pixabay.com/photo/2017/10/22/11/55/online-2877135_1280.jpg",
+  featureProducts: "https://cdn.pixabay.com/photo/2016/11/22/19/41/app-1850150_1280.jpg", 
+  featureVitrine: "https://cdn.pixabay.com/photo/2016/04/21/13/27/e-commerce-1343032_1280.jpg",
+  featureCategory: "https://cdn.pixabay.com/photo/2018/03/15/17/29/business-3228520_1280.jpg"
+};
+
 const Home = () => {
+  const handleImageError = (e) => {
+    e.target.src = "https://via.placeholder.com/400x300?text=Image+Not+Available";
+  };
+
   return (
     <>
       {/* Hero Section */}
@@ -36,9 +49,10 @@ const Home = () => {
             </Col>
             <Col lg={6} className="d-flex justify-content-center">
               <img 
-                src="/static/img/dashboard-preview.png" 
+                src={IMAGES.dashboardPreview}
                 alt="Preview of the analytics dashboard" 
                 className={styles.heroImage}
+                onError={handleImageError}
               />
             </Col>
           </Row>
@@ -57,7 +71,12 @@ const Home = () => {
         <Row>
           <Col md={6} lg={3} className="mb-4">
             <Card className={styles.featureCard}>
-              <Card.Img variant="top" src="/static/img/feature-analytics.jpg" alt="Feature analytics" />
+              <Card.Img 
+                variant="top" 
+                src={IMAGES.featureAnalytics} 
+                alt="Feature analytics"
+                onError={handleImageError}
+              />
               <Card.Body>
                 <Card.Title>Análise Detalhada</Card.Title>
                 <Card.Text>
@@ -73,7 +92,12 @@ const Home = () => {
           
           <Col md={6} lg={3} className="mb-4">
             <Card className={styles.featureCard}>
-              <Card.Img variant="top" src="/static/img/feature-products.jpg" alt="Feature products" />
+              <Card.Img 
+                variant="top" 
+                src={IMAGES.featureProducts} 
+                alt="Feature products"
+                onError={handleImageError}
+              />
               <Card.Body>
                 <Card.Title>Produtos Campeões</Card.Title>
                 <Card.Text>
@@ -89,7 +113,12 @@ const Home = () => {
           
           <Col md={6} lg={3} className="mb-4">
             <Card className={styles.featureCard}>
-              <Card.Img variant="top" src="/static/img/feature-vitrine.jpg" alt="Feature virtual showcase" />
+              <Card.Img 
+                variant="top" 
+                src={IMAGES.featureVitrine} 
+                alt="Feature virtual showcase"
+                onError={handleImageError}
+              />
               <Card.Body>
                 <Card.Title>Vitrine Virtual</Card.Title>
                 <Card.Text>
@@ -105,7 +134,12 @@ const Home = () => {
           
           <Col md={6} lg={3} className="mb-4">
             <Card className={styles.featureCard}>
-              <Card.Img variant="top" src="/static/img/feature-category.jpg" alt="Feature category repair" />
+              <Card.Img 
+                variant="top" 
+                src={IMAGES.featureCategory} 
+                alt="Feature category repair"
+                onError={handleImageError}
+              />
               <Card.Body>
                 <Card.Title>Reparo de Categorias</Card.Title>
                 <Card.Text>

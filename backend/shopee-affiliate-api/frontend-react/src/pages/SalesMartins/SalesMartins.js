@@ -2,15 +2,8 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Container, Row, Col, Button, Form } from 'react-bootstrap';
 import { Link } from 'react-router-dom';
 import { 
-  FaSearch, FaHome, FaPlay, FaPause,
-  FaTshirt, FaLaptop, FaGamepad, FaMobileAlt, FaBabyCarriage,
-  FaUtensils, FaBook, FaRunning, FaChair, FaHeartbeat, FaPaw,
-  FaTrophy, FaPercent
+  FaSearch, FaHome, FaPlay, FaPause, FaPercent, FaTrophy 
 } from 'react-icons/fa';
-import { 
-  GiLipstick, GiSofa, GiJewelCrown, 
-  GiFruitBowl, GiSportMedal
-} from 'react-icons/gi';
 import { affiliateService } from '../../services/api';
 import styles from './SalesMartins.module.css';
 import ProductCatalog from '../../components/SalesMartins/ProductCatalog';
@@ -22,7 +15,6 @@ import posterImage from '../../assets/images/sales-martins-logo.jpg';
 
 const SalesMartins = () => {
   const [popularCategories, setPopularCategories] = useState([]);
-  const [otherCategories, setOtherCategories] = useState([]);
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [isVideoPlaying, setIsVideoPlaying] = useState(false);
@@ -36,27 +28,19 @@ const SalesMartins = () => {
   useEffect(() => {
     const fetchCategories = async () => {
       try {
+        // Usar a rota de produtos para obter categorias
         const response = await affiliateService.getCategories();
         if (response.data?.data) {
-          // Get all categories and sort by name
-          const allCategories = response.data.data.sort((a, b) => 
-            a.name.localeCompare(b.name)
-          );
-          
-          // Add icons to categories
-          const categoriesWithIcons = allCategories.map(cat => ({
-            ...cat,
-            icon: getCategoryIcon(cat.name)
-          }));
-
-          // Separate into popular (first 8) and others
-          setPopularCategories(categoriesWithIcons.slice(0, 8));
-          setOtherCategories(categoriesWithIcons.slice(8));
+          const categories = Array.isArray(response.data.data) 
+            ? response.data.data.map(category => ({
+                id: category.category_id,
+                name: category.category_name
+              }))
+            : [];
+          setPopularCategories(categories);
         }
       } catch (error) {
-        console.error('Erro ao carregar categorias:', error);
-        setPopularCategories([]);
-        setOtherCategories([]);
+        console.error('Error fetching categories:', error);
       }
     };
 
@@ -78,28 +62,6 @@ const SalesMartins = () => {
     if (productsSectionRef.current) {
       productsSectionRef.current.scrollIntoView({ behavior: 'smooth' });
     }
-  };
-
-  const getCategoryIcon = (categoryName) => {
-    const name = categoryName ? categoryName.toLowerCase() : '';
-    
-    if (name.includes('todos')) return <FaSearch />;
-    if (name.includes('eletrônico') || name.includes('eletronico')) return <FaLaptop />;
-    if (name.includes('celular') || name.includes('telefone')) return <FaMobileAlt />;
-    if (name.includes('moda') || name.includes('roupa')) return <FaTshirt />;
-    if (name.includes('beleza') || name.includes('cosmet')) return <GiLipstick />;
-    if (name.includes('casa') || name.includes('decoração')) return <GiSofa />;
-    if (name.includes('moveis') || name.includes('móveis')) return <FaChair />;
-    if (name.includes('jogo') || name.includes('game')) return <FaGamepad />;
-    if (name.includes('esporte')) return <FaRunning />;
-    if (name.includes('saúde') || name.includes('saude')) return <FaHeartbeat />;
-    if (name.includes('livro') || name.includes('livraria')) return <FaBook />;
-    if (name.includes('bebê') || name.includes('bebe') || name.includes('infantil')) return <FaBabyCarriage />;
-    if (name.includes('pet') || name.includes('animal')) return <FaPaw />;
-    if (name.includes('joia') || name.includes('acessório')) return <GiJewelCrown />;
-    if (name.includes('alimento') || name.includes('comida')) return <FaUtensils />;
-    if (name.includes('fruta') || name.includes('hortifruti')) return <GiFruitBowl />;
-    return <GiSportMedal />;
   };
 
   const toggleVideo = () => {
@@ -233,20 +195,6 @@ const SalesMartins = () => {
               >
                 <span className={styles.categoryIcon}>{category.icon}</span>
                 <span className={styles.categoryName}>{category.name}</span>
-              </Button>
-            ))}
-          </div>
-          
-          <div className={styles.categoryListSecondary}>
-            {otherCategories.map((category) => (
-              <Button
-                key={category.id}
-                variant={selectedCategory === category.id ? 'primary' : 'outline-light'}
-                onClick={() => handleCategoryClick(category.id)}
-                className={`${styles.categoryButtonSmall} ${selectedCategory === category.id ? styles.active : ''}`}
-              >
-                <span className={styles.categoryIconSmall}>{category.icon}</span>
-                <span className={styles.categoryNameSmall}>{category.name}</span>
               </Button>
             ))}
           </div>
