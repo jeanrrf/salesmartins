@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { Container, Row, Col, Pagination } from 'react-bootstrap';
+import React, { useState, useEffect, useRef } from 'react';
+import { Row, Col, Pagination } from 'react-bootstrap';
 import EnhancedProductCard from './EnhancedProductCard';
 import styles from './ProductCatalog.module.css';
 
@@ -12,6 +12,7 @@ const ProductCatalog = ({
   const [filteredProducts, setFilteredProducts] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
+  const catalogRef = useRef(null);
 
   // Filtra produtos com base na busca
   useEffect(() => {
@@ -33,10 +34,15 @@ const ProductCatalog = ({
 
   const handlePageChange = (page) => {
     setCurrentPage(page);
-    window.scrollTo({
-      top: 0,
-      behavior: 'smooth'
-    });
+    // Scroll to the catalog container instead of page top
+    setTimeout(() => {
+      if (catalogRef && catalogRef.current) {
+        catalogRef.current.scrollIntoView({
+          behavior: 'smooth',
+          block: 'start'
+        });
+      }
+    }, 100);
   };
 
   // Produtos paginados
@@ -127,8 +133,8 @@ const ProductCatalog = ({
   }
 
   return (
-    <div className={styles.catalogContainer}>
-      <Row>
+    <div className={styles.catalogContainer} ref={catalogRef}>
+      <Row className={styles.productsRow}>
         {paginatedProducts.map((product) => (
           <Col key={product.id || product.shopee_id} xl={3} lg={4} md={6} sm={6} className="mb-4">
             <CardComponent product={product} />
