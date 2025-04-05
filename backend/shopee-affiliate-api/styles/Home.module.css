@@ -1,11 +1,53 @@
-.container {
-  /* Ajuste o display para permitir posicionamento relativo */
+/* Categories positioning - independent and fixed at the top */
+.categoriesContainer {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  width: 100%;
+  background: linear-gradient(90deg, #ff007a, #01b4ff);
+  color: white;
+  z-index: 100;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   display: flex;
-  /* Adicione um padding-left para compensar o espaço que a sidebar ocupará */
-  padding-left: 250px; /* Deve corresponder à largura do categoriesContainer */
+  justify-content: space-around;
+  /* Adjusted for better spacing */
+  align-items: center;
+  padding: 0.5rem 1rem;
+  margin: 0;
+  /* Remove any extra space */
+}
+
+/* Remove redundant category descriptions */
+.categoryButton {
+  text-transform: capitalize;
+  /* Ensure proper formatting */
+  font-weight: bold;
+  margin: 0 0.5rem;
+}
+
+/* Main container - no dependency on the navigation bar */
+.container {
+  display: flex;
+  flex-direction: column;
+    width: 100%;
+    padding-top: 70px;
+    /* Ensure content starts below the fixed nav bar */
 }
 
 .mainContent {
-  /* Garanta que o conteúdo principal ocupe o espaço disponível */
   flex: 1;
+  width: 100%;
+    padding: 1rem;
+  }
+  
+  @media (max-width: 640px) {
+    .categoriesContainer {
+      padding: 0.5rem;
+      font-size: 0.9rem;
+    }
+  
+    .mainContent {
+      padding: 0.5rem;
+    }
 }

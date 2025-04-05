@@ -119,9 +119,9 @@ const SpecialProductsSection = ({
         ) : error ? (
           <p className="text-center text-danger">{error}</p>
         ) : (
-              <Row>
+              <Row className={styles.productsRow}>
                 {products.map(product => (
-                  <Col key={product.id} xs={12} sm={6} md={3}>
+                  <Col key={product.id} xs={6} sm={4} md={3} lg={3} className={styles.productCol}>
                     <CardComponent product={product} />
                   </Col>
                 ))}
