@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Container, Row, Col, Spinner } from 'react-bootstrap';
 import EnhancedProductCard from './EnhancedProductCard';
 import axios from 'axios';
-import pageStyles from '../../pages/SalesMartins/SalesMartins.module.css';
+import styles from './SpecialProductsSection.module.css';
 
 const SpecialProductsSection = ({ 
   title, 
@@ -104,19 +104,19 @@ const SpecialProductsSection = ({
   }
 
   return (
-    <div className={`${pageStyles.specialSection} ${pageStyles[sectionClass]}`}>
+    <div className={`${styles.specialSection} ${styles[sectionClass]}`}>
       <Container>
-        <div className={pageStyles.sectionHeader}>
-          <span className={pageStyles.sectionIcon}>{icon}</span>
-          <h2 className={pageStyles.sectionTitleSpecial}>{title}</h2>
+        <div className={styles.sectionHeader}>
+          <span className={styles.sectionIcon}>{icon}</span>
+          <h2 className={styles.sectionTitle}>{title}</h2>
         </div>
 
         {loading ? (
-          <div className="text-center py-4">
+          <div className={styles.loadingContainer}>
             <Spinner animation="border" variant="primary" aria-label="Carregando produtos especiais" />
           </div>
         ) : error ? (
-          <p className="text-center text-danger">{error}</p>
+            <p className={styles.errorMessage}>{error}</p>
         ) : (
               <Row>
                 {products.map(product => (
