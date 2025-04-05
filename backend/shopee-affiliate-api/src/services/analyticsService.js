@@ -1,37 +1,39 @@
-const AffiliateLink = require('../models/affiliateLink');
-const Stats = require('../models/stats');
+const { PrismaClient } = require('@prisma/client');
+const prisma = new PrismaClient();
 
-const analyticsService = {
-    getAffiliatePerformance: async (userId) => {
-        try {
-            const links = await AffiliateLink.find({ userId });
-            const stats = await Stats.find({ userId });
-
-            const performanceData = links.map(link => {
-                const linkStats = stats.find(stat => stat.linkId === link._id) || {};
-                return {
-                    linkId: link._id,
-                    clicks: linkStats.clicks || 0,
-                    conversions: linkStats.conversions || 0,
-                    earnings: linkStats.earnings || 0,
-                };
-            });
-
-            return performanceData;
-        } catch (error) {
-            throw new Error('Error fetching affiliate performance data: ' + error.message);
+class AnalyticsService {
+  static async logAccess(userId, data) {
+    try {
+      return await prisma.accessLog.create({
+        data: {
+          userId,
+          ipAddress: data.ip,
+          userAgent: data.userAgent,
+          pageUrl: data.pageUrl,
+          action: data.action,
+          device: data.device,
+          browser: data.browser,
+          platform: data.platform
         }
-    },
-
-    generatePerformanceReport: async (userId) => {
-        try {
-            const performanceData = await analyticsService.getAffiliatePerformance(userId);
-            // Logic to generate a report (e.g., PDF, CSV) can be added here
-            return performanceData;
-        } catch (error) {
-            throw new Error('Error generating performance report: ' + error.message);
-        }
+      });
+    } catch (error) {
+      console.error('Error logging access:', error);
+      throw error;
     }
-};
+  }
 
-module.exports = analyticsService;
+  static async getUserAnalytics(userId) {
+    try {
+      return await prisma.accessLog.findMany({
+        where: { userId },
+        orderBy: { timestamp: 'desc' },
+        include: { user: true }
+      });
+    } catch (error) {
+      console.error('Error fetching user analytics:', error);
+      throw error;
+    }
+  }
+}
+
+module.exports = AnalyticsService;

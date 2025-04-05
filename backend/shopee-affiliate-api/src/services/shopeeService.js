@@ -12,7 +12,24 @@ class ShopeeService {
     this.apiKey = shopeeConfig.API_KEY;
     this.apiSecret = shopeeConfig.API_SECRET;
     this.categoriesFilePath = path.join(__dirname, '../routes/CATEGORIA.json');
-    this.repairedProducts = new Set(); // To track repaired products
+    this.productsJsonPath = path.join(__dirname, '../data/products.json');
+
+    // Garantir que o diretório data existe
+    const dataDir = path.join(__dirname, '../data');
+    if (!fs.existsSync(dataDir)) {
+      fs.mkdirSync(dataDir, { recursive: true });
+    }
+
+    // Criar arquivo de categorias se não existir
+    if (!fs.existsSync(this.categoriesFilePath)) {
+      fs.writeFileSync(this.categoriesFilePath, JSON.stringify([
+        { category_id: "1", category_name: "Eletrônicos" },
+        { category_id: "2", category_name: "Moda" },
+        { category_id: "3", category_name: "Casa & Decoração" },
+        { category_id: "4", category_name: "Beleza & Saúde" },
+        { category_id: "5", category_name: "Esportes" }
+      ]), 'utf-8');
+    }
 
     this.instance = axios.create({
       baseURL: this.baseUrl,
@@ -33,40 +50,106 @@ class ShopeeService {
   }
 
   /**
+   * Get products data from JSON file
+   * @returns {Array} - Array of products from JSON
+   */
+  getProductsFromJson() {
+    try {
+      const rawData = fs.readFileSync(this.productsJsonPath, 'utf8');
+      const jsonData = JSON.parse(rawData);
+      return jsonData.data || [];
+    } catch (error) {
+      console.error('Error reading products from JSON:', error);
+      return [];
+    }
+  }
+
+  /**
    * Busca produtos na API da Shopee com base em uma palavra-chave
-   * @param {string} keyword - Palavra-chave para busca
-   * @param {number} limit - Quantidade de produtos a retornar
-   * @param {number} page - Página de resultados
+   * @param {Object} searchParams - Parâmetros de busca
    * @returns {Promise<Object>} - Resultado da busca de produtos
    */
-  async searchProducts(keyword, limit = 20, page = 1) {
+  async searchProducts(searchParams) {
     try {
-      // Mock para desenvolvimento - simular resposta da API
-      // Em produção, substituir por chamada real à API
-      const mockData = this._generateMockProducts(keyword, limit, page);
-
-      // Em produção, descomentar:
-      /*
-      const response = await this.instance.post('/product/search', {
-        keyword,
-        limit,
-        page
-      });
-      return response.data;
-      */
+      const { keyword, categoryId, minPrice, maxPrice, minCommission, sortBy, limit = 20, page = 1 } = searchParams;
+      
+      // Obter produtos do arquivo JSON
+      const allProducts = this.getProductsFromJson();
+      
+      // Aplicar filtros
+      let filteredProducts = [...allProducts];
+      
+      if (keyword && typeof keyword === 'string') {
+        const keywordLower = keyword.toLowerCase();
+        filteredProducts = filteredProducts.filter(product => 
+          product.name.toLowerCase().includes(keywordLower)
+        );
+      }
+      
+      if (categoryId) {
+        filteredProducts = filteredProducts.filter(product => 
+          product.category_id === categoryId
+        );
+      }
+      
+      if (minPrice !== undefined) {
+        filteredProducts = filteredProducts.filter(product => 
+          product.price >= minPrice
+        );
+      }
+      
+      if (maxPrice !== undefined) {
+        filteredProducts = filteredProducts.filter(product => 
+          product.price <= maxPrice
+        );
+      }
+      
+      if (minCommission !== undefined) {
+        filteredProducts = filteredProducts.filter(product => 
+          product.commission_rate >= minCommission
+        );
+      }
+      
+      // Ordenação
+      switch(sortBy) {
+        case 'sales':
+          filteredProducts.sort((a, b) => b.sales - a.sales);
+          break;
+        case 'commission':
+          filteredProducts.sort((a, b) => b.commission_rate - a.commission_rate);
+          break;
+        case 'price':
+          filteredProducts.sort((a, b) => a.price - b.price);
+          break;
+        case 'discount':
+          filteredProducts.sort((a, b) => {
+            const discountA = ((a.original_price - a.price) / a.original_price) * 100;
+            const discountB = ((b.original_price - b.price) / b.original_price) * 100;
+            return discountB - discountA;
+          });
+          break;
+        case 'rating':
+          filteredProducts.sort((a, b) => b.rating_star - a.rating_star);
+          break;
+      }
+      
+      // Aplicar paginação
+      const startIdx = (page - 1) * limit;
+      const endIdx = startIdx + limit;
+      const paginatedProducts = filteredProducts.slice(startIdx, endIdx);
 
       return {
         success: true,
         data: {
-          products: mockData.products,
-          totalCount: mockData.totalCount,
+          products: paginatedProducts,
+          totalCount: filteredProducts.length,
           page,
           limit,
-          hasMore: mockData.products.length === limit
+          hasMore: endIdx < filteredProducts.length
         }
       };
     } catch (error) {
-      console.error(`Erro ao buscar produtos com a palavra-chave "${keyword}":`, error);
+      console.error(`Erro ao buscar produtos:`, error);
       throw new Error(`Falha ao buscar produtos: ${error.message}`);
     }
   }
@@ -78,17 +161,17 @@ class ShopeeService {
    */
   async getShopeeProductData(productId) {
     try {
-      // Mock para desenvolvimento
-      // Em produção, substituir pela chamada real à API
-      const mockProduct = this._generateMockProduct(productId);
+      const products = this.getProductsFromJson();
+      const product = products.find(p => 
+        p.id.toString() === productId.toString() || 
+        p.shopee_id?.toString() === productId.toString()
+      );
+      
+      if (!product) {
+        throw new Error(`Product with ID ${productId} not found`);
+      }
 
-      // Em produção, descomentar:
-      /*
-      const response = await this.instance.get(`/product/${productId}`);
-      return response.data;
-      */
-
-      return mockProduct;
+      return product;
     } catch (error) {
       console.error(`Erro ao obter dados do produto ${productId}:`, error);
       throw new Error(`Falha ao obter dados do produto: ${error.message}`);
@@ -96,297 +179,117 @@ class ShopeeService {
   }
 
   /**
-   * Obtém as categorias de produtos do arquivo CATEGORIA.json
-   * @returns {Promise<Array>} - Lista de categorias
+   * Obtém as categorias de produtos
    */
   async getProductCategories() {
     try {
-      const categoriesData = fs.readFileSync(this.categoriesFilePath, 'utf-8');
-      const categories = JSON.parse(categoriesData);
-      return { success: true, data: categories };
+      // Tentar carregar do arquivo de cache primeiro
+      if (fs.existsSync(this.categoriesFilePath)) {
+        const categoriesData = fs.readFileSync(this.categoriesFilePath, 'utf-8');
+        const categories = JSON.parse(categoriesData);
+        return { success: true, data: categories };
+      }
+      
+      // Se não conseguir do arquivo, tentar da API
+      // Implementar chamada à API Shopee aqui quando disponível
+      // Por enquanto, retorna categorias padrão
+      return { 
+        success: false, 
+        message: "Categories file not found and API call not implemented" 
+      };
     } catch (error) {
-      console.error('Erro ao carregar categorias do arquivo:', error);
-      throw new Error('Falha ao carregar categorias.');
+      console.error('Error loading categories:', error);
+      return { 
+        success: false, 
+        message: 'Failed to load categories',
+        error: error.message 
+      };
     }
   }
 
   /**
-   * Obtém produtos de uma categoria específica
-   * @param {string} categoryId - ID da categoria
-   * @param {number} limit - Quantidade de produtos a retornar
-   * @param {number} page - Página de resultados
-   * @returns {Promise<Object>} - Resultado da busca de produtos por categoria
+   * Obtém produtos recomendados com base no ID do produto
+   * @param {string} productId - ID do produto
+   * @param {number} limit - Número máximo de produtos a retornar
+   * @returns {Promise<Object>} - Produtos recomendados
    */
-  async getProductsByCategory(categoryId, limit = 20, page = 1) {
+  async getRecommendedProducts(productId, limit = 8) {
     try {
-      // Mock para desenvolvimento
-      // Em produção, substituir pela chamada real à API
-      const mockData = this._generateMockProductsByCategory(categoryId, limit, page);
-
-      // Em produção, descomentar:
-      /*
-      const response = await this.instance.get(`/category/${categoryId}/products`, {
-        params: { limit, page }
-      });
-      return response.data;
-      */
-
+      const allProducts = this.getProductsFromJson();
+      const product = await this.getShopeeProductData(productId);
+      
+      // Filtrar produtos da mesma categoria
+      let similarProducts = allProducts.filter(p => 
+        p.category_id === product.category_id && p.id !== product.id
+      );
+      
+      // Ordenar por popularidade e limitar resultados
+      similarProducts.sort((a, b) => b.sales - a.sales);
+      const recommendations = similarProducts.slice(0, limit);
+      
       return {
         success: true,
         data: {
-          products: mockData.products,
-          categoryInfo: mockData.categoryInfo,
-          totalCount: mockData.totalCount,
-          page,
-          limit,
-          hasMore: mockData.products.length === limit
+          products: recommendations,
+          totalCount: recommendations.length
         }
       };
     } catch (error) {
-      console.error(`Erro ao buscar produtos da categoria ${categoryId}:`, error);
-      throw new Error(`Falha ao buscar produtos da categoria: ${error.message}`);
+      console.error(`Erro ao obter produtos recomendados para ${productId}:`, error);
+      throw new Error(`Falha ao obter produtos recomendados: ${error.message}`);
     }
   }
 
   /**
-   * Registra um clique em um link de afiliado
-   * @param {string} linkId - ID do link de afiliado
-   * @param {string} userId - ID do usuário
-   * @returns {Promise<Object>} - Resultado do registro de clique
+   * Obtém produtos em alta com base em palavras-chave ou categorias
+   * @param {Object} params - Parâmetros da busca
+   * @returns {Promise<Object>} - Produtos em alta
    */
-  async trackAffiliateClick(linkId, userId) {
+  async getTrendingProducts(params) {
     try {
-      // Em desenvolvimento, apenas simulamos o registro
-      console.log(`Clique registrado no link ${linkId} pelo usuário ${userId}`);
-
-      // Em produção, descomentar:
-      /*
-      const response = await this.instance.post(`/affiliate/link/${linkId}/track`, {
-        userId
-      });
-      return response.data;
-      */
-
-      return { success: true };
-    } catch (error) {
-      console.error(`Erro ao registrar clique no link ${linkId}:`, error);
-      throw new Error(`Falha ao registrar clique: ${error.message}`);
-    }
-  }
-
-  /**
-   * Registra uma conversão (venda) através de link afiliado
-   * @param {string} linkId - ID do link de afiliado
-   * @param {string} orderId - ID do pedido
-   * @param {number} orderValue - Valor do pedido
-   * @returns {Promise<Object>} - Resultado do registro da conversão
-   */
-  async recordConversion(linkId, orderId, orderValue) {
-    try {
-      // Em desenvolvimento, apenas simulamos o registro
-      console.log(`Conversão registrada para o link ${linkId}, pedido ${orderId}, valor ${orderValue}`);
-
-      // Em produção, descomentar:
-      /*
-      const response = await this.instance.post(`/affiliate/link/${linkId}/conversion`, {
-        orderId,
-        orderValue
-      });
-      return response.data;
-      */
-
-      return { success: true };
-    } catch (error) {
-      console.error(`Erro ao registrar conversão para o link ${linkId}:`, error);
-      throw new Error(`Falha ao registrar conversão: ${error.message}`);
-    }
-  }
-
-  /**
-   * Gera um link de afiliado para um produto
-   * @param {string} userId - ID do usuário afiliado
-   * @param {string} productId - ID do produto
-   * @param {Object} options - Opções adicionais para o link
-   * @returns {Promise<Object>} - Dados do link de afiliado gerado
-   */
-  async generateAffiliateLink(userId, productId, options = {}) {
-    try {
-      // Em desenvolvimento, geramos um link fictício
-      const productData = await this.getShopeeProductData(productId);
-      const campaignId = options.campaignId || 'default';
-      const subId = options.subId || '';
-
-      const affiliateLink = `https://shope.ee/affiliate/${userId}/${productId}?campaign=${campaignId}&sub_id=${subId}`;
-
-      // Em produção, descomentar:
-      /*
-      const response = await this.instance.post('/affiliate/link/create', {
-        userId,
-        productId,
-        ...options
-      });
-      return response.data;
-      */
-
+      const { keywords, categoryIds, minSales = 50, limit = 20 } = params;
+      const allProducts = this.getProductsFromJson();
+      
+      let filteredProducts = [...allProducts];
+      
+      // Filtrar por categorias se fornecidas
+      if (categoryIds && categoryIds.length > 0) {
+        filteredProducts = filteredProducts.filter(product => 
+          categoryIds.includes(product.category_id)
+        );
+      }
+      
+      // Filtrar por palavras-chave se fornecidas
+      if (keywords && keywords.length > 0) {
+        filteredProducts = filteredProducts.filter(product => {
+          return keywords.some(keyword => 
+            product.name.toLowerCase().includes(keyword.toLowerCase())
+          );
+        });
+      }
+      
+      // Filtrar por vendas mínimas
+      filteredProducts = filteredProducts.filter(product => 
+        product.sales >= minSales
+      );
+      
+      // Ordenar por número de vendas (tendência)
+      filteredProducts.sort((a, b) => b.sales - a.sales);
+      
+      // Limitar resultados
+      const trendingProducts = filteredProducts.slice(0, limit);
+      
       return {
         success: true,
         data: {
-          link: affiliateLink,
-          productData,
-          userId,
-          campaign: campaignId,
-          subId
+          products: trendingProducts,
+          totalCount: trendingProducts.length
         }
       };
     } catch (error) {
-      console.error(`Erro ao gerar link de afiliado para o produto ${productId}:`, error);
-      throw new Error(`Falha ao gerar link de afiliado: ${error.message}`);
+      console.error('Erro ao obter produtos em alta:', error);
+      throw new Error(`Falha ao obter produtos em alta: ${error.message}`);
     }
-  }
-
-  /**
-   * Marca um produto como reparado para evitar duplicação
-   * @param {string} productId - ID do produto
-   */
-  markProductAsRepaired(productId) {
-    this.repairedProducts.add(productId);
-  }
-
-  /**
-   * Verifica se um produto já foi reparado
-   * @param {string} productId - ID do produto
-   * @returns {boolean} - Verdadeiro se o produto já foi reparado
-   */
-  isProductRepaired(productId) {
-    return this.repairedProducts.has(productId);
-  }
-
-  /**
-   * Gera dados simulados de produtos para testes
-   * @private
-   */
-  _generateMockProducts(keyword, limit, page) {
-    const products = [];
-    const startIndex = (page - 1) * limit;
-    const totalCount = 120; // Simula um total de produtos
-
-    // Gerar produtos simulados
-    for (let i = 0; i < limit && (startIndex + i) < totalCount; i++) {
-      const productId = (startIndex + i + 1).toString();
-      products.push({
-        itemId: productId,
-        name: `Produto ${keyword} ${productId}`,
-        price: Math.floor(Math.random() * 1000) + 10,
-        priceMin: Math.floor(Math.random() * 900) + 10,
-        priceMax: Math.floor(Math.random() * 500) + 1000,
-        image: `https://picsum.photos/seed/${productId}/200/200`,
-        categoryId: Math.floor(Math.random() * 10) + 100000,
-        sales: Math.floor(Math.random() * 1000),
-        commissionRate: (Math.random() * 0.1).toFixed(2),
-        ratingStar: (Math.random() * 5).toFixed(1),
-        shopId: Math.floor(Math.random() * 1000) + 1,
-        shopName: `Loja ${Math.floor(Math.random() * 100)}`,
-        shopLocation: "Brasil"
-      });
-    }
-
-    return {
-      products,
-      totalCount
-    };
-  }
-
-  /**
-   * Gera dados simulados de um produto específico
-   * @private
-   */
-  _generateMockProduct(productId) {
-    return {
-      itemId: productId,
-      name: `Produto ${productId}`,
-      price: Math.floor(Math.random() * 1000) + 10,
-      priceMin: Math.floor(Math.random() * 900) + 10,
-      priceMax: Math.floor(Math.random() * 500) + 1000,
-      image: `https://picsum.photos/seed/${productId}/200/200`,
-      url: `https://shopee.com.br/product/${productId}`,
-      categoryId: Math.floor(Math.random() * 10) + 100000,
-      sales: Math.floor(Math.random() * 1000),
-      commissionRate: (Math.random() * 0.1).toFixed(2),
-      ratingStar: (Math.random() * 5).toFixed(1),
-      shopId: Math.floor(Math.random() * 1000) + 1,
-      shopName: `Loja ${Math.floor(Math.random() * 100)}`,
-      shopLocation: "Brasil",
-      description: `Descrição detalhada do produto ${productId}. Este é um produto de alta qualidade.`
-    };
-  }
-
-  /**
-   * Gera categorias simuladas para testes
-   * @private
-   */
-  _generateMockCategories() {
-    return [
-      { id: "100001", name: "Eletrônicos", level: 1 },
-      { id: "100002", name: "Celulares & Acessórios", level: 1 },
-      { id: "100003", name: "Computadores & Acessórios", level: 1 },
-      { id: "100006", name: "TVs & Acessórios", level: 1 },
-      { id: "100007", name: "Áudio", level: 1 },
-      { id: "100013", name: "Câmeras & Acessórios", level: 1 },
-      { id: "100016", name: "Jogos", level: 1 },
-      { id: "100018", name: "Moda Feminina", level: 1 },
-      { id: "100019", name: "Moda Masculina", level: 1 },
-      { id: "100022", name: "Relógios", level: 1 },
-      { id: "100024", name: "Bolsas & Malas", level: 1 },
-      { id: "100039", name: "Casa & Decoração", level: 1 },
-      { id: "100040", name: "Bebês & Crianças", level: 1 },
-      { id: "100041", name: "Beleza", level: 1 },
-      { id: "100042", name: "Esportes & Lazer", level: 1 }
-    ];
-  }
-
-  /**
-   * Gera produtos simulados por categoria para testes
-   * @private
-   */
-  _generateMockProductsByCategory(categoryId, limit, page) {
-    const products = [];
-    const startIndex = (page - 1) * limit;
-    const totalCount = 80; // Simula um total de produtos para a categoria
-
-    // Buscar informações da categoria
-    const allCategories = this._generateMockCategories();
-    const categoryInfo = allCategories.find(cat => cat.id === categoryId) || {
-      id: categoryId,
-      name: `Categoria ${categoryId}`,
-      level: 1
-    };
-
-    // Gerar produtos simulados para esta categoria
-    for (let i = 0; i < limit && (startIndex + i) < totalCount; i++) {
-      const productId = `${categoryId}-${startIndex + i + 1}`;
-      products.push({
-        itemId: productId,
-        name: `Produto ${categoryInfo.name} ${i + 1}`,
-        price: Math.floor(Math.random() * 1000) + 10,
-        priceMin: Math.floor(Math.random() * 900) + 10,
-        priceMax: Math.floor(Math.random() * 500) + 1000,
-        image: `https://picsum.photos/seed/${productId}/200/200`,
-        categoryId: categoryId,
-        categoryName: categoryInfo.name,
-        sales: Math.floor(Math.random() * 500),
-        commissionRate: (Math.random() * 0.1).toFixed(2),
-        ratingStar: (Math.random() * 5).toFixed(1),
-        shopId: Math.floor(Math.random() * 1000) + 1,
-        shopName: `Loja ${Math.floor(Math.random() * 100)}`,
-        shopLocation: "Brasil"
-      });
-    }
-
-    return {
-      products,
-      categoryInfo,
-      totalCount
-    };
   }
 }
 

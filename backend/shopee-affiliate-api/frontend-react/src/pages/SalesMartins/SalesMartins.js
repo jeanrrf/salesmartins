@@ -1,17 +1,9 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Container, Row, Col, Button, Form } from 'react-bootstrap';
-import { Link } from 'react-router-dom';
+import { Container, Row, Col, Button, Form, Spinner } from 'react-bootstrap';
 import { 
-  FaSearch, FaHome, FaPlay, FaPause,
-  FaTshirt, FaLaptop, FaGamepad, FaMobileAlt, FaBabyCarriage,
-  FaUtensils, FaBook, FaRunning, FaChair, FaHeartbeat, FaPaw,
-  FaTrophy, FaPercent
+  FaSearch, FaHome, FaPlay, FaPause, FaPercent, FaTrophy, FaTshirt, FaCouch, FaBaby, FaCar, FaTools
 } from 'react-icons/fa';
-import { 
-  GiLipstick, GiSofa, GiJewelCrown, 
-  GiFruitBowl, GiSportMedal
-} from 'react-icons/gi';
-import { affiliateService } from '../../services/api';
+import axios from 'axios';
 import styles from './SalesMartins.module.css';
 import ProductCatalog from '../../components/SalesMartins/ProductCatalog';
 import SpecialProductsSection from '../../components/SalesMartins/SpecialProductsSection';
@@ -22,47 +14,76 @@ import posterImage from '../../assets/images/sales-martins-logo.jpg';
 
 const SalesMartins = () => {
   const [popularCategories, setPopularCategories] = useState([]);
-  const [otherCategories, setOtherCategories] = useState([]);
-  const [selectedCategory, setSelectedCategory] = useState('all');
+  const [selectedCategory, setSelectedCategory] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [isVideoPlaying, setIsVideoPlaying] = useState(false);
   const [videoVisible, setVideoVisible] = useState(false);
   const [backgroundImageLoaded, setBackgroundImageLoaded] = useState(true);
+  const [products, setProducts] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [categoryLoading, setCategoryLoading] = useState(true);
+  const [error, setError] = useState(null);
   
   const videoRef = useRef(null);
   const productsSectionRef = useRef(null);
   const categoryWrapperRef = useRef(null);
 
+  // Carrega as categorias
   useEffect(() => {
     const fetchCategories = async () => {
       try {
-        const response = await affiliateService.getCategories();
-        if (response.data?.data) {
-          // Get all categories and sort by name
-          const allCategories = response.data.data.sort((a, b) => 
-            a.name.localeCompare(b.name)
-          );
-          
-          // Add icons to categories
-          const categoriesWithIcons = allCategories.map(cat => ({
-            ...cat,
-            icon: getCategoryIcon(cat.name)
+        setCategoryLoading(true);
+        setError(null);
+
+        // Fetch categories directly from the API
+        const response = await axios.get('/api/products', {
+          params: { categoryOnly: true }
+        });
+
+        if (response.data?.success && response.data?.data) {
+          // Garantir que as categorias estão no formato esperado e não têm duplicatas
+          const categories = response.data.data.map(cat => ({
+            id: cat.id,
+            name: cat.name,
+            icon: getCategoryIcon(cat.name) // Adiciona ícones com base no nome da categoria
           }));
 
-          // Separate into popular (first 8) and others
-          setPopularCategories(categoriesWithIcons.slice(0, 8));
-          setOtherCategories(categoriesWithIcons.slice(8));
+          // Eliminar duplicatas com base no ID
+          const uniqueCategories = categories.filter(
+            (cat, index, self) => index === self.findIndex((c) => c.id === cat.id)
+          );
+
+          setPopularCategories(uniqueCategories);
+        } else {
+          setError('Não foi possível carregar as categorias');
         }
-      } catch (error) {
-        console.error('Erro ao carregar categorias:', error);
-        setPopularCategories([]);
-        setOtherCategories([]);
+      } catch (err) {
+        console.error('Erro ao carregar categorias:', err);
+        setError('Erro ao carregar categorias. Tente novamente.');
+      } finally {
+        setCategoryLoading(false);
       }
     };
 
     fetchCategories();
   }, []);
 
+  // Função auxiliar para obter ícone com base no nome da categoria
+  const getCategoryIcon = (categoryName) => {
+    const name = categoryName ? categoryName.toLowerCase() : '';
+
+    if (name.includes('eletrônico')) return <FaTools />;
+    if (name.includes('ferramenta') || name.includes('construção')) return <FaTools />;
+    if (name.includes('beleza') || name.includes('cuidado')) return <FaBaby />;
+    if (name.includes('casa') || name.includes('decoração')) return <FaCouch />;
+    if (name.includes('moda')) return <FaTshirt />;
+    if (name.includes('automotivo')) return <FaCar />;
+
+    // Ícone padrão
+    return <FaHome />;
+  };
+
+  // Carrega a imagem de fundo
   useEffect(() => {
     const img = new Image();
     img.src = heroBackground;
@@ -73,33 +94,44 @@ const SalesMartins = () => {
     img.onload = () => setBackgroundImageLoaded(true);
   }, []);
 
+  // Carrega produtos com tratamento de erros melhorado
+  const fetchProducts = async (categoryId = null) => {
+    try {
+      setLoading(true);
+      setError(null);
+
+      const params = {};
+      if (categoryId) {
+        params.category = categoryId;
+      }
+
+      const response = await axios.get('/api/products', { params });
+
+      if (response.data?.success) {
+        setProducts(response.data.data || []);
+      } else {
+        setError('Não foi possível carregar os produtos');
+        setProducts([]);
+      }
+    } catch (err) {
+      console.error('Erro ao carregar produtos:', err);
+      setError('Erro ao carregar produtos. Tente novamente.');
+      setProducts([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Carrega todos os produtos inicialmente
+  useEffect(() => {
+    fetchProducts();
+  }, []);
+
   const handleSearch = (e) => {
     e.preventDefault();
     if (productsSectionRef.current) {
       productsSectionRef.current.scrollIntoView({ behavior: 'smooth' });
     }
-  };
-
-  const getCategoryIcon = (categoryName) => {
-    const name = categoryName ? categoryName.toLowerCase() : '';
-    
-    if (name.includes('todos')) return <FaSearch />;
-    if (name.includes('eletrônico') || name.includes('eletronico')) return <FaLaptop />;
-    if (name.includes('celular') || name.includes('telefone')) return <FaMobileAlt />;
-    if (name.includes('moda') || name.includes('roupa')) return <FaTshirt />;
-    if (name.includes('beleza') || name.includes('cosmet')) return <GiLipstick />;
-    if (name.includes('casa') || name.includes('decoração')) return <GiSofa />;
-    if (name.includes('moveis') || name.includes('móveis')) return <FaChair />;
-    if (name.includes('jogo') || name.includes('game')) return <FaGamepad />;
-    if (name.includes('esporte')) return <FaRunning />;
-    if (name.includes('saúde') || name.includes('saude')) return <FaHeartbeat />;
-    if (name.includes('livro') || name.includes('livraria')) return <FaBook />;
-    if (name.includes('bebê') || name.includes('bebe') || name.includes('infantil')) return <FaBabyCarriage />;
-    if (name.includes('pet') || name.includes('animal')) return <FaPaw />;
-    if (name.includes('joia') || name.includes('acessório')) return <GiJewelCrown />;
-    if (name.includes('alimento') || name.includes('comida')) return <FaUtensils />;
-    if (name.includes('fruta') || name.includes('hortifruti')) return <GiFruitBowl />;
-    return <GiSportMedal />;
   };
 
   const toggleVideo = () => {
@@ -125,6 +157,7 @@ const SalesMartins = () => {
   const handleCategoryClick = (categoryId) => {
     console.log('Category selected:', categoryId);
     setSelectedCategory(categoryId);
+    fetchProducts(categoryId);
     
     setTimeout(() => {
       if (productsSectionRef.current) {
@@ -135,22 +168,16 @@ const SalesMartins = () => {
 
   return (
     <div className={styles.pageWrapper}>
-      {/* Header com efeito glass black piano */}
+      {/* Header */}
       <header className={styles.header}>
         <Container>
           <div className={styles.headerInner}>
             <div className={styles.logo}>Sales Martins</div>
-            <div className={styles.headerNav}>
-              <Link to="/" className={styles.returnLink}>
-                <FaHome className={styles.homeIcon} />
-                <span>Voltar ao Dashboard</span>
-              </Link>
-            </div>
           </div>
         </Container>
       </header>
 
-      {/* Banner Hero com Video */}
+      {/* Banner Hero */}
       <div className={styles.heroBanner}>
         <div 
           className={styles.backgroundImage} 
@@ -181,6 +208,7 @@ const SalesMartins = () => {
                         categoryWrapperRef.current.scrollIntoView({ behavior: 'smooth' });
                       }
                     }}
+                    aria-label="Ver ofertas disponíveis"
                   >
                     Ver Ofertas
                   </Button>
@@ -189,6 +217,7 @@ const SalesMartins = () => {
                     size="lg" 
                     className={`mb-2 ${styles.videoButton}`}
                     onClick={toggleVideo}
+                    aria-label={isVideoPlaying ? "Pausar vídeo de demonstração" : "Assistir vídeo de demonstração"}
                   >
                     {isVideoPlaying ? <FaPause className="me-2" /> : <FaPlay className="me-2" />}
                     {isVideoPlaying ? 'Pausar Vídeo' : 'Ver Destaques'}
@@ -205,9 +234,10 @@ const SalesMartins = () => {
                     onEnded={onVideoEnded}
                     onClick={toggleVideo}
                     playsInline
+                    aria-label="Vídeo promocional de ofertas"
                   ></video>
                   {!isVideoPlaying && (
-                    <div className={styles.videoOverlay}>
+                    <div className={styles.videoOverlay} role="button" aria-label="Iniciar vídeo">
                       <div className={styles.playButton}>
                         <FaPlay />
                       </div>
@@ -220,101 +250,202 @@ const SalesMartins = () => {
         </div>
       </div>
 
-      {/* Categorias em linha com efeito glass */}
-      <div className={styles.categoryWrapper} ref={categoryWrapperRef}>
-        <Container>
-          <div className={styles.categoryList}>
-            {popularCategories.map((category) => (
+      {/* Conteúdo Principal - Categorias laterais e produtos */}
+      <Container fluid="lg">
+        <div className={styles.mainContentWrapper} ref={categoryWrapperRef}>
+          {/* Sidebar com categorias */}
+          <aside className={styles.sidebarCategories}>
+            <h3>Categorias</h3>
+            <div className={styles.verticalCategoryList}>
+              {/* Botão para mostrar todos os produtos */}
               <Button
-                key={category.id}
-                variant={selectedCategory === category.id ? 'primary' : 'outline-light'}
-                onClick={() => handleCategoryClick(category.id)}
-                className={`${styles.categoryButton} ${selectedCategory === category.id ? styles.active : ''}`}
+                variant={selectedCategory === null ? 'primary' : 'outline-light'}
+                onClick={() => {
+                  setSelectedCategory(null);
+                  fetchProducts();
+                }}
+                className={`${styles.categoryButton} ${selectedCategory === null ? styles.active : ''}`}
+                aria-label="Ver todos os produtos"
               >
-                <span className={styles.categoryIcon}>{category.icon}</span>
-                <span className={styles.categoryName}>{category.name}</span>
+                <span className={styles.categoryIcon}><FaHome /></span>
+                <span className={styles.categoryName}>Todos</span>
               </Button>
-            ))}
-          </div>
-          
-          <div className={styles.categoryListSecondary}>
-            {otherCategories.map((category) => (
-              <Button
-                key={category.id}
-                variant={selectedCategory === category.id ? 'primary' : 'outline-light'}
-                onClick={() => handleCategoryClick(category.id)}
-                className={`${styles.categoryButtonSmall} ${selectedCategory === category.id ? styles.active : ''}`}
-              >
-                <span className={styles.categoryIconSmall}>{category.icon}</span>
-                <span className={styles.categoryNameSmall}>{category.name}</span>
-              </Button>
-            ))}
-          </div>
-          
-          <div className={styles.scrollIndicator}>
-            <div className={`${styles.scrollDot} ${styles.active}`}></div>
-            <div className={styles.scrollDot}></div>
-            <div className={styles.scrollDot}></div>
-          </div>
-        </Container>
-      </div>
 
-      {/* Search Bar */}
-      <Container className={styles.searchContainer}>
-        <Form onSubmit={handleSearch} className={styles.searchForm}>
-          <Form.Control
-            type="text"
-            placeholder="Buscar produtos com melhor preço..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className={styles.searchInput}
-            id="productSearch"
-            name="productSearch"
-            aria-label="Busca de produtos"
-          />
-          <Button type="submit" variant="primary" className={styles.searchButton}>
-            <FaSearch className="me-2" /> Buscar
-          </Button>
-        </Form>
+              {/* Renderiza as categorias dinamicamente */}
+              {categoryLoading ? (
+                <div className="text-center py-2">
+                  <Spinner animation="border" size="sm" variant="light" aria-label="Carregando categorias" />
+                </div>
+              ) : error || popularCategories.length === 0 ? (
+                <div className="text-center py-2">
+                  <p className="text-light mb-0">Não foi possível carregar as categorias</p>
+                </div>
+              ) : (
+                popularCategories.map((category) => (
+                  <Button
+                    key={category.id}
+                    variant={selectedCategory === category.id ? 'primary' : 'outline-light'}
+                    onClick={() => handleCategoryClick(category.id)}
+                    className={`${styles.categoryButton} ${selectedCategory === category.id ? styles.active : ''}`}
+                    aria-label={`Ver produtos da categoria ${category.name}`}
+                  >
+                    <span className={styles.categoryIcon}>{category.icon}</span>
+                    <span className={styles.categoryName}>{category.name}</span>
+                  </Button>
+                ))
+              )}
+            </div>
+          </aside>
+
+          {/* Área principal de conteúdo */}
+          <main className={styles.productsContentArea}>
+            {/* Search bar */}
+            <div className={styles.compactSearchContainer}>
+              <Form onSubmit={handleSearch} className={styles.compactSearchForm}>
+                <Form.Control
+                  type="text"
+                  placeholder="Buscar produtos..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className={styles.compactSearchInput}
+                  id="productSearch"
+                  name="productSearch"
+                  aria-label="Busca de produtos"
+                />
+                <Button
+                  type="submit"
+                  variant="primary"
+                  className={styles.compactSearchButton}
+                  aria-label="Buscar"
+                >
+                  <FaSearch />
+                </Button>
+              </Form>
+            </div>
+
+            {/* Cabeçalho da Categoria */}
+            {selectedCategory ? (
+              <div className={styles.categoryHeader}>
+                <h2 className={styles.categoryTitle}>
+                  {popularCategories.find(c => c.id === selectedCategory)?.name || ''}
+                </h2>
+                <p className={styles.categorySubtitle}>
+                  Explore produtos exclusivos desta categoria
+                </p>
+              </div>
+            ) : (
+              <>
+                {/* Seção de descontos - só aparece quando não há categoria selecionada */}
+                <SpecialProductsSection
+                  title="Caution Descontos!"
+                  icon={<FaPercent />}
+                  sectionClass="discountSection"
+                  filterParams={{
+                    sortBy: 'discount',
+                    minDiscount: 20,
+                    categoryId: null
+                  }}
+                  limit={4}
+                />
+              </>
+            )}
+
+            {/* Products Section - Principal catálogo de produtos */}
+            <div ref={productsSectionRef}>
+              <h2 className={styles.sectionTitle}>
+                {selectedCategory
+                  ? `Produtos da Categoria ${popularCategories.find(c => c.id === selectedCategory)?.name || ''}`
+                  : 'Produtos Campeões em Economia'}
+              </h2>
+
+              {/* Show loading, error, or products */}
+              {loading ? (
+                <div className="text-center py-5">
+                  <Spinner animation="border" variant="primary" aria-label="Carregando produtos" />
+                  <p className="mt-3">Carregando produtos...</p>
+                </div>
+              ) : error ? (
+                <div className="text-center py-5">
+                  <p className="text-danger">{error}</p>
+                  <Button
+                    variant="outline-primary"
+                    onClick={() => fetchProducts(selectedCategory)}
+                    aria-label="Tentar carregar produtos novamente"
+                  >
+                    Tentar novamente
+                  </Button>
+                </div>
+              ) : products.length === 0 ? (
+                <div className="text-center py-5">
+                  <p>Nenhum produto encontrado nesta categoria.</p>
+                  <Button
+                    variant="outline-primary"
+                    onClick={() => {
+                      setSelectedCategory(null);
+                      fetchProducts();
+                    }}
+                    aria-label="Ver todos os produtos disponíveis"
+                  >
+                    Ver todos os produtos
+                  </Button>
+                </div>
+              ) : (
+                      <ProductCatalog
+                        products={products}
+                        searchQuery={searchQuery}
+                        CardComponent={EnhancedProductCard}
+                        cardStyle={{ maxWidth: '220px' }}
+                      />
+              )}
+            </div>
+
+            {/* Seções condicionais com base na categoria selecionada */}
+            {selectedCategory ? (
+              /* Quando uma categoria está selecionada, mostramos seções filtradas por essa categoria */
+              <>
+                <SpecialProductsSection
+                  title="Melhores Descontos desta Categoria"
+                  icon={<FaPercent />}
+                  sectionClass="discountSection"
+                  filterParams={{
+                    sortBy: 'discount',
+                    minDiscount: 5,
+                    categoryId: selectedCategory
+                  }}
+                  limit={4}
+                />
+
+                <SpecialProductsSection
+                  title="Mais Bem Avaliados desta Categoria"
+                  icon={<FaTrophy />}
+                  sectionClass="topRatedSection"
+                  filterParams={{
+                    sortBy: 'rating',
+                    minRating: 4.0,
+                    categoryId: selectedCategory
+                  }}
+                  limit={4}
+                />
+              </>
+            ) : (
+              /* Quando nenhuma categoria está selecionada, mostramos seção de mais bem avaliados geral */
+              <SpecialProductsSection
+                title="Mais Bem Avaliados"
+                icon={<FaTrophy />}
+                sectionClass="topRatedSection"
+                filterParams={{
+                  sortBy: 'rating',
+                    minRating: 4.5,
+                    categoryId: null
+                  }}
+                  limit={4}
+                />
+            )}
+          </main>
+        </div>
       </Container>
 
-      {/* Seção de descontos */}
-      <SpecialProductsSection 
-        title="Caution Descontos!" 
-        icon={<FaPercent />} 
-        sectionClass="discountSection"
-        filterParams={{
-          sortBy: 'discount',
-          minDiscount: 20
-        }}
-        limit={4}
-      />
-
-      {/* Products Section */}
-      <div ref={productsSectionRef}>
-        <Container>
-          <h2 className={styles.sectionTitle}>Produtos Campeões em Economia</h2>
-          <ProductCatalog 
-            categoryId={selectedCategory} 
-            searchQuery={searchQuery} 
-            CardComponent={EnhancedProductCard}
-          />
-        </Container>
-      </div>
-
-      {/* Seção de mais bem avaliados */}
-      <SpecialProductsSection 
-        title="Mais Bem Avaliados" 
-        icon={<FaTrophy />} 
-        sectionClass="topRatedSection"
-        filterParams={{
-          sortBy: 'rating',
-          minRating: 4.5
-        }}
-        limit={4}
-      />
-
-      {/* Footer personalizado */}
+      {/* Footer */}
       <footer className={styles.footer}>
         <Container>
           <div className={styles.footerContent}>

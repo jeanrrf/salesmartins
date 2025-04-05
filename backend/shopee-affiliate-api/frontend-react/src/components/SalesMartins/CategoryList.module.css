@@ -1,0 +1,76 @@
+.verticalCategoryList {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+    /* Reduce gap between items */
+  align-items: stretch;
+  margin: 0;
+  padding: 0;
+  height: calc(100vh - 50px);
+    /* Adjust height to account for external navigation bar */
+    overflow-y: auto;
+  background: rgba(0, 0, 0, 0.7);
+}
+
+.category {
+  display: flex;
+  align-items: center;
+  padding: 0.25rem 0.5rem;
+    /* Reduce padding */
+    margin: 0;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  transition: background 0.3s ease;
+  cursor: pointer;
+  font-size: 0.75rem;
+    /* Slightly smaller font size */
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: white;
+}
+
+.category:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.category.active {
+  background: rgba(255, 255, 255, 0.2);
+  border-color: rgba(255, 255, 255, 0.3);
+  box-shadow: 0 2px 8px rgba(255, 0, 122, 0.3);
+}
+
+.horizontalCategoryList {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+    /* Reduce gap between items */
+  margin: 0;
+}
+
+@media (max-width: 992px) {
+  .verticalCategoryList {
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: center;
+    gap: 0.25rem;
+      /* Reduce gap for smaller screens */
+      height: calc(100vh - 50px);
+      /* Adjust height for external navigation bar */
+  }
+  
+  .category {
+    width: 100%;
+  }
+}
+
+@media (max-width: 768px) {
+  .category {
+    padding: 0.25rem 0.5rem;
+      /* Reduce padding further for smaller screens */
+      font-size: 0.8rem;
+      /* Slightly larger font size for readability */
+  }
+}
