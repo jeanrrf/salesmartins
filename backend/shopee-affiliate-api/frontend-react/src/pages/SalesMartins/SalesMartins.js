@@ -83,6 +83,38 @@ const SalesMartins = () => {
     return <FaHome />;
   };
 
+  // Função para simplificar nomes de categorias
+  const getShortCategoryName = (name) => {
+    if (!name) return '';
+
+    // Mapeamento para nomes mais curtos e elegantes
+    const nameMap = {
+      'Eletrônicos': 'Eletrôn.',
+      'Eletrônicos e Celulares': 'Tech',
+      'Celulares': 'Celulares',
+      'Moda Feminina': 'Feminino',
+      'Moda Masculina': 'Masculino',
+      'Moda Infantil': 'Kids',
+      'Calçados': 'Calçados',
+      'Casa e Decoração': 'Casa',
+      'Cozinha': 'Cozinha',
+      'Beleza e Saúde': 'Beleza',
+      'Esportes': 'Esportes',
+      'Ferramentas': 'Tools',
+      'Automotivo': 'Auto'
+    };
+
+    // Verificar se existe mapeamento direto
+    if (nameMap[name]) return nameMap[name];
+
+    // Caso contrário, retorna os primeiros 8 caracteres
+    if (name.length > 8) {
+      return name.substring(0, 7) + '.';
+    }
+
+    return name;
+  };
+
   // Carrega a imagem de fundo
   useEffect(() => {
     const img = new Image();
@@ -290,7 +322,7 @@ const SalesMartins = () => {
                     aria-label={`Ver produtos da categoria ${category.name}`}
                   >
                     <span className={styles.categoryIcon}>{category.icon}</span>
-                    <span className={styles.categoryName}>{category.name}</span>
+                    <span className={styles.categoryName} title={category.name}>{getShortCategoryName(category.name)}</span>
                   </Button>
                 ))
               )}
@@ -323,38 +355,11 @@ const SalesMartins = () => {
               </Form>
             </div>
 
-            {/* Cabeçalho da Categoria */}
-            {selectedCategory ? (
-              <div className={styles.categoryHeader}>
-                <h2 className={styles.categoryTitle}>
-                  {popularCategories.find(c => c.id === selectedCategory)?.name || ''}
-                </h2>
-                <p className={styles.categorySubtitle}>
-                  Explore produtos exclusivos desta categoria
-                </p>
-              </div>
-            ) : (
-              <>
-                {/* Seção de descontos - só aparece quando não há categoria selecionada */}
-                <SpecialProductsSection
-                  title="Caution Descontos!"
-                  icon={<FaPercent />}
-                  sectionClass="discountSection"
-                  filterParams={{
-                    sortBy: 'discount',
-                    minDiscount: 20,
-                    categoryId: null
-                  }}
-                  limit={4}
-                />
-              </>
-            )}
-
             {/* Products Section - Principal catálogo de produtos */}
             <div ref={productsSectionRef}>
               <h2 className={styles.sectionTitle}>
                 {selectedCategory
-                  ? `Produtos da Categoria ${popularCategories.find(c => c.id === selectedCategory)?.name || ''}`
+                  ? `${popularCategories.find(c => c.id === selectedCategory)?.name || ''}`
                   : 'Produtos Campeões em Economia'}
               </h2>
 

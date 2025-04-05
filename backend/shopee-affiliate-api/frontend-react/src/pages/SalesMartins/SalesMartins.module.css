@@ -221,12 +221,13 @@
     /* Reduzimos o gap para eliminar espaço extra */
   margin-top: 2rem;
   width: 100%;
-    padding: 0;
+  padding: 0;
     /* Remover padding */
 }
 
 .sidebarCategories {
-  flex: 0 0 180px;
+  flex: 0 0 144px;
+    /* Reduced from 180px (20% reduction) */
   position: sticky;
   top: 80px;
   height: fit-content;
@@ -254,7 +255,7 @@
 
 .productsContentArea {
   flex: 1;
-  max-width: calc(100% - 180px);
+  max-width: calc(100% - 144px);
     /* Ajustar largura com base no tamanho da sidebar */
     padding-left: 1rem;
     /* Adicionar padding apenas à esquerda */
@@ -326,7 +327,8 @@
 }
 
 .categoryButton {
-  padding: 0.4rem 0.8rem;
+  padding: 0.35rem 0.7rem;
+    /* Reduzir padding */
   border-radius: 8px;
   background: rgba(255, 255, 255, 0.05);
   border: 1px solid rgba(255, 255, 255, 0.1);
@@ -351,8 +353,14 @@
 
 .categoryName {
   font-weight: 400;
-  font-size: 0.85rem;
+  font-size: 0.78rem;
+    /* Reduzir tamanho da fonte */
   white-space: nowrap;
+  overflow: hidden;
+    text-overflow: ellipsis;
+    /* Adicionar ellipsis para textos longos */
+    max-width: 90px;
+    /* Limitar largura máxima */
   transition: all 0.3s ease;
   text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
 }
