@@ -1,24 +1,29 @@
 .catalogContainer {
-  padding: 1rem 0;
-  margin-bottom: 2rem;
+  display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    width: 100%;
+    /* Remove largura fixa */
+    height: 100vh;
+    /* Ocupa toda a altura da janela */
+    overflow-y: auto;
+    /* Permite rolagem se necessário */
+    padding: 1rem;
+    margin-bottom: 1rem;
   background: rgba(20, 20, 20, 0.8);
   border-radius: 16px;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
   color: #fff;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    position: relative;
+  position: relative;
     overflow: hidden;
     z-index: 1;
-  width: 100%;
   scroll-margin-top: 100px;
 }
 
 .productsRow {
-  margin-right: -8px;
-  margin-left: -8px;
+  display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 1rem;
 }
 
 .errorMessage {
@@ -31,17 +36,17 @@
 }
 
 .loadingContainer {
-  display: flex;
+  display: none;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 1rem;
+  padding: 0rem;
   color: #fff;
 }
 
 .loadMoreContainer {
-  display: flex;
-  justify-content: center;
+  display: none;
+    justify-content: flex-end;
   margin: 1rem 0;
 }
 
