@@ -2,7 +2,11 @@ import React, { useState, useEffect } from 'react';
 import { Container, Row, Col, Spinner } from 'react-bootstrap';
 import EnhancedProductCard from './EnhancedProductCard';
 import axios from 'axios';
+<<<<<<< HEAD
 import pageStyles from '../../pages/SalesMartins/SalesMartins.module.css';
+=======
+import styles from './SpecialProductsSection.module.css';
+>>>>>>> 39d4231c2008f5f525f7e163cc9fe8fec6da12da
 
 const SpecialProductsSection = ({ 
   title, 
@@ -104,19 +108,27 @@ const SpecialProductsSection = ({
   }
 
   return (
-    <div className={`${pageStyles.specialSection} ${pageStyles[sectionClass]}`}>
+    <div className={`${styles.specialSection} ${styles[sectionClass]}`}>
       <Container>
-        <div className={pageStyles.sectionHeader}>
-          <span className={pageStyles.sectionIcon}>{icon}</span>
-          <h2 className={pageStyles.sectionTitleSpecial}>{title}</h2>
+        <div className={styles.sectionHeader}>
+          <span className={styles.sectionIcon}>{icon}</span>
+          <h2 className={styles.sectionTitle}>{title}</h2>
         </div>
 
         {loading ? (
+<<<<<<< HEAD
           <div className="text-center py-4">
             <Spinner animation="border" variant="primary" aria-label="Carregando produtos especiais" />
           </div>
         ) : error ? (
           <p className="text-center text-danger">{error}</p>
+=======
+          <div className={styles.loadingContainer}>
+            <Spinner animation="border" variant="primary" aria-label="Carregando produtos especiais" />
+          </div>
+        ) : error ? (
+            <p className={styles.errorMessage}>{error}</p>
+>>>>>>> 39d4231c2008f5f525f7e163cc9fe8fec6da12da
         ) : (
               <Row>
                 {products.map(product => (
