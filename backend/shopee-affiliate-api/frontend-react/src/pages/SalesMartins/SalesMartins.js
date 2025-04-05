@@ -250,13 +250,6 @@ const SalesMartins = () => {
       {/* Conteúdo Principal - Categorias laterais e produtos */}
       <Container fluid="lg">
         <div className={styles.mainContentWrapper} ref={categoryWrapperRef}>
-          {/* Sidebar com categorias */}
-          <CategoryList
-            categories={popularCategories}
-            selectedCategory={selectedCategory}
-            onCategoryClick={handleCategoryClick}
-          />
-
           {/* Área principal de conteúdo */}
           <main className={styles.productsContentArea}>
             {/* Search bar */}
@@ -281,6 +274,15 @@ const SalesMartins = () => {
                   <FaSearch />
                 </Button>
               </Form>
+            </div>
+
+            {/* Adicione a lista de categorias aqui, após a barra de busca */}
+            <div className={styles.horizontalCategoryContainer}>
+              <CategoryList
+                categories={popularCategories}
+                selectedCategory={selectedCategory}
+                onCategoryClick={handleCategoryClick}
+              />
             </div>
 
             {/* Cabeçalho da Categoria */}
@@ -314,7 +316,7 @@ const SalesMartins = () => {
             <div ref={productsSectionRef}>
               <h2 className={styles.sectionTitle}>
                 {selectedCategory
-                  ? popularCategories.find(c => c.id === selectedCategory)?.name || ''
+                  ? '' // Remove the duplicate category name display here
                   : 'Produtos Campeões em Economia'}
               </h2>
 

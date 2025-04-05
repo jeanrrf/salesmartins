@@ -332,12 +332,16 @@
 
 /* Compact search bar styles */
 .compactSearchContainer {
-  margin: 1rem 0 1.5rem;
-  max-width: 100%;
+  margin-bottom: 2rem;
+    width: 70%;
+    /* Reduced from 100% (or whatever it was) */
+    margin-left: auto;
+    margin-right: auto;
 }
 
 .compactSearchForm {
   display: flex;
+  position: relative;
   background: rgba(255, 255, 255, 0.05);
   border-radius: 8px;
   padding: 0.25rem;
@@ -374,6 +378,49 @@
     justify-content: center;
 }
 
+/* Novo container para categorias horizontais após a barra de busca */
+.horizontalCategoryContainer {
+  margin: 1.5rem 0;
+  padding: 1rem;
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+/* Garanta que as categorias sejam exibidas horizontalmente */
+.horizontalCategoryContainer :global(.categorySidebar) {
+  position: static;
+  height: auto;
+  width: 100%;
+  flex-direction: row;
+  flex-wrap: wrap;
+  justify-content: center;
+  padding: 0.5rem;
+  overflow-x: auto;
+  background: transparent;
+  border: none;
+}
+
+/* Ajuste para os itens de categoria dentro do container horizontal */
+.horizontalCategoryContainer :global(.categoryItem) {
+  width: auto;
+  margin: 0.25rem 0.5rem;
+  display: inline-flex;
+  border-radius: 50px;
+  padding: 0.5rem 1rem;
+  transition: all 0.3s ease;
+}
+
+/* Adicione mais espaço após os ícones para melhor legibilidade */
+.horizontalCategoryContainer :global(.categoryIcon) {
+  margin-right: 0.5rem;
+}
+
+/* Garantir que os rótulos de categoria sejam sempre visíveis */
+.horizontalCategoryContainer :global(.categoryLabel) {
+  opacity: 1;
+  display: inline;
+}
 /* Novas seções de produtos especiais */
 .specialSection {
   margin: 2.5rem 0;
