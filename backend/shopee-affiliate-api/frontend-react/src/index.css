@@ -12,6 +12,20 @@ body {
   font-family: 'Poppins', sans-serif;
   min-height: 100vh;
   line-height: 1.6;
+  display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    overflow-x: hidden;
+    /* Prevent horizontal scrolling */
+  }
+  
+  .container {
+    max-width: 1200px;
+    width: 100%;
+    margin: 0 auto;
+    padding: 1rem;
+    box-sizing: border-box;
 }
 
 .glass-card {

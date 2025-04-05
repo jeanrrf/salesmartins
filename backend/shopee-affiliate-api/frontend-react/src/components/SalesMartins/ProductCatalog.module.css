@@ -1,11 +1,26 @@
+.catalogWrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  justify-content: flex-start;
+  width: 100%;
+  min-height: 100vh;
+  /* Ensure it spans the full viewport height */
+  box-sizing: border-box;
+  /* Include padding and border in height calculations */
+  overflow: hidden;
+  /* Prevent overflow issues */
+  background-color: #121212;
+  /* Optional: Set a default background */
+}
 .catalogContainer {
   padding: 1rem 0;
   margin-bottom: 2rem;
   background: rgba(20, 20, 20, 0.8);
   border-radius: 16px;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
   color: #fff;
-    display: flex;
+  display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
@@ -13,12 +28,29 @@
     overflow: hidden;
     z-index: 1;
   width: 100%;
+    /* Ensure it spans the full width */
+      height: 100vh;
+      /* Adjust to take the full height of the viewport */
   scroll-margin-top: 100px;
+  min-height: 100vh;
+    /* Ensure it spans at least the full viewport height */
+    box-sizing: border-box;
+    /* Include padding and border in height calculations */
 }
 
 .productsRow {
-  margin-right: -8px;
-  margin-left: -8px;
+  display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    /* Ensure responsive grid */
+    gap: 1.5rem;
+    /* Add spacing between grid items */
+    margin: 0 auto;
+    padding: 1rem;
+    /* Adjust height dynamically */
+    flex-wrap: wrap;
+    /* Ensure products wrap properly */
+    justify-content: space-between;
+    /* Distribute products evenly */
 }
 
 .errorMessage {

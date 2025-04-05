@@ -57,24 +57,25 @@
   
   .main-content {
     flex: 1;
-    padding: 0 1rem;
-      /* Adjusted padding */
+    padding: 1rem;
+      /* Adjust padding for better spacing */
     width: 100%;
     max-width: 1200px;
-      /* Match container width */
+    /* Limit content width */
       margin: 0 auto;
       /* Center the content */
     animation: fadeIn 0.5s ease;
   }
   
-        .container {
-          max-width: 1200px;
-          /* Increased width for better spacing */
-          padding: 0 1rem;
-          /* Adjusted padding */
-          margin: 0 auto;
-          /* Center the container */
-        }
+    .container {
+    max-width: 100%;
+      /* Ensure it spans the full width */
+      padding: 0 1rem;
+    /* Adjust padding */
+      margin: 0 auto;
+      /* Center the container */
+    }
+  
   .page-transition {
     animation: fadeIn 0.3s ease;
   }

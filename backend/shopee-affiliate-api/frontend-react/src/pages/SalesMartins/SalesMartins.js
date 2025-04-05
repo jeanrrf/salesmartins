@@ -8,6 +8,7 @@ import styles from './SalesMartins.module.css';
 import ProductCatalog from '../../components/SalesMartins/ProductCatalog';
 import SpecialProductsSection from '../../components/SalesMartins/SpecialProductsSection';
 import EnhancedProductCard from '../../components/SalesMartins/EnhancedProductCard';
+import CategoryList from '../../components/CategoryList';
 import promoVideo from '../../assets/videos/promo.mp4';
 import heroBackground from '../../assets/images/hero-background.jpg';
 import posterImage from '../../assets/images/sales-martins-logo.jpg';
@@ -254,48 +255,11 @@ const SalesMartins = () => {
       <Container fluid="lg">
         <div className={styles.mainContentWrapper} ref={categoryWrapperRef}>
           {/* Sidebar com categorias */}
-          <aside className={styles.sidebarCategories}>
-            <h3>Categorias</h3>
-            <div className={styles.verticalCategoryList}>
-              {/* Botão para mostrar todos os produtos */}
-              <Button
-                variant={selectedCategory === null ? 'primary' : 'outline-light'}
-                onClick={() => {
-                  setSelectedCategory(null);
-                  fetchProducts();
-                }}
-                className={`${styles.categoryButton} ${selectedCategory === null ? styles.active : ''}`}
-                aria-label="Ver todos os produtos"
-              >
-                <span className={styles.categoryIcon}><FaHome /></span>
-                <span className={styles.categoryName}>Todos</span>
-              </Button>
-
-              {/* Renderiza as categorias dinamicamente */}
-              {categoryLoading ? (
-                <div className="text-center py-2">
-                  <Spinner animation="border" size="sm" variant="light" aria-label="Carregando categorias" />
-                </div>
-              ) : error || popularCategories.length === 0 ? (
-                <div className="text-center py-2">
-                  <p className="text-light mb-0">Não foi possível carregar as categorias</p>
-                </div>
-              ) : (
-                popularCategories.map((category) => (
-                  <Button
-                    key={category.id}
-                    variant={selectedCategory === category.id ? 'primary' : 'outline-light'}
-                    onClick={() => handleCategoryClick(category.id)}
-                    className={`${styles.categoryButton} ${selectedCategory === category.id ? styles.active : ''}`}
-                    aria-label={`Ver produtos da categoria ${category.name}`}
-                  >
-                    <span className={styles.categoryIcon}>{category.icon}</span>
-                    <span className={styles.categoryName}>{category.name}</span>
-                  </Button>
-                ))
-              )}
-            </div>
-          </aside>
+          <CategoryList
+            categories={popularCategories}
+            selectedCategory={selectedCategory}
+            onCategoryClick={handleCategoryClick}
+          />
 
           {/* Área principal de conteúdo */}
           <main className={styles.productsContentArea}>
