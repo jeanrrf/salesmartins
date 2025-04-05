@@ -22,3 +22,11 @@ router.get('/search', productController.searchProducts || notImplemented);
 // Removida a rota duplicada /affiliate/categories que deve estar em affiliateRoutes.js
 
 module.exports = router;
+
+// Verifique se as rotas incluem todos os endpoints necessários
+router.get('/products', productController.getProducts);
+router.get('/products/featured', productController.getFeaturedProducts);
+router.get('/products/categories', productController.getCategories);
+router.get('/products/category/:categoryName', productController.getProductsByCategory);
+router.get('/products/search', productController.searchProducts);
+router.get('/affiliate/categories', productController.getCategories);
