@@ -36,27 +36,16 @@ const SalesMartins = () => {
   useEffect(() => {
     const fetchCategories = async () => {
       try {
-        const response = await affiliateService.getCategories();
+        const response = await affiliateService.get('/categories');
         if (response.data?.data) {
-          // Get all categories and sort by name
-          const allCategories = response.data.data.sort((a, b) => 
-            a.name.localeCompare(b.name)
-          );
-          
-          // Add icons to categories
-          const categoriesWithIcons = allCategories.map(cat => ({
-            ...cat,
-            icon: getCategoryIcon(cat.name)
+          const categories = response.data.data.map(category => ({
+            id: category.category_id,
+            name: category.category_name
           }));
-
-          // Separate into popular (first 8) and others
-          setPopularCategories(categoriesWithIcons.slice(0, 8));
-          setOtherCategories(categoriesWithIcons.slice(8));
+          setPopularCategories(categories);
         }
       } catch (error) {
-        console.error('Erro ao carregar categorias:', error);
-        setPopularCategories([]);
-        setOtherCategories([]);
+        console.error('Error fetching categories:', error);
       }
     };
 

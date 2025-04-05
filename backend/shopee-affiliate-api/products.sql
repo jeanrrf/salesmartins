@@ -1,1 +1,0 @@
--- Simulação de exportação do banco de dados

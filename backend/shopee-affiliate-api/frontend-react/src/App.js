@@ -14,7 +14,8 @@ import './App.css';
 import { ProductProvider } from './contexts/ProductContext';
 import { AuthProvider } from './contexts/AuthContext';
 
-function AppRoutes() {
+// AppRoutes component moved outside and exported
+export const AppRoutes = () => {
   return (
     <Routes>
       <Route path="/login" element={<Login />} />
@@ -29,9 +30,10 @@ function AppRoutes() {
       </Route>
     </Routes>
   );
-}
+};
 
-function App() {
+// Main App component
+const App = () => {
   return (
     <AuthProvider>
       <ProductProvider>
@@ -39,6 +41,6 @@ function App() {
       </ProductProvider>
     </AuthProvider>
   );
-}
+};
 
 export default App;
