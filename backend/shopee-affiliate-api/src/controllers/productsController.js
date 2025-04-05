@@ -166,6 +166,16 @@ class ProductsController {
       });
     }
   }
+
+  async getCategories(req, res) {
+    try {
+      const categories = await ShopeeService.getProductCategories();
+      res.status(200).json({ success: true, data: categories.data });
+    } catch (error) {
+      console.error('Error fetching categories:', error);
+      res.status(500).json({ success: false, message: 'Failed to fetch categories' });
+    }
+  }
 }
 
 module.exports = new ProductsController();

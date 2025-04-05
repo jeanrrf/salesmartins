@@ -120,13 +120,12 @@ export const affiliateService = {
   getLinkById: (id) => api.get(`/affiliate/link/${id}`), // Verifique se a rota '/affiliate/link/:id' existe no backend
   deleteLink: (id) => api.delete(`/affiliate/link/${id}`), // Verifique se a rota '/affiliate/link/:id' existe no backend
   searchProducts: (searchParams) => api.get('/affiliate/search', { params: searchParams }), // Verifique se a rota '/affiliate/search' existe no backend
-  getCategories: () => api.get('/affiliate/categories'), // Verifique se a rota '/affiliate/categories' existe no backend
+  getCategories: () => api.get('/affiliate/categories'), // Ensure this matches the backend route
   getProductsByCategory: (categoryId, params) => api.get(`/affiliate/category/${categoryId}/products`, { params }), // Verifique se a rota '/affiliate/category/:categoryId/products' existe no backend
   trackClick: (linkId) => api.post(`/affiliate/link/${linkId}/track`), // Verifique se a rota '/affiliate/link/:linkId/track' existe no backend
   recordConversion: (linkId, conversionData) => api.post(`/affiliate/link/${linkId}/conversion`, conversionData), // Verifique se a rota '/affiliate/link/:linkId/conversion' existe no backend
   getSpecialProducts: (params) => api.get('/affiliate/products/special', { params }),
-  getDatabaseProducts: (params) => api.get('/affiliate/products', { params }),
-  getProductsByCategory: (categoryId, params) => api.get(`/affiliate/category/${categoryId}/products`, { params })
+  getDatabaseProducts: (params) => api.get('/affiliate/products', { params })
 };
 
 // Serviços para produtos

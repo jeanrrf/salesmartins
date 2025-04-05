@@ -171,8 +171,8 @@ class ShopeeService {
       const categories = JSON.parse(categoriesData);
       return { success: true, data: categories };
     } catch (error) {
-      console.error('Erro ao carregar categorias do arquivo:', error);
-      throw new Error('Falha ao carregar categorias.');
+      console.error('Error loading categories from file:', error);
+      throw new Error('Failed to load categories.');
     }
   }
 

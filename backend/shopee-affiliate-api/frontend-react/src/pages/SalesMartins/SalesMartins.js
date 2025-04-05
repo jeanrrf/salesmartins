@@ -2,15 +2,8 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Container, Row, Col, Button, Form } from 'react-bootstrap';
 import { Link } from 'react-router-dom';
 import { 
-  FaSearch, FaHome, FaPlay, FaPause,
-  FaTshirt, FaLaptop, FaGamepad, FaMobileAlt, FaBabyCarriage,
-  FaUtensils, FaBook, FaRunning, FaChair, FaHeartbeat, FaPaw,
-  FaTrophy, FaPercent
+  FaSearch, FaHome, FaPlay, FaPause, FaPercent, FaTrophy 
 } from 'react-icons/fa';
-import { 
-  GiLipstick, GiSofa, GiJewelCrown, 
-  GiFruitBowl, GiSportMedal
-} from 'react-icons/gi';
 import { affiliateService } from '../../services/api';
 import styles from './SalesMartins.module.css';
 import ProductCatalog from '../../components/SalesMartins/ProductCatalog';
@@ -35,7 +28,7 @@ const SalesMartins = () => {
   useEffect(() => {
     const fetchCategories = async () => {
       try {
-        const response = await affiliateService.getCategories(); // Correct method
+        const response = await affiliateService.getCategories();
         if (response.data?.data) {
           const categories = response.data.data.map(category => ({
             id: category.category_id,

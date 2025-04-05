@@ -1,3 +1,5 @@
+const { Schema, model } = require('mongoose');
+
 // Certifique-se de que seu modelo de produto inclua todos estes campos
 const productSchema = new Schema({
   shop_id: { type: Number, default: 0 },
@@ -20,3 +22,5 @@ const productSchema = new Schema({
   discount: { type: String, default: "" },
   category_name: { type: String }
 });
+
+module.exports = model('Product', productSchema);

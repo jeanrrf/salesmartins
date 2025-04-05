@@ -4,3 +4,4 @@ router.get('/products/featured', productController.getFeaturedProducts);
 router.get('/products/categories', productController.getCategories);
 router.get('/products/category/:categoryName', productController.getProductsByCategory);
 router.get('/products/search', productController.searchProducts);
+router.get('/affiliate/categories', productController.getCategories);
