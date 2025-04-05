@@ -18,6 +18,8 @@ const SpecialProductsSection = ({
   const [error, setError] = useState(null);
   const [noResults, setNoResults] = useState(false);
 
+  const memoizedParams = JSON.stringify(filterParams); // Create a stable reference
+
   useEffect(() => {
     const fetchProducts = async () => {
       try {
@@ -97,7 +99,7 @@ const SpecialProductsSection = ({
     };
 
     fetchProducts();
-  }, [filterParams, limit]);
+  }, [memoizedParams, limit]); // Use memoizedParams instead of filterParams object
 
   // Don't render anything if there are no products to show
   if ((noResults || products.length === 0) && !loading) {
@@ -105,9 +107,9 @@ const SpecialProductsSection = ({
   }
 
   return (
-    <div className={`${pageStyles.specialSection} ${pageStyles[sectionClass]}`}>
+    <div className={`${pageStyles.specialSection} ${pageStyles[sectionClass]}`} style={{ zIndex: 1 }}>
       <Container fluid> {/* Changed from Container to Container fluid for full width */}
-        <div className={pageStyles.sectionHeader}>
+        <div className={pageStyles.sectionHeader} style={{ paddingLeft: "20px" }}>
           <span className={pageStyles.sectionIcon}>{icon}</span>
           <h2 className={pageStyles.sectionTitle}>{title}</h2>
         </div>

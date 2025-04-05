@@ -428,14 +428,14 @@ const SalesMartins = () => {
           <div className={styles.footerContent}>
             <div className={styles.footerInfo}>
               <p>© {new Date().getFullYear()} Sales Martins. Todos os direitos reservados.</p>
-              <p className={styles.contactInfo}>
+              <div className={styles.contactInfo}>
                 <span className={styles.contactItem}>
                   <i className="fas fa-envelope"></i> salesmartins.siaw@gmail.com
                 </span>
                 <span className={styles.contactItem}>
                   <i className="fas fa-map-marker-alt"></i> Criciuma/SC
                 </span>
-              </p>
+              </div>
             </div>
             <p className={styles.poweredBy}>
               Powered by <span className={styles.sentinnelLogo}>SENTINNELL IA WORKSPACE</span>
