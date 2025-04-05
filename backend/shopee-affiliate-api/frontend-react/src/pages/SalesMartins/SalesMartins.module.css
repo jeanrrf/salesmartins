@@ -26,13 +26,13 @@
   padding: 0.5rem 0;
   position: sticky;
   top: 0;
-    z-index: 1000;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
-  }
-  
-  .headerInner {
-    display: flex;
-    align-items: center;
+  z-index: 1000;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+}
+
+.headerInner {
+  display: flex;
+  align-items: center;
   justify-content: center;
   flex-wrap: wrap;
 }
@@ -42,16 +42,16 @@
   font-size: 1.5rem;
   font-weight: bold;
   background-size: 300% 300%;
-    background-image: linear-gradient(-45deg,
-        #ff007a,
-        #b155ff,
-        #01b4ff,
-        #ff007a);
-    -webkit-background-clip: text;
-    background-clip: text;
-    -webkit-text-fill-color: transparent;
-    animation: gradientAnimation 5s ease infinite;
-  }
+  background-image: linear-gradient(-45deg,
+      #ff007a,
+      #b155ff,
+      #01b4ff,
+      #ff007a);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: gradientAnimation 5s ease infinite;
+}
 
 /* Banner Hero com Video */
 .heroBanner {
@@ -60,6 +60,9 @@
   min-height: 500px;
   overflow: hidden;
   color: #fff;
+  padding-left: 20px;
+  padding-right: 20px;
+  margin-left: 15px;
 }
 
 .backgroundImage {
@@ -101,6 +104,8 @@
   display: flex;
   align-items: center;
   padding: 2rem 0;
+  margin-left: 15px;
+  margin-right: 15px;
 }
 
 .heroBannerTitle {
@@ -215,16 +220,17 @@
 
 /* Layout para categorias e produtos */
 .mainContentWrapper {
-  /* Changed from flex layout to block */
-    display: block;
+  display: block;
   margin-top: 2rem;
 }
 
 .productsContentArea {
-  /* Changed from flex: 1 to 100% width */
-    width: 100%;
+  width: 100%;
   max-width: 100%;
   padding: 0;
+  padding-left: 20px;
+  padding-right: 20px;
+  order: 10;
 }
 
 /* Estilo de cabeçalho de categoria */
@@ -266,7 +272,7 @@
 .categoryButton {
   padding: 0.4rem 0.8rem;
   border-radius: 8px;
-    background: rgba(255, 255, 255, 0.05);
+  background: rgba(255, 255, 255, 0.05);
   border: 1px solid rgba(255, 255, 255, 0.1);
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   width: 100%;
@@ -274,7 +280,7 @@
   align-items: center;
   gap: 0.5rem;
   text-align: left;
-    font-size: 0.85rem;
+  font-size: 0.85rem;
 }
 
 .categoryIcon {
@@ -319,10 +325,10 @@
   text-align: center;
   position: relative;
   background-image: linear-gradient(-45deg,
-        #ff007a,
-        #b155ff,
-        #01b4ff,
-        #ff007a);
+      #ff007a,
+      #b155ff,
+      #01b4ff,
+      #ff007a);
   -webkit-background-clip: text;
   background-clip: text;
   -webkit-text-fill-color: transparent;
@@ -333,10 +339,10 @@
 /* Compact search bar styles */
 .compactSearchContainer {
   margin-bottom: 2rem;
-    width: 70%;
-    /* Reduced from 100% (or whatever it was) */
-    margin-left: auto;
-    margin-right: auto;
+  width: 70%;
+  margin-left: auto;
+  margin-right: auto;
+  order: 5;
 }
 
 .compactSearchForm {
@@ -374,8 +380,8 @@
   box-shadow: 0 0 10px rgba(255, 0, 122, 0.3);
   min-width: 40px;
   display: flex;
-    align-items: center;
-    justify-content: center;
+  align-items: center;
+  justify-content: center;
 }
 
 /* Novo container para categorias horizontais após a barra de busca */
@@ -421,6 +427,34 @@
   opacity: 1;
   display: inline;
 }
+
+/* Novas seções de produtos especiais - Reposicionadas após search e catálogo */
+.specialSection {
+  margin: 2.5rem 0;
+  padding: 1.5rem 0;
+  position: relative;
+  /* Add higher order value to position after main catalog */
+  order: 20;
+}
+
+/* Add a container to control ordering of sections */
+.pageContentOrder {
+  display: flex;
+  flex-direction: column;
+}
+
+/* Hide special sections when search is active */
+.searchActive .specialSection {
+  display: none;
+}
+
+/* Add specific styling for caution section */
+.cautionSection {
+  background: linear-gradient(to right, rgba(255, 165, 0, 0.1), rgba(255, 165, 0, 0.05), transparent);
+  border-left: 5px solid #ffa500;
+  order: 15; /* Place between main catalog and other special sections */
+}
+
 /* Novas seções de produtos especiais */
 .specialSection {
   margin: 2.5rem 0;
@@ -455,15 +489,15 @@
   font-weight: bold;
   margin: 0;
   background-image: linear-gradient(-45deg,
-        #ff007a,
-        #b155ff,
-        #01b4ff,
-        #ff007a);
-    -webkit-background-clip: text;
-    background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-size: 300% 300%;
-    animation: gradientAnimation 5s ease infinite;
+      #ff007a,
+      #b155ff,
+      #01b4ff,
+      #ff007a);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-size: 300% 300%;
+  animation: gradientAnimation 5s ease infinite;
 }
 
 /* Dynamic Category Cards */
@@ -710,6 +744,17 @@
   .featuredCategoryCard .categoryCardTitle {
     font-size: 1.3rem;
   }
+
+  .heroBanner {
+    padding-left: 15px;
+    padding-right: 15px;
+    margin-left: 10px;
+  }
+
+  .contentContainer {
+    margin-left: 10px;
+    margin-right: 10px;
+  }
 }
 
 @media (max-width: 768px) {
@@ -736,7 +781,21 @@
   .categoryCardContent {
     padding: 1rem;
   }
+
+  .footerContent {
+    flex-direction: column;
+    gap: 1rem;
+    text-align: center;
+    padding: 0 10px;
+  }
+
+  .heroBanner {
+    padding-left: 10px;
+    padding-right: 10px;
+    margin-left: 5px;
+  }
 }
+
 /* Footer personalizado */
 .footer {
   background: rgba(0, 0, 0, 0.8);
@@ -745,6 +804,8 @@
   border-top: 1px solid rgba(255, 255, 255, 0.05);
   padding: 2rem 0;
   margin-top: 4rem;
+  padding-left: 30px;
+  padding-right: 30px;
 }
 
 .footerContent {
@@ -754,6 +815,7 @@
   flex-wrap: wrap;
   color: rgba(255, 255, 255, 0.7);
   font-size: 0.9rem;
+  gap: 20px;
 }
 
 .sentinnelLogo {
@@ -778,15 +840,15 @@
     transform: translate3d(0, 30px, 0);
   }
 
-    to {
-      opacity: 1;
-      transform: translate3d(0, 0, 0);
-    }
-    }
-  
-    @keyframes floatVideo {
-      0% {
-        transform: rotateY(-5deg) translate3d(0, 0, 0);
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+@keyframes floatVideo {
+  0% {
+    transform: rotateY(-5deg) translate3d(0, 0, 0);
   }
 
   100% {
@@ -799,42 +861,42 @@
     transform: scale(1);
   }
 
-    50% {
-      transform: scale(1.05);
+  50% {
+    transform: scale(1.05);
   }
 
-    100% {
-      transform: scale(1);
-    }
-    }
+  100% {
+    transform: scale(1);
+  }
+}
 
 @keyframes pulse {
   0% {
     transform: scale(1);
   }
 
-    50% {
-      transform: scale(1.05);
+  50% {
+    transform: scale(1.05);
   }
 
-    100% {
-      transform: scale(1);
-    }
-    }
+  100% {
+    transform: scale(1);
+  }
+}
 
 @keyframes gradientAnimation {
   0% {
     background-position: 0% 50%;
   }
 
-    50% {
-      background-position: 100% 50%;
+  50% {
+    background-position: 100% 50%;
   }
 
-    100% {
-      background-position: 0% 50%;
-    }
-    }
+  100% {
+    background-position: 0% 50%;
+  }
+}
 
 /* Media queries para responsividade */
 @media (max-width: 992px) {
@@ -842,12 +904,12 @@
     flex-direction: column;
   }
 
-    .sidebarCategories {
-      flex: 0 0 auto;
-      width: 100%;
-      position: relative;
-      top: 0;
-    }
+  .sidebarCategories {
+    flex: 0 0 auto;
+    width: 100%;
+    position: relative;
+    top: 0;
+  }
 
   .verticalCategoryList {
     flex-direction: row;
@@ -867,51 +929,51 @@
     padding: 4rem 0;
   }
 
-    .heroBannerTitle {
-      font-size: 2.5rem;
-    }
+  .heroBannerTitle {
+    font-size: 2.5rem;
+  }
 
-    .heroBannerSubtitle {
-      font-size: 1.2rem;
-    }
+  .heroBannerSubtitle {
+    font-size: 1.2rem;
+  }
 
-    .verticalCategoryList {
-      justify-content: center;
-    }
+  .verticalCategoryList {
+    justify-content: center;
+  }
 
-    .footerContent {
-      flex-direction: column;
-      gap: 1rem;
-      text-align: center;
-    }
+  .footerContent {
+    flex-direction: column;
+    gap: 1rem;
+    text-align: center;
+  }
 
-    .headerInner {
-      flex-direction: column;
-      gap: 1rem;
-      text-align: center;
-    }
+  .headerInner {
+    flex-direction: column;
+    gap: 1rem;
+    text-align: center;
+  }
 
-    .logo {
-      font-size: 1.8rem;
-    }
+  .logo {
+    font-size: 1.8rem;
+  }
 
-    .categoryIcon {
-      font-size: 1rem;
-    }
+  .categoryIcon {
+    font-size: 1rem;
+  }
 
-    .categoryButtonSmall {
-      padding: 0.25rem 0.6rem;
-    }
+  .categoryButtonSmall {
+    padding: 0.25rem 0.6rem;
+  }
 
-    .categoryIconSmall {
-      font-size: 0.8rem;
-    }
+  .categoryIconSmall {
+    font-size: 0.8rem;
+  }
 
-    .categoryNameSmall {
-      font-size: 0.7rem;
-    }
+  .categoryNameSmall {
+    font-size: 0.7rem;
+  }
 
-    .categoryListSecondary {
-      gap: 0.4rem;
-    }
+  .categoryListSecondary {
+    gap: 0.4rem;
+  }
 }

@@ -64,9 +64,11 @@
 
 .categorySidebar {
   position: fixed;
-  top: 0;
+  top: 70px;
+    /* Alterado de 0 para 70px para começar abaixo do cabeçalho */
   left: 0;
-  height: 100%;
+  height: calc(100% - 70px);
+    /* Ajustado para não ultrapassar o limite da página */
   width: 60px;
   background: rgba(20, 20, 20, 0.9);
   border-right: 1px solid rgba(255, 255, 255, 0.1);
