@@ -1,4 +1,5 @@
 const ShopeeService = require('../services/shopeeService');
+const Product = require('../models/Product'); // Ensure the Product model is imported
 
 class AffiliateController {
     async getDatabaseProducts(req, res) {
@@ -86,6 +87,25 @@ class AffiliateController {
         } catch (error) {
             console.error('Error fetching special products:', error);
             res.status(500).json({ success: false, message: error.message });
+        }
+    }
+
+    async getCategories(req, res) {
+        try {
+            const categories = await Product.aggregate([
+                { $group: { _id: "$category_name" } },
+                { $sort: { _id: 1 } }
+            ]);
+
+            const formattedCategories = categories.map(category => ({
+                category_id: category._id,
+                category_name: category._id
+            }));
+
+            res.status(200).json({ success: true, data: formattedCategories });
+        } catch (error) {
+            console.error('Error fetching categories:', error);
+            res.status(500).json({ success: false, message: 'Failed to fetch categories' });
         }
     }
 }
