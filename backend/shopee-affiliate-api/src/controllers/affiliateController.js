@@ -1,4 +1,4 @@
-const { products, getProductsByCategory } = require('../data/products');
+const ShopeeService = require('../services/shopeeService');
 
 class AffiliateController {
     async getDatabaseProducts(req, res) {
@@ -10,50 +10,24 @@ class AffiliateController {
                 sortBy = 'sales'
             } = req.query;
 
-            let filteredProducts = [...products];
+            const searchParams = {
+                keyword: search,
+                limit: parseInt(limit),
+                page: parseInt(page),
+                sortBy
+            };
             
-            if (search) {
-                const searchLower = search.toLowerCase();
-                filteredProducts = filteredProducts.filter(p => 
-                    p.name.toLowerCase().includes(searchLower));
-            }
-
-            // Ordenação
-            switch(sortBy) {
-                case 'sales':
-                    filteredProducts.sort((a, b) => b.sales - a.sales);
-                    break;
-                case 'commission':
-                    filteredProducts.sort((a, b) => b.commissionRate - a.commissionRate);
-                    break;
-                case 'price':
-                    filteredProducts.sort((a, b) => a.price - b.price);
-                    break;
-                case 'rating':
-                    filteredProducts.sort((a, b) => b.ratingStar - a.ratingStar);
-                    break;
-            }
-
-            // Paginação
-            const offset = (parseInt(page) - 1) * parseInt(limit);
-            const paginatedProducts = filteredProducts.slice(offset, offset + parseInt(limit));
-
+            const result = await ShopeeService.searchProducts(searchParams);
+            
             // Formatar produtos com URLs de afiliado
-            const productsWithLinks = paginatedProducts.map(product => ({
-                ...product,
-                affiliateUrl: `https://shope.ee/product/${product.itemId}`
-            }));
+            if (result.data && result.data.products) {
+                result.data.products = result.data.products.map(product => ({
+                    ...product,
+                    affiliateUrl: product.affiliate_link || `https://shope.ee/product/${product.shopee_id || product.id}`
+                }));
+            }
             
-            res.status(200).json({
-                success: true,
-                data: {
-                    products: productsWithLinks,
-                    totalCount: filteredProducts.length,
-                    page: parseInt(page),
-                    limit: parseInt(limit),
-                    hasMore: offset + paginatedProducts.length < filteredProducts.length
-                }
-            });
+            res.status(200).json(result);
         } catch (error) {
             console.error('Error fetching products from database:', error);
             res.status(500).json({ success: false, message: error.message });
@@ -65,34 +39,24 @@ class AffiliateController {
             const { categoryId } = req.params;
             const { page = 1, limit = 12, search = null } = req.query;
 
-            let categoryProducts = getProductsByCategory(categoryId);
+            const searchParams = {
+                categoryId,
+                keyword: search,
+                limit: parseInt(limit),
+                page: parseInt(page)
+            };
             
-            if (search) {
-                const searchLower = search.toLowerCase();
-                categoryProducts = categoryProducts.filter(p => 
-                    p.name.toLowerCase().includes(searchLower));
+            const result = await ShopeeService.searchProducts(searchParams);
+            
+            // Adicionar URLs de afiliado
+            if (result.data && result.data.products) {
+                result.data.products = result.data.products.map(product => ({
+                    ...product,
+                    affiliateUrl: product.affiliate_link || `https://shope.ee/product/${product.shopee_id || product.id}`
+                }));
             }
 
-            // Paginação
-            const offset = (parseInt(page) - 1) * parseInt(limit);
-            const paginatedProducts = categoryProducts.slice(offset, offset + parseInt(limit));
-
-            // Adicionar URLs de afiliado
-            const productsWithLinks = paginatedProducts.map(product => ({
-                ...product,
-                affiliateUrl: `https://shope.ee/product/${product.itemId}`
-            }));
-
-            res.status(200).json({
-                success: true,
-                data: {
-                    products: productsWithLinks,
-                    totalCount: categoryProducts.length,
-                    page: parseInt(page),
-                    limit: parseInt(limit),
-                    hasMore: offset + paginatedProducts.length < categoryProducts.length
-                }
-            });
+            res.status(200).json(result);
         } catch (error) {
             console.error('Error fetching products by category:', error);
             res.status(500).json({ success: false, message: error.message });
@@ -103,41 +67,22 @@ class AffiliateController {
         try {
             const { limit = 12, type = 'discount' } = req.query;
             
-            let filteredProducts = [...products];
-
-            // Ordenação baseada no tipo
-            switch(type) {
-                case 'discount':
-                    filteredProducts.sort((a, b) => {
-                        const discountA = ((a.originalPrice - a.price) / a.originalPrice) * 100;
-                        const discountB = ((b.originalPrice - b.price) / b.originalPrice) * 100;
-                        return discountB - discountA;
-                    });
-                    break;
-                case 'rating':
-                    filteredProducts.sort((a, b) => b.ratingStar - a.ratingStar);
-                    break;
-                case 'sales':
-                    filteredProducts.sort((a, b) => b.sales - a.sales);
-                    break;
+            const searchParams = {
+                limit: parseInt(limit),
+                sortBy: type
+            };
+            
+            const result = await ShopeeService.searchProducts(searchParams);
+            
+            // Adicionar URLs de afiliado
+            if (result.data && result.data.products) {
+                result.data.products = result.data.products.map(product => ({
+                    ...product,
+                    affiliateUrl: product.affiliate_link || `https://shope.ee/product/${product.shopee_id || product.id}`
+                }));
             }
 
-            // Limitar resultados
-            filteredProducts = filteredProducts.slice(0, parseInt(limit));
-
-            // Adicionar URLs de afiliado
-            const productsWithLinks = filteredProducts.map(product => ({
-                ...product,
-                affiliateUrl: `https://shope.ee/product/${product.itemId}`
-            }));
-
-            res.status(200).json({
-                success: true,
-                data: {
-                    products: productsWithLinks,
-                    totalCount: productsWithLinks.length
-                }
-            });
+            res.status(200).json(result);
         } catch (error) {
             console.error('Error fetching special products:', error);
             res.status(500).json({ success: false, message: error.message });

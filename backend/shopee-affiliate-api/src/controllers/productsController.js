@@ -1,8 +1,14 @@
-const { products } = require('../data/products');
+const path = require('path');
+const fs = require('fs');
+const ShopeeService = require('../services/shopeeService');
 
 class ProductsController {
   async getProducts(req, res) {
+    console.log('GET /api/products called');
     try {
+      const products = ShopeeService.getProductsFromJson();
+      console.log('Total products available:', products.length);
+      
       const { 
         page = 1, 
         limit = 12, 
@@ -17,16 +23,19 @@ class ProductsController {
       } = req.query;
       
       let filteredProducts = [...products];
+      console.log('Initial products count:', filteredProducts.length);
       
       // Aplicar filtros
       if (category && category !== 'all') {
-        filteredProducts = filteredProducts.filter(p => p.categoryId === category);
+        filteredProducts = filteredProducts.filter(p => p.category_id === category);
+        console.log('After category filter:', filteredProducts.length);
       }
       
       if (search) {
         const searchLower = search.toLowerCase();
         filteredProducts = filteredProducts.filter(p => 
           p.name.toLowerCase().includes(searchLower));
+        console.log('After search filter:', filteredProducts.length);
       }
       
       if (minPrice !== null) {
@@ -78,8 +87,9 @@ class ProductsController {
       // Paginação
       const offset = (parseInt(page) - 1) * parseInt(limit);
       const paginatedProducts = filteredProducts.slice(offset, offset + parseInt(limit));
+      console.log('Final filtered and paginated products:', paginatedProducts.length);
       
-      res.status(200).json({
+      const response = {
         success: true,
         data: {
           products: paginatedProducts,
@@ -88,25 +98,33 @@ class ProductsController {
           limit: parseInt(limit),
           hasMore: offset + paginatedProducts.length < filteredProducts.length
         }
-      });
+      };
+      console.log('Sending response:', JSON.stringify(response, null, 2));
+      res.status(200).json(response);
     } catch (error) {
-      console.error('Error fetching products:', error);
+      console.error('Error in getProducts:', error);
       res.status(500).json({ success: false, message: error.message });
     }
   }
 
   async getSpecialProducts(req, res) {
+    console.log('GET /api/special-products called');
     try {
+      const products = ShopeeService.getProductsFromJson();
+      console.log('Total products available:', products.length);
       const { limit = 12, type = 'discount', categoryId = null, minRating = null } = req.query;
       
       let filteredProducts = [...products];
+      console.log('Initial products count:', filteredProducts.length);
       
       if (categoryId) {
-        filteredProducts = filteredProducts.filter(p => p.categoryId === categoryId);
+        filteredProducts = filteredProducts.filter(p => p.category_id === categoryId);
+        console.log('After category filter:', filteredProducts.length);
       }
 
       if (minRating !== null) {
         filteredProducts = filteredProducts.filter(p => p.ratingStar >= parseFloat(minRating));
+        console.log('After rating filter:', filteredProducts.length);
       }
 
       // Ordenação baseada no tipo
@@ -128,14 +146,17 @@ class ProductsController {
 
       // Limitar resultados
       filteredProducts = filteredProducts.slice(0, parseInt(limit));
+      console.log('Final filtered products:', filteredProducts.length);
 
-      res.status(200).json({
+      const response = {
         success: true,
         data: {
           products: filteredProducts,
           totalCount: filteredProducts.length
         }
-      });
+      };
+      console.log('Sending response:', JSON.stringify(response, null, 2));
+      res.status(200).json(response);
     } catch (error) {
       console.error('Error in getSpecialProducts:', error);
       res.status(500).json({ 

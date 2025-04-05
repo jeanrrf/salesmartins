@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
-const affiliateController = require('../controllers/affiliateController');
 const productsController = require('../controllers/productsController');
+const affiliateController = require('../controllers/affiliateController');
 
 // Rotas de produtos
 router.get('/products', productsController.getProducts);
