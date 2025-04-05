@@ -1,0 +1,43 @@
+.transparent-navbar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(10px);
+  transition: transform 0.3s ease, opacity 0.3s ease;
+  z-index: 1000;
+}
+
+.transparent-navbar ul {
+  display: flex;
+  justify-content: center;
+  list-style: none;
+  padding: 1rem;
+  margin: 0;
+}
+
+.transparent-navbar li {
+  margin: 0 1rem;
+}
+
+.transparent-navbar a {
+  color: white;
+  text-decoration: none;
+  font-weight: bold;
+  transition: color 0.3s ease;
+}
+
+.transparent-navbar a:hover {
+  color: #ff69b4;
+}
+
+.transparent-navbar.hidden {
+  transform: translateY(-100%);
+  opacity: 0;
+}
+
+.transparent-navbar.visible {
+  transform: translateY(0);
+  opacity: 1;
+}
