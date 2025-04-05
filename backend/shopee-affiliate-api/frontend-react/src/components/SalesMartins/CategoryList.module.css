@@ -1,28 +1,30 @@
 .verticalCategoryList {
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
+  gap: 0.25rem;
+    /* Reduce gap between items */
   align-items: stretch;
   margin: 0;
   padding: 0;
-  height: 100vh;
-    /* Ocupa toda a altura da janela */
+  height: calc(100vh - 50px);
+    /* Adjust height to account for external navigation bar */
     overflow-y: auto;
-    /* Permite rolagem se necessário */
-    background: rgba(0, 0, 0, 0.7);
-    /* Fundo para destacar a barra lateral */
+  background: rgba(0, 0, 0, 0.7);
 }
 
 .category {
   display: flex;
-    align-items: center;
-    padding: 0.5rem 1rem;
+  align-items: center;
+  padding: 0.25rem 0.5rem;
+    /* Reduce padding */
+    margin: 0;
   border-radius: 8px;
   background: rgba(255, 255, 255, 0.05);
   border: 1px solid rgba(255, 255, 255, 0.1);
   transition: background 0.3s ease;
-    cursor: pointer;
-  font-size: 0.8rem;
+  cursor: pointer;
+  font-size: 0.75rem;
+    /* Slightly smaller font size */
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -42,9 +44,9 @@
 .horizontalCategoryList {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.5rem;
+  gap: 0.25rem;
+    /* Reduce gap between items */
   margin: 0;
-    /* Remove any margin */
 }
 
 @media (max-width: 992px) {
@@ -53,9 +55,10 @@
     flex-wrap: wrap;
     justify-content: center;
     align-items: center;
-    gap: 0.5rem;
-    height: 100vh;
-      /* Ajusta a altura para dispositivos menores */
+    gap: 0.25rem;
+      /* Reduce gap for smaller screens */
+      height: calc(100vh - 50px);
+      /* Adjust height for external navigation bar */
   }
   
   .category {
@@ -65,7 +68,9 @@
 
 @media (max-width: 768px) {
   .category {
-    padding: rem rem;
-    font-size: 0.9rem;
+    padding: 0.25rem 0.5rem;
+      /* Reduce padding further for smaller screens */
+      font-size: 0.8rem;
+      /* Slightly larger font size for readability */
   }
 }
