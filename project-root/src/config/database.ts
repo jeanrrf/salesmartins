@@ -11,7 +11,7 @@ const databaseConfig = {
 
 const sequelize = new Sequelize(databaseConfig.database, databaseConfig.username, databaseConfig.password, {
   host: databaseConfig.host,
-  dialect: databaseConfig.dialect,
+  dialect: databaseConfig.dialect as 'postgres',
   logging: databaseConfig.logging,
 });
 

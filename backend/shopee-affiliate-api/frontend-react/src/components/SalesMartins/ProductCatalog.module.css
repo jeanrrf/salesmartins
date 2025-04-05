@@ -1,24 +1,22 @@
 .catalogContainer {
   padding: 1.5rem;
-    margin-bottom: 2.5rem;
-    background: rgba(15, 15, 15, 0.5);
-    /* Lightened background for better visibility */
+  margin-bottom: 2.5rem;
+  background: rgba(15, 15, 15, 0.5);
   border-radius: 16px;
   box-shadow: 0 8px 25px rgba(0, 0, 0, 0.4);
   color: #fff;
   display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    position: relative;
-    overflow: hidden;
-    z-index: 1;
-  width: 100%;
-  max-width: 100%;
-    /* Ensure full width */
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  overflow: hidden;
+  z-index: 1;
+  width: 98%;
+  max-width: 98%;
   scroll-margin-top: 100px;
   border: 1px solid rgba(255, 255, 255, 0.05);
-  }
+}
   
   .catalogContainer::before {
     content: '';

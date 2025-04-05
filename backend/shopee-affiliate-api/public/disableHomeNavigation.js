@@ -38,22 +38,31 @@
         function preventNavigation() {
             const currentPath = window.location.pathname;
             if (!currentPath.startsWith('/sales-martins')) {
+                console.warn('Redirecionando para /sales-martins para evitar navegação não permitida.');
                 window.location.href = '/sales-martins';
             }
         }
         
         // Override window.open
         const originalOpen = window.open;
-        window.open = function(url) {
-            // Only allow certain URLs
-            if (url && (url.startsWith('/api/') || url.startsWith('/sales-martins'))) {
-                return originalOpen.apply(window, arguments);
+        window.open = function (url, ...args) {
+            if (url && (url.startsWith('/api/') || url.startsWith('/sales-martins') || isAllowedExternalUrl(url))) {
+                return originalOpen.apply(window, [url, ...args]);
             }
-            // For other URLs, redirect to sales-martins
+            console.warn('Tentativa de abrir URL bloqueada:', url);
             window.location.href = '/sales-martins';
             return null;
         };
-        
+
+        function isAllowedExternalUrl(url) {
+            try {
+                const parsedUrl = new URL(url, window.location.origin);
+                return parsedUrl.origin === window.location.origin; // Permitir URLs do mesmo domínio
+            } catch (e) {
+                return false; // Bloquear URLs inválidas
+            }
+        }
+
         console.log('Home navigation disabled for Sales Martins');
     });
 })();

@@ -1,6 +1,6 @@
 /* Container principal para alinhar todas as seções */
 .container {
-  width: 9%;
+  width: 98%;
     max-width: 1400px;
     margin: 0 auto;
     padding: 1rem;
@@ -57,7 +57,7 @@
 
 .logo {
   font-family: 'Bruno Ace SC', sans-serif;
-  font-size: 2rem;
+  font-size: 4rem;
     /* Increased logo size */
   font-weight: bold;
   background-size: 300% 300%;
@@ -245,14 +245,14 @@
   display: flex;
   flex-direction: column;
   margin-top: 2rem;
-  width: 95%;
+  width: 98%;
     max-width: 1400px;
     margin: 2rem auto;
 }
 
 /* Produtos content area ajustado */
 .productsContentArea {
-  width: 95%;
+  width: 98%;
     max-width: 1400px;
     margin: 0 auto;
   padding: 0;
@@ -264,6 +264,7 @@
   border: 1px solid rgba(255, 255, 255, 0.1);
     border-left: 4px solid #01b4ff;
   border-radius: 12px;
+  width: 100%;
   padding: 1.75rem;
   margin-bottom: 2.5rem;
   text-align: center;
@@ -272,7 +273,7 @@
 }
 
 .categoryTitle {
-  font-size: 2rem;
+  font-size: 4rem;
   font-weight: bold;
   margin-bottom: 0.5rem;
   background-image: linear-gradient(45deg,
@@ -427,60 +428,17 @@
     box-shadow: 0 6px 20px rgba(255, 0, 122, 0.4);
 }
 
-/* Category container ajustado */
-.horizontalCategoryContainer {
-  margin: 1.5rem 0;
-  padding: 1rem;
-  background: rgba(0, 0, 0, 0.3);
-  border-radius: 12px;
-  border: 1px solid rgba(255, 255, 255, 0.05);
-  width: 95%;
-    max-width: 1400px;
-    margin: 2rem auto;
-}
-
-/* Garanta que as categorias sejam exibidas horizontalmente */
-.horizontalCategoryContainer :global(.categorySidebar) {
-  position: static;
-  height: auto;
-  width: 100%;
-  flex-direction: row;
-  flex-wrap: wrap;
-  justify-content: center;
-  padding: 0.5rem;
-  overflow-x: auto;
-  background: transparent;
-  border: none;
-}
-
-/* Ajuste para os itens de categoria dentro do container horizontal */
-.horizontalCategoryContainer :global(.categoryItem) {
-  width: auto;
-  margin: 0.25rem 0.5rem;
-  display: inline-flex;
-  border-radius: 50px;
-  padding: 0.5rem 1rem;
-  transition: all 0.3s ease;
-}
-
-/* Adicione mais espaço após os ícones para melhor legibilidade */
-.horizontalCategoryContainer :global(.categoryIcon) {
-  margin-right: 0.5rem;
-}
-
-/* Garantir que os rótulos de categoria sejam sempre visíveis */
-.horizontalCategoryContainer :global(.categoryLabel) {
-  opacity: 1;
-  display: inline;
-}
-
 /* Special sections ajustadas */
 .specialSection {
-  margin: 2.5rem 0;
-  padding: 1.5rem 0;
+  margin: 3rem 0;
+    /* Increased margin */
+    padding: 2rem 0;
+    /* Increased padding */
   position: relative;
-  width: 95%;
+  width: 98%;
+    /* Full width */
     max-width: 1400px;
+    /* Removes max-width restriction */
     margin: 2rem auto;
     z-index: 100;
     /* Add z-index to ensure visibility */
@@ -581,7 +539,7 @@
   overflow: hidden;
   cursor: pointer;
   transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.043);
   border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
@@ -594,7 +552,7 @@
   bottom: 0;
   background: linear-gradient(to bottom,
       rgba(0, 0, 0, 0.2) 0%,
-      rgba(0, 0, 0, 0.8) 100%);
+      rgba(0, 0, 0, 0.217) 100%);
   z-index: 1;
   transition: all 0.3s ease;
 }
@@ -865,7 +823,6 @@
 .productsContentArea,
 .specialSection,
 .compactSearchContainer,
-.horizontalCategoryContainer,
 .footer {
   width: 90%;
   padding: 1rem;
@@ -1240,7 +1197,7 @@
   .footerContent {
     flex-direction: column;
     gap: 1.5rem;
-    text-align: center;
+    text-align: left;
   }
 
                 .contactInfo {
