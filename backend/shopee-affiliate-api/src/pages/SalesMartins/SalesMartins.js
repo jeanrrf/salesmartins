@@ -1,11 +1,15 @@
 import React, { useState } from 'react';
 
 const SalesMartins = () => {
-  const [backgroundImageLoaded, setBackgroundImageLoaded] = useState(false);
-
-  const handleImageLoad = () => {
-    setBackgroundImageLoaded(true);
-  };
+  const [popularCategories, setPopularCategories] = useState([]);
+  const [selectedCategory, setSelectedCategory] = useState(null);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [isSearchActive, setIsSearchActive] = useState(false);
+  const [products, setProducts] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [currentSlide, setCurrentSlide] = useState(0);
+  const [showContactForm, setShowContactForm] = useState(false);
 
   return (
     <div>
@@ -13,10 +17,9 @@ const SalesMartins = () => {
       <img
         src="/path-to-your-image.jpg"
         alt="Background"
-        onLoad={handleImageLoad}
-        style={{ display: backgroundImageLoaded ? 'block' : 'none' }}
+        style={{ display: 'block' }}
       />
-      {backgroundImageLoaded && <p>Background image loaded successfully!</p>}
+      <p>Background image loaded successfully!</p>
     </div>
   );
 };
