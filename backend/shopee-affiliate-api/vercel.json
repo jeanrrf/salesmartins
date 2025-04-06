@@ -1,22 +1,18 @@
 {
   "version": 2,
+  "projectSettings": {
+    "framework": "express"
+  },
   "builds": [
-    {
-      "src": "src/server.js",
-      "use": "@vercel/node"
+    { 
+      "src": "app/backend/shopee-affiliate-api/src/server.js", 
+      "use": "@vercel/node" 
     }
   ],
   "routes": [
-    {
-      "src": "/api/(.*)",
-      "dest": "src/server.js"
-    },
-    {
-      "src": "/(.*)",
-      "dest": "src/server.js"
+    { 
+      "src": "/(.*)", 
+      "dest": "app/backend/shopee-affiliate-api/src/server.js" 
     }
-  ],
-  "env": {
-    "NODE_ENV": "production"
-  }
+  ]
 }

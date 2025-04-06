@@ -7,26 +7,29 @@ export class ReparadorService {
         this.reparadorRepository = new ReparadorRepository();
     }
 
-    public async createReparador(data: any): Promise<any> {
+    public async create(data: any): Promise<any> {
         // Implement the logic to create a reparador
         const reparador = await this.reparadorRepository.create(data);
         return reparador;
     }
 
-    public async getReparadorById(id: string): Promise<any> {
+    public async getAll(): Promise<any[]> {
+        // Implement the logic to get all reparadores
+        return await this.reparadorRepository.findAll();
+    }
+
+    public async getById(id: string): Promise<any> {
         // Implement the logic to get a reparador by ID
-        const reparador = await this.reparadorRepository.findById(id);
-        return reparador;
+        return await this.reparadorRepository.findById(Number(id));
     }
 
-    public async updateReparador(id: string, data: any): Promise<any> {
+    public async update(id: string, data: any): Promise<any> {
         // Implement the logic to update a reparador
-        const updatedReparador = await this.reparadorRepository.update(id, data);
-        return updatedReparador;
+        return await this.reparadorRepository.update(Number(id), data);
     }
 
-    public async deleteReparador(id: string): Promise<void> {
+    public async delete(id: string): Promise<void> {
         // Implement the logic to delete a reparador
-        await this.reparadorRepository.delete(id);
+        await this.reparadorRepository.delete(Number(id));
     }
 }

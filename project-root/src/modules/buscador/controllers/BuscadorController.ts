@@ -1,5 +1,14 @@
 import { Router, Request, Response } from 'express';
-import { BuscadorService } from '../services/BuscadorService';
+
+class BuscadorService {
+    constructor() { }
+
+    public async buscar(query: any): Promise<any[]> {
+        // Implemente a lógica de busca aqui
+        console.log('Realizando busca com os parâmetros:', query);
+        return []; // Retorna um array vazio como placeholder
+    }
+}
 
 class BuscadorController {
     private buscadorService: BuscadorService;

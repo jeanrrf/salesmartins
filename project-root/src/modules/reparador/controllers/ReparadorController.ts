@@ -73,7 +73,7 @@ class ReparadorController {
         try {
             const { id } = req.params;
             const deleted = await this.reparadorService.delete(id);
-            if (!deleted) {
+            if (deleted === false) {
                 return res.status(404).json({ message: 'Reparador not found' });
             }
             return res.status(204).send();
