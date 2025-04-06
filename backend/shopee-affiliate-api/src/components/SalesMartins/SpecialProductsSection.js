@@ -34,7 +34,7 @@ const SpecialProductsSection = ({ filterParams }) => {
     };
 
     fetchProducts();
-  }, [memoizedParams]); // Fix: Use memoizedParams as dependency
+  }, [filterParams]); // Added 'filterParams' to the dependency array
 
   return (
     <div>
