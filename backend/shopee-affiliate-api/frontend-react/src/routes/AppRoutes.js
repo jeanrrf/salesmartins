@@ -14,10 +14,8 @@ import PrivateRoute from './PrivateRoute';
 const AppRoutes = () => {
   return (
     <Routes>
-      {/* Redirecionar raiz para sales-martins */}
+      {/* Verificar se a rota padrão está redirecionando para SalesMartins */}
       <Route path="/" element={<Navigate to="/sales-martins" replace />} />
-
-      {/* Tornar sales-martins acessível sem autenticação */}
       <Route path="/sales-martins" element={<SalesMartins />} />
 
       {/* Manter outras rotas com proteção de autenticação */}
