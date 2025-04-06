@@ -16,7 +16,10 @@ const SpecialProductsSection = ({ filterParams }) => {
         setError(null);
         setNoResults(false);
 
-        const response = await fetch(`/api/products?filter=${filterParams}`);
+        // Use the parsed value from memoizedParams instead of filterParams directly
+        const parsedParams = JSON.parse(memoizedParams);
+        const queryString = new URLSearchParams(parsedParams).toString();
+        const response = await fetch(`/api/products?${queryString}`);
         const data = await response.json();
         setProducts(data);
         if (data.length === 0) {
@@ -31,7 +34,7 @@ const SpecialProductsSection = ({ filterParams }) => {
     };
 
     fetchProducts();
-  }, [memoizedParams]); // Fix: Added memoizedParams as a dependency
+  }, [memoizedParams]); // Fix: Use memoizedParams as dependency
 
   return (
     <div>
