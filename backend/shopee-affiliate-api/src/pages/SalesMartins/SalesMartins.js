@@ -14,11 +14,15 @@ const SalesMartins = () => {
   return (
     <div>
       <h1>Welcome to Sales Martins</h1>
-      <img
-        src="/path-to-your-image.jpg"
-        alt="Background"
-        style={{ display: 'block' }}
-      />
+      <p>Explore our popular categories and products.</p>
+      <div className="popular-categories">
+        <h2>Popular Categories</h2>
+        {popularCategories.map((category) => (
+          <button key={category.id} onClick={() => setSelectedCategory(category)}>
+            {category.name}
+          </button>
+        ))}
+      </div>
       <p>Background image loaded successfully!</p>
     </div>
   );

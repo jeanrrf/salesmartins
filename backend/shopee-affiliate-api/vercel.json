@@ -18,5 +18,6 @@
     { "src": "^/static/(.*)", "dest": "frontend-react/build/static/$1" },
     { "src": "^/(manifest\\.json|favicon\\.ico|logo\\d+\\.\\w+|robots\\.txt)", "dest": "frontend-react/build/$1" },
     { "src": "/(.*)", "dest": "index.js" }
-  ]
+  ],
+  "ignoreCommand": "true"
 }
