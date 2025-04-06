@@ -178,17 +178,14 @@ app.get('/sales-martins/*', (req, res) => {
     }
 });
 
-// For production, make sure to serve the Sales Martins page directly
-if (process.env.NODE_ENV === 'production') {
-    app.get('/sales-martins', (req, res) => {
-        res.sendFile(path.join(__dirname, '../frontend-react/build/index.html'));
-    });
-} else {
-    // In development mode, redirect sales-martins to the React development server
-    app.get('/sales-martins', (req, res) => {
-        res.redirect('http://localhost:3000/sales-martins');
-    });
-}
+// Em modo desenvolvimento, verificar se a rota /sales-martins existe
+app.get('/sales-martins', (req, res) => {
+    // Opção 1: Servir o index.html do diretório public
+    res.sendFile(path.join(__dirname, '../public/index.html'));
+
+    // Opção 2: Ou manter o redirecionamento, mas garantir que o React Router esteja configurado
+    // res.redirect('http://localhost:3000/sales-martins');
+});
 
 // Inject extra script to disable dashboard button in frontend
 app.use((req, res, next) => {

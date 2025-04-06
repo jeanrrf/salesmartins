@@ -14,51 +14,23 @@ import PrivateRoute from './PrivateRoute';
 const AppRoutes = () => {
   return (
     <Routes>
-      <Route path="/" element={<Home />} />
+      {/* Redirecionar raiz para sales-martins */}
+      <Route path="/" element={<Navigate to="/sales-martins" replace />} />
+
+      {/* Tornar sales-martins acessível sem autenticação */}
+      <Route path="/sales-martins" element={<SalesMartins />} />
+
+      {/* Manter outras rotas com proteção de autenticação */}
       <Route path="/login" element={<Login />} />
       <Route path="/register" element={<Register />} />
-      <Route 
-        path="/dashboard" 
-        element={
-          <PrivateRoute>
-            <Dashboard />
-          </PrivateRoute>
-        } 
-      />
-      <Route 
-        path="/product/:id" 
-        element={
-          <PrivateRoute>
-            <ProductDetails />
-          </PrivateRoute>
-        } 
-      />
-      <Route 
-        path="/sales-martins" 
-        element={
-          <PrivateRoute>
-            <SalesMartins />
-          </PrivateRoute>
-        } 
-      />
-      <Route 
-        path="/champion-products" 
-        element={
-          <PrivateRoute>
-            <ChampionProducts />
-          </PrivateRoute>
-        } 
-      />
-      <Route 
-        path="/category-repair" 
-        element={
-          <PrivateRoute>
-            <CategoryRepair />
-          </PrivateRoute>
-        } 
-      />
+      <Route path="/dashboard" element={<PrivateRoute><Dashboard /></PrivateRoute>} />
+      <Route path="/product/:id" element={<PrivateRoute><ProductDetails /></PrivateRoute>} />
+      <Route path="/champion-products" element={<PrivateRoute><ChampionProducts /></PrivateRoute>} />
+      <Route path="/category-repair" element={<PrivateRoute><CategoryRepair /></PrivateRoute>} />
       <Route path="/performance-analysis" element={<PerformanceAnalysis />} />
-      <Route path="*" element={<Navigate to="/" replace />} />
+
+      {/* Redirecionar qualquer rota desconhecida para sales-martins */}
+      <Route path="*" element={<Navigate to="/sales-martins" replace />} />
     </Routes>
   );
 };
