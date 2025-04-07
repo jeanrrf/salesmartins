@@ -19,11 +19,20 @@ from typing import Dict, Any, Optional, List
 from fastapi.responses import JSONResponse
 
 # Importar a instância FastAPI do arquivo shopee_affiliate_auth
-from .shopee_affiliate_auth import app, graphql_query, GraphQLRequest, get_db_connection
+from .shopee_affiliate_auth import graphql_query, GraphQLRequest, get_db_connection
+
+# Importar e configurar CORS
+from cors_middleware import setup_cors
 
 # Configure logging (mantenha apenas aqui, remova do shopee_affiliate_auth)
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
+
+# Instância FastAPI
+app = FastAPI()
+
+# Configurar CORS
+setup_cors(app)
 
 # Cache para armazenar resultados temporariamente
 cache = {

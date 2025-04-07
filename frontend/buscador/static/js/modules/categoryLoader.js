@@ -1,6 +1,6 @@
 //###################################################################################################
 //# Arquivo: categoryLoader.js                                                                     #
-//# Descrição: Este módulo gerencia o carregamento e manipulação de categorias                     #
+//# Descrição: Este módulo gerencia o carregamento de categorias para o buscador                   #
 //# Autor: Jean Rosso                                                                              #
 //# Data: 28 de março de 2025                                                                      #
 //###################################################################################################
@@ -119,34 +119,6 @@ export class CategoryLoader {
     }
 
     /**
-     * Retorna todas as categorias em formato de options para select
-     */
-    getCategorySelectOptions() {
-        let options = '<option value="">Todas as categorias</option>';
-        
-        // Adicionar categorias principais
-        this.categories.forEach(category => {
-            options += `<option value="${category.id}" data-sigla="${category.sigla}">${category.name}</option>`;
-            
-            // Adicionar subcategorias (nível 2) se existirem
-            if (this.subCategories[category.id]) {
-                this.subCategories[category.id].forEach(subCat => {
-                    options += `<option value="${subCat.id}" data-sigla="${subCat.sigla}" data-parent="${category.id}">-- ${subCat.name}</option>`;
-                    
-                    // Adicionar subcategorias nível 3 se existirem
-                    if (this.subCategoriesLevel3[subCat.id]) {
-                        this.subCategoriesLevel3[subCat.id].forEach(subCatL3 => {
-                            options += `<option value="${subCatL3.id}" data-sigla="${subCatL3.sigla}" data-parent="${subCat.id}">---- ${subCatL3.name}</option>`;
-                        });
-                    }
-                });
-            }
-        });
-        
-        return options;
-    }
-
-    /**
      * Busca os detalhes de uma categoria por ID
      */
     getCategoryById(categoryId) {
@@ -170,8 +142,7 @@ export class CategoryLoader {
     }
 
     /**
-     * Retorna os nomes completos das categorias, incluindo os pais
-     * Por exemplo: "Eletrônicos > Smartphones > Android"
+     * Retorna o caminho completo de uma categoria
      */
     getCategoryFullPath(categoryId) {
         const category = this.getCategoryById(categoryId);
@@ -199,107 +170,30 @@ export class CategoryLoader {
     }
 
     /**
-     * Verifica e repara as categorias dos produtos
+     * Retorna todas as categorias em formato de options para select
      */
-    async repairProductCategories(products) {
-        const updatedProducts = [];
-        const failedProducts = [];
+    getCategorySelectOptions() {
+        let options = '<option value="">Todas as categorias</option>';
         
-        for (const product of products) {
-            try {
-                // Verifica se precisa de reparo
-                if (!product.category_id || !this.getCategoryById(product.category_id)) {
-                    // Tenta encontrar a categoria adequada com base em palavras-chave
-                    const newCategory = this.findCategoryByKeywords(product.name + ' ' + (product.description || ''));
-                    
-                    if (newCategory) {
-                        // Atualizar produto com a nova categoria
-                        const updatedProduct = await api.put(`/db/products/${product.id}`, {
-                            ...product,
-                            category_id: newCategory.id,
-                            category_name: newCategory.name,
-                            category_sigla: newCategory.sigla
-                        });
-                        
-                        updatedProducts.push(updatedProduct);
-                    } else {
-                        failedProducts.push(product);
-                    }
-                }
-            } catch (error) {
-                console.error(`Erro ao reparar categoria do produto ${product.id}:`, error);
-                failedProducts.push(product);
-            }
-        }
-        
-        return { updatedProducts, failedProducts };
-    }
-
-    /**
-     * Encontra a categoria mais adequada com base em palavras-chave
-     */
-    findCategoryByKeywords(text) {
-        text = text.toLowerCase();
-        let bestMatch = null;
-        let highestScore = 0;
-        
-        // Verificar categorias principais
+        // Adicionar categorias principais
         this.categories.forEach(category => {
-            const score = this.calculateKeywordMatchScore(text, category.keywords);
-            if (score > highestScore) {
-                highestScore = score;
-                bestMatch = category;
-            }
-        });
-        
-        // Verificar subcategorias apenas se o score não for alto o suficiente
-        if (highestScore < 3) {
-            // Verificar subcategorias nível 2
-            for (const parentId in this.subCategories) {
-                this.subCategories[parentId].forEach(subCat => {
-                    const score = this.calculateKeywordMatchScore(text, subCat.keywords);
-                    if (score > highestScore) {
-                        highestScore = score;
-                        bestMatch = subCat;
+            options += `<option value="${category.id}" data-sigla="${category.sigla}">${category.name}</option>`;
+            
+            // Adicionar subcategorias (nível 2) se existirem
+            if (this.subCategories[category.id]) {
+                this.subCategories[category.id].forEach(subCat => {
+                    options += `<option value="${subCat.id}" data-sigla="${subCat.sigla}" data-parent="${category.id}">-- ${subCat.name}</option>`;
+                    
+                    // Adicionar subcategorias nível 3 se existirem
+                    if (this.subCategoriesLevel3[subCat.id]) {
+                        this.subCategoriesLevel3[subCat.id].forEach(subCatL3 => {
+                            options += `<option value="${subCatL3.id}" data-sigla="${subCatL3.sigla}" data-parent="${subCat.id}">---- ${subCatL3.name}</option>`;
+                        });
                     }
                 });
             }
-            
-            // Verificar subcategorias nível 3 se ainda não tiver um match bom
-            if (highestScore < 4) {
-                for (const parentId in this.subCategoriesLevel3) {
-                    this.subCategoriesLevel3[parentId].forEach(subCat => {
-                        const score = this.calculateKeywordMatchScore(text, subCat.keywords);
-                        if (score > highestScore) {
-                            highestScore = score;
-                            bestMatch = subCat;
-                        }
-                    });
-                }
-            }
-        }
-        
-        return bestMatch;
-    }
-
-    /**
-     * Calcula a pontuação de correspondência de palavras-chave
-     */
-    calculateKeywordMatchScore(text, keywords) {
-        let score = 0;
-        
-        keywords.forEach(keyword => {
-            if (text.includes(keyword.toLowerCase())) {
-                // Palavras-chave exatas valem mais
-                score += 2;
-                
-                // Palavras-chave no início do texto valem mais
-                if (text.indexOf(keyword.toLowerCase()) < 20) {
-                    score += 1;
-                }
-            }
         });
         
-        return score;
+        return options;
     }
 }

@@ -2,8 +2,7 @@
  * Módulo para gerenciar categorias de produtos
  * Somente utilizado no módulo de reparo de categorias
  * 
- * FONTE DE DADOS: Backend local em http://localhost:8001/db/categories
- * Esta fonte obtém dados dos arquivos JSON do backend:
+ * FONTE DE DADOS: Arquivos JSON do backend:
  * - backend/CATEGORIA.json (categorias L1)
  * - backend/subCategorias/NVL2/nivel2.json (categorias L2)
  * - backend/subCategorias/NVL3/nivel3.json (categorias L3)
@@ -18,24 +17,34 @@ export class CategoryManager {
             L3: {}
         };
         this.initialized = false;
-        this.dataSource = 'http://localhost:8001/db/categories'; // Fonte de dados oficial
+        
+        // Fontes de dados JSON diretas (não do banco de dados)
+        this.dataSources = {
+            L1: 'http://localhost:8001/api/categories',
+            L2: 'http://localhost:8001/api/categories/nivel2',
+            L3: 'http://localhost:8001/api/categories/nivel3'
+        };
     }
 
     /**
      * Inicializa o gerenciador de categorias carregando todas as categorias disponíveis
-     * do backend local que lê os arquivos JSON
+     * diretamente dos arquivos JSON
      */
     async initialize() {
         if (this.initialized) return;
         
         try {
-            console.log(`Carregando categorias do backend: ${this.dataSource}`);
-            const response = await fetch(this.dataSource);
-            if (!response.ok) {
-                throw new Error(`Erro ao carregar categorias: ${response.status}`);
-            }
+            console.log('Carregando categorias diretamente dos arquivos JSON...');
             
-            this.categories = await response.json();
+            // Carregar categorias de todos os níveis separadamente
+            const [categoriesL1, categoriesL2, categoriesL3] = await Promise.all([
+                this._fetchCategories(this.dataSources.L1),
+                this._fetchCategories(this.dataSources.L2),
+                this._fetchCategories(this.dataSources.L3)
+            ]);
+            
+            // Combinar todas as categorias em uma lista única
+            this.categories = [...categoriesL1, ...categoriesL2, ...categoriesL3];
             console.log(`Categorias carregadas com sucesso: ${this.categories.length} categorias encontradas`);
             
             // Criar um mapeamento de ID -> categoria para acesso rápido
@@ -87,6 +96,23 @@ export class CategoryManager {
             throw error;
         }
     }
+    
+    /**
+     * Busca categorias de uma fonte específica
+     * @private
+     */
+    async _fetchCategories(source) {
+        try {
+            const response = await fetch(source);
+            if (!response.ok) {
+                throw new Error(`Erro ao carregar categorias: ${response.status}`);
+            }
+            return await response.json();
+        } catch (error) {
+            console.error(`Erro ao carregar categorias de ${source}:`, error);
+            return [];
+        }
+    }
 
     /**
      * Obtém uma categoria pelo ID
@@ -95,6 +121,57 @@ export class CategoryManager {
      */
     getCategoryById(id) {
         return this.categoryMap[id] || null;
+    }
+    
+    /**
+     * Busca uma categoria baseada em palavras-chave de texto
+     * @param {string} text Texto a ser usado para buscar categorias por palavras-chave
+     * @returns {object|null} Categoria mais relevante encontrada ou null
+     */
+    findCategoryByKeywords(text) {
+        if (!text) return null;
+        
+        text = text.toLowerCase();
+        
+        // Sistema de pontuação para determinar a melhor categoria
+        const categoryScores = {};
+        
+        // Analisar cada categoria
+        this.categories.forEach(category => {
+            let score = 0;
+            
+            // Verificar se o nome da categoria está no texto
+            if (category.name && text.includes(category.name.toLowerCase())) {
+                score += 10;
+            }
+            
+            // Verificar palavras-chave (se existirem)
+            if (category.keywords && Array.isArray(category.keywords)) {
+                category.keywords.forEach(keyword => {
+                    if (text.includes(keyword.toLowerCase())) {
+                        score += 5;
+                    }
+                });
+            }
+            
+            // Armazenar pontuação se for maior que zero
+            if (score > 0) {
+                categoryScores[category.id] = score;
+            }
+        });
+        
+        // Encontrar categoria com maior pontuação
+        let bestCategoryId = null;
+        let highestScore = 0;
+        
+        Object.entries(categoryScores).forEach(([categoryId, score]) => {
+            if (score > highestScore) {
+                highestScore = score;
+                bestCategoryId = categoryId;
+            }
+        });
+        
+        return bestCategoryId ? this.getCategoryById(bestCategoryId) : null;
     }
 
     /**
@@ -128,55 +205,38 @@ export class CategoryManager {
     }
 
     /**
-     * Obtém categorias de primeiro nível
-     * @returns {Array} Lista de categorias L1
+     * Gera opções de HTML para selects de categorias
+     * @returns {string} HTML das opções de categorias
      */
-    getL1Categories() {
-        return this.hierarchyMap.L1 || [];
+    getCategorySelectOptions() {
+        let options = '<option value="">Selecione uma categoria</option>';
+        
+        // Adicionar categorias principais
+        this.hierarchyMap.L1.forEach(category => {
+            options += `<option value="${category.id}">${category.name}</option>`;
+            
+            // Adicionar subcategorias (nível 2) se existirem
+            const subcategories = this.hierarchyMap.L2[category.id];
+            if (subcategories) {
+                subcategories.forEach(subCat => {
+                    options += `<option value="${subCat.id}">-- ${subCat.name}</option>`;
+                    
+                    // Adicionar subcategorias nível 3 se existirem
+                    const level3Categories = this.hierarchyMap.L3[subCat.id];
+                    if (level3Categories) {
+                        level3Categories.forEach(level3Cat => {
+                            options += `<option value="${level3Cat.id}">---- ${level3Cat.name}</option>`;
+                        });
+                    }
+                });
+            }
+        });
+        
+        return options;
     }
 
     /**
-     * Obtém categorias de segundo nível para uma categoria pai
-     * @param {string} parentId ID da categoria pai (L1)
-     * @returns {Array} Lista de categorias L2 filhas da categoria pai especificada
-     */
-    getL2Categories(parentId) {
-        return this.hierarchyMap.L2[parentId] || [];
-    }
-
-    /**
-     * Obtém categorias de terceiro nível para uma categoria pai
-     * @param {string} parentId ID da categoria pai (L2)
-     * @returns {Array} Lista de categorias L3 filhas da categoria pai especificada
-     */
-    getL3Categories(parentId) {
-        return this.hierarchyMap.L3[parentId] || [];
-    }
-
-    /**
-     * Determina o nível de uma categoria (L1, L2, L3)
-     * @param {string} id ID da categoria
-     * @returns {number} Nível da categoria (1, 2, 3) ou 0 se não encontrada
-     */
-    getCategoryLevel(id) {
-        const category = this.getCategoryById(id);
-        if (!category) return 0;
-        
-        // Se não tem parent, é L1
-        if (!category.parent_id) return 1;
-        
-        // Verificar se o parent é L1
-        const parent = this.getCategoryById(category.parent_id);
-        if (!parent) return 0;
-        
-        if (!parent.parent_id) return 2;
-        
-        // Caso contrário é L3
-        return 3;
-    }
-
-    /**
-     * Recarrega as categorias do backend
+     * Recarrega as categorias do JSON
      * Útil quando há alterações nas categorias e o cache precisa ser atualizado
      */
     async refreshCategories() {

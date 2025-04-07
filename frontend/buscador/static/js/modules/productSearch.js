@@ -84,7 +84,7 @@ export class ProductSearch {
         
         if (productsWithoutCategory.length > 0) {
             const categoryRepairLink = document.createElement('a');
-            categoryRepairLink.href = 'category-repair.html';
+            categoryRepairLink.href = '../category-repair.html';
             categoryRepairLink.className = 'alert-link';
             categoryRepairLink.textContent = 'página de reparo de categorias';
             
@@ -245,5 +245,105 @@ export class ProductSearch {
                 this._renderProducts(this.filteredProducts);
             });
         }
+    }
+    
+    _setupProductEventListeners() {
+        // Implementar listeners para os botões dos produtos
+        document.querySelectorAll('.view-product').forEach(button => {
+            button.addEventListener('click', (e) => {
+                const productId = e.currentTarget.dataset.productId;
+                this._showProductDetails(productId);
+            });
+        });
+        
+        document.querySelectorAll('.quick-link').forEach(button => {
+            button.addEventListener('click', (e) => {
+                const productId = e.currentTarget.dataset.productId;
+                this._generateQuickLink(productId);
+            });
+        });
+    }
+    
+    _showProductDetails(productId) {
+        const product = this.products.find(p => p.id === productId);
+        if (!product) return;
+        
+        // Implementar visualização de detalhes do produto
+        console.log('Mostrar detalhes do produto:', product);
+        // TODO: Implementar modal de detalhes
+    }
+    
+    _generateQuickLink(productId) {
+        const product = this.products.find(p => p.id === productId);
+        if (!product) return;
+        
+        // Implementar geração rápida de link
+        console.log('Gerar link rápido para:', product);
+        // TODO: Implementar geração de link
+    }
+    
+    _showLoading() {
+        const loadingIndicator = document.getElementById('loading-indicator');
+        if (loadingIndicator) {
+            loadingIndicator.style.display = 'block';
+        }
+        
+        const productsContainer = document.getElementById('products-container');
+        if (productsContainer) {
+            productsContainer.style.display = 'none';
+        }
+    }
+    
+    _hideLoading() {
+        const loadingIndicator = document.getElementById('loading-indicator');
+        if (loadingIndicator) {
+            loadingIndicator.style.display = 'none';
+        }
+        
+        const productsContainer = document.getElementById('products-container');
+        if (productsContainer) {
+            productsContainer.style.display = 'flex';
+        }
+    }
+    
+    _updateResultsCount() {
+        const countElement = document.getElementById('results-count');
+        if (countElement) {
+            const count = this.filteredProducts.length;
+            countElement.textContent = `Exibindo ${count} produto${count !== 1 ? 's' : ''}`;
+        }
+    }
+    
+    _formatPrice(price) {
+        return new Intl.NumberFormat('pt-BR', {
+            style: 'currency',
+            currency: 'BRL'
+        }).format(price || 0);
+    }
+    
+    // Funções para geração de links e exportação em massa
+    generateLinks() {
+        // Implementar geração em massa de links
+        console.log('Gerando links para todos os produtos...');
+        return Promise.resolve(true);
+    }
+    
+    saveToDatabase() {
+        // Implementar salvamento no banco de dados
+        console.log('Salvando produtos no banco de dados...');
+        return Promise.resolve(true);
+    }
+    
+    getAffiliateLinkStats() {
+        // Retornar estatísticas de links gerados
+        const total = this.products.length;
+        const withLinks = this.products.filter(p => p.affiliate_link).length;
+        const percentage = total > 0 ? Math.round((withLinks / total) * 100) : 0;
+        
+        return {
+            total,
+            withLinks,
+            percentage
+        };
     }
 }

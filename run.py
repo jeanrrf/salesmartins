@@ -382,10 +382,18 @@ class CustomHTTPHandler(http.server.SimpleHTTPRequestHandler):
             super().copyfile(source, outputfile)
     
     def log_message(self, format, *args):
-        # Implementação corrigida com verificação de comprimento:
+        # Implementação melhorada de log com detalhes da requisição
         if len(args) >= 3:
-            logger.info(f"🌐 Frontend Request: {args[0]} {args[1]} - Status: {args[2]}")
-        elif len(args) == 2:
+            path = args[1]
+            status = args[2]
+            method = args[0]
+            
+            # Destacar requisições de API relacionadas a produtos
+            if 'product' in path.lower() or 'search' in path.lower():
+                logger.info(f"🔍 PRODUTO API: {method} {path} - Status: {status}")
+            else:
+                logger.info(f"🌐 Frontend: {method} {path} - Status: {status}")
+        elif len(args) >= 2:
             logger.info(f"🌐 Frontend Request: {args[0]} {args[1]}")
         elif len(args) == 1:
             logger.info(f"🌐 Frontend Request: {args[0]}")

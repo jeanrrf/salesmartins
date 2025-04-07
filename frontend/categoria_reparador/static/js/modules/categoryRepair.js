@@ -6,20 +6,26 @@
 //###################################################################################################
 
 import { api, notify } from './utils.js';
-import { CategoryLoader } from './categoryLoader.js';
+import { CategoryManager } from './categoryManager.js';
 
 export class CategoryRepair {
     constructor() {
         this.products = [];
         this.uncategorizedProducts = [];
-        this.categoryLoader = new CategoryLoader();
+        this.categoryManager = new CategoryManager();
         this.isRepairing = false;
+        
+        // Fonte de dados - agora usando JSON diretamente, não banco de dados
+        this.dataSource = {
+            products: 'http://localhost:8001/db/products',
+            updateProduct: (productId) => `http://localhost:8001/db/products/${productId}`
+        };
     }
 
     async initialize() {
         try {
-            // Inicializar o carregador de categorias
-            await this.categoryLoader.initialize();
+            // Inicializar o gerenciador de categorias
+            await this.categoryManager.initialize();
             
             // Carregar produtos que precisam de reparo
             await this.loadProductsNeedingRepair();
@@ -40,7 +46,8 @@ export class CategoryRepair {
 
     async loadProductsNeedingRepair() {
         try {
-            const response = await fetch('http://localhost:8001/db/products');
+            console.log(`Carregando produtos de: ${this.dataSource.products}`);
+            const response = await fetch(this.dataSource.products);
             if (!response.ok) {
                 throw new Error(`Erro ao carregar produtos: ${response.status}`);
             }
@@ -50,7 +57,7 @@ export class CategoryRepair {
             // Filtrar produtos sem categoria
             this.uncategorizedProducts = this.products.filter(product => 
                 !product.category_id || 
-                !this.categoryLoader.getCategoryById(product.category_id)
+                !this.categoryManager.getCategoryById(product.category_id)
             );
             
             this._renderUncategorizedProducts();
@@ -66,7 +73,7 @@ export class CategoryRepair {
      * Preenche os selects de categorias
      */
     populateCategorySelects() {
-        const options = this.categoryLoader.getCategorySelectOptions();
+        const options = this.categoryManager.getCategorySelectOptions();
         
         // Atualizar todos os selects de categorias existentes
         document.querySelectorAll('.category-select').forEach(select => {
@@ -94,7 +101,28 @@ export class CategoryRepair {
             
             notify.info(`Iniciando reparo automático para ${totalToRepair} produtos...`);
             
-            const { updatedProducts, failedProducts } = await this.categoryLoader.repairProductCategories(productsToRepair);
+            const updatedProducts = [];
+            const failedProducts = [];
+            
+            for (const product of productsToRepair) {
+                try {
+                    // Buscar categoria com base nas palavras-chave do produto
+                    const suggestedCategory = this.categoryManager.findCategoryByKeywords(
+                        product.name + ' ' + (product.description || '')
+                    );
+                    
+                    if (suggestedCategory) {
+                        // Atualizar produto com a categoria sugerida
+                        await this.repairProduct(product.id, suggestedCategory.id);
+                        updatedProducts.push(product);
+                    } else {
+                        failedProducts.push(product);
+                    }
+                } catch (error) {
+                    console.error(`Erro ao reparar produto ${product.id}:`, error);
+                    failedProducts.push(product);
+                }
+            }
             
             // Atualizar a lista de produtos não categorizados
             this.uncategorizedProducts = failedProducts;
@@ -136,19 +164,30 @@ export class CategoryRepair {
                 return false;
             }
             
-            const category = this.categoryLoader.getCategoryById(categoryId);
+            const category = this.categoryManager.getCategoryById(categoryId);
             if (!category) {
                 notify.error(`Categoria ID ${categoryId} não encontrada.`);
                 return false;
             }
             
-            // Atualizar o produto com a nova categoria
-            const updatedProduct = await api.put(`/db/products/${productId}`, {
-                ...product,
-                category_id: category.id,
-                category_name: category.name,
-                category_sigla: category.sigla
+            // Atualizar o produto com a nova categoria usando a API
+            const url = this.dataSource.updateProduct(productId);
+            const response = await fetch(url, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    ...product,
+                    category_id: category.id,
+                    category_name: category.name,
+                    category_sigla: category.sigla
+                })
             });
+            
+            if (!response.ok) {
+                throw new Error(`Erro na API: ${response.status}`);
+            }
             
             // Remover o produto da lista de não categorizados
             this.uncategorizedProducts = this.uncategorizedProducts.filter(p => p.id !== productId);
@@ -219,7 +258,7 @@ export class CategoryRepair {
         
         this.uncategorizedProducts.forEach(product => {
             // Encontrar categoria sugerida
-            const suggestedCategory = this.categoryLoader.findCategoryByKeywords(product.name + ' ' + (product.description || ''));
+            const suggestedCategory = this.categoryManager.findCategoryByKeywords(product.name + ' ' + (product.description || ''));
             
             tableHTML += `
                 <tr>
@@ -241,7 +280,7 @@ export class CategoryRepair {
                     <td>
                         <select class="form-select form-select-sm category-select" id="category-select-${product.id}">
                             <option value="">Selecione uma categoria</option>
-                            ${this.categoryLoader.getCategorySelectOptions()}
+                            ${this.categoryManager.getCategorySelectOptions()}
                         </select>
                         ${suggestedCategory ? 
                             `<div class="mt-1">

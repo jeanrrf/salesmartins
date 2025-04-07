@@ -141,18 +141,9 @@ init_db()
 
 app = FastAPI()
 
-# Configure CORS
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=[
-        "https://salesmartins.onrender.com",
-        "http://localhost:8001",
-        "http://localhost:5000"
-    ],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
+# Importar e usar a função setup_cors
+from cors_middleware import setup_cors
+setup_cors(app)
 
 # Montar os arquivos estáticos do frontend
 frontend_path = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "frontend")
