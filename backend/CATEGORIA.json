@@ -1,16 +1,107 @@
 [
   {
     "id": "100001",
+    "name": "Moda Feminina",
+    "sigla": "MDF",
+    "level": 1,
+    "keywords": ["vestidos", "blusas", "saias", "calças", "croppeds", "moda feminina"]
+  },
+  {
+    "id": "100002",
+    "name": "Moda Masculina",
+    "sigla": "MDM",
+    "level": 1,
+    "keywords": ["camisetas", "camisas", "bermudas", "calças", "jaquetas", "moda masculina"]
+  },
+  {
+    "id": "100003",
+    "name": "Calçados",
+    "sigla": "CAL",
+    "level": 1,
+    "keywords": ["tênis", "sandálias", "botas", "sapatos", "chinelos", "calçados"]
+  },
+  {
+    "id": "100004",
+    "name": "Bolsas & Acessórios",
+    "sigla": "BOL",
+    "level": 1,
+    "keywords": ["bolsas", "mochilas", "carteiras", "cintos", "óculos", "acessórios"]
+  },
+  {
+    "id": "100005",
     "name": "Eletrônicos",
     "sigla": "ELE",
     "level": 1,
-    "keywords": ["eletrônico", "gadget", "computador", "laptop", "notebook", "tablet", "monitor"]
+    "keywords": ["gadgets", "caixas de som", "ring light", "fones de ouvido", "power bank", "eletrônicos"]
   },
   {
     "id": "100006",
-    "name": "Celulares e Acessórios",
-    "sigla": "CEL",
+    "name": "Smartphones & Telefonia",
+    "sigla": "TEL",
     "level": 1,
-    "keywoyrds": ["celular", "smartphone", "iphone", "android", "carregador"]
+    "keywords": ["smartphone", "capinha", "película", "carregador", "fones Bluetooth", "telefonia"]
+  },
+  {
+    "id": "100007",
+    "name": "Computadores & Informática",
+    "sigla": "COM",
+    "level": 1,
+    "keywords": ["notebook", "mouse", "teclado", "monitor", "SSD", "informática"]
+  },
+  {
+    "id": "100008",
+    "name": "Games & Consoles",
+    "sigla": "GAM",
+    "level": 1,
+    "keywords": ["videogame", "jogos", "controle", "acessórios", "console", "games"]
+  },
+  {
+    "id": "100009",
+    "name": "Casa & Decoração",
+    "sigla": "CAS",
+    "level": 1,
+    "keywords": ["móveis", "utensílios", "papel de parede", "tapetes", "iluminação", "decoração"]
+  },
+  {
+    "id": "100010",
+    "name": "Saúde & Beleza",
+    "sigla": "SAB",
+    "level": 1,
+    "keywords": ["skincare", "maquiagem", "perfume", "shampoo", "touca de cetim", "cosméticos"]
+  },
+  {
+    "id": "100011",
+    "name": "Mãe & Bebê",
+    "sigla": "MEB",
+    "level": 1,
+    "keywords": ["fraldas", "carrinho", "berço", "roupas infantis", "brinquedos", "bebê"]
+  },
+  {
+    "id": "100012",
+    "name": "Brinquedos & Hobbies",
+    "sigla": "BRH",
+    "level": 1,
+    "keywords": ["bonecas", "jogos de tabuleiro", "lego", "pop it", "modelismo", "hobbies"]
+  },
+  {
+    "id": "100013",
+    "name": "Esportes & Fitness",
+    "sigla": "ESP",
+    "level": 1,
+    "keywords": ["faixa elástica", "tapete de yoga", "suplementos", "equipamentos", "bicicleta", "fitness"]
+  },
+  {
+    "id": "100014",
+    "name": "Automotivo & Indústria",
+    "sigla": "AUT",
+    "level": 1,
+    "keywords": ["antipulgas", "ferramentas", "alças para moto", "peças", "óleo", "automotivo"]
+  },
+  {
+    "id": "100015",
+    "name": "Alimentos & Bebidas",
+    "sigla": "ALB",
+    "level": 1,
+    "keywords": ["snacks", "bebidas", "temperos", "creme de avelã", "café", "alimentos"]
   }
 ]

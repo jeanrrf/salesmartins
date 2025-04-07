@@ -4,7 +4,7 @@ export class CategoryManager {
     constructor() {
         this.counters = this.loadCounters();
         this.adjustments = new Map();
-        this.categories = [];
+        this.categories = []; // Inicializar como array vazio para evitar undefined
         this.categoryMap = {};
         this.initialized = false;
     }
@@ -14,19 +14,39 @@ export class CategoryManager {
         
         try {
             const response = await api.get('/categories');
-            this.categories = response.categories;
             
-            // Criar mapa para acesso rápido
-            this.categoryMap = this.categories.reduce((map, category) => {
-                map[category.id] = category;
-                return map;
-            }, {});
+            // Verificar se a resposta contém categorias e se é um array
+            if (response && response.categories && Array.isArray(response.categories)) {
+                this.categories = response.categories;
+            } else if (Array.isArray(response)) {
+                // Caso a API retorne diretamente um array
+                this.categories = response;
+            } else {
+                // Se não for um array, inicializar como array vazio e mostrar aviso
+                console.warn('Resposta da API não contém categorias no formato esperado:', response);
+                this.categories = [];
+                throw new Error('Formato de resposta inválido');
+            }
+            
+            // Criar mapa para acesso rápido - somente se houver categorias
+            if (this.categories.length > 0) {
+                this.categoryMap = this.categories.reduce((map, category) => {
+                    map[category.id] = category;
+                    return map;
+                }, {});
+            } else {
+                this.categoryMap = {};
+            }
             
             this.initialized = true;
             console.log('Categorias carregadas:', this.categories.length);
         } catch (error) {
             console.error('Erro ao carregar categorias:', error);
             notify.error('Erro ao carregar categorias. Por favor, recarregue a página.');
+            // Mesmo em caso de erro, manter inicializado para evitar múltiplas tentativas
+            this.initialized = true;
+            this.categories = [];
+            this.categoryMap = {};
         }
     }
 

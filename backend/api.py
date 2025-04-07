@@ -345,6 +345,53 @@ async def search_shopee_products(request: Request):
             detail=f"Erro ao buscar produtos: {str(e)}"
         )
 
+@app.post('/api/search')
+async def api_search_shopee_products(request: Request):
+    """Search products in Shopee Affiliate API with parameters"""
+    try:
+        data = await request.json()
+        keyword = data.get('keyword', '')
+        sort_type = data.get('sortType', 2)  # Default: Sales
+        limit = data.get('limit', 20)
+        min_price = data.get('minPrice')
+        max_price = data.get('maxPrice')
+        min_commission = data.get('minCommission')
+        include_recommendations = data.get('includeRecommendations', False)
+        
+        if not keyword:
+            return JSONResponse(content={'error': 'Keyword is required'}, status_code=400)
+            
+        # Criar uma requisição para o endpoint de busca existente
+        # Criando um objeto GraphQLRequest válido
+        search_request = {
+            "keyword": keyword,
+            "sortType": sort_type,
+            "limit": limit,
+            "page": 1,
+            "minPrice": min_price,
+            "maxPrice": max_price,
+            "minCommission": min_commission,
+            "includeRecommendations": include_recommendations
+        }
+        
+        from .shopee_affiliate_auth import SearchRequest
+        
+        # Criar um objeto válido do modelo SearchRequest
+        valid_request = SearchRequest(**search_request)
+        
+        # Chamar o método de pesquisa existente
+        from .shopee_affiliate_auth import search_products
+        
+        result = await search_products(valid_request)
+        return result
+        
+    except Exception as e:
+        logger.error(f"Erro na busca: {str(e)}")
+        raise HTTPException(
+            status_code=500,
+            detail=f"Erro ao buscar produtos: {str(e)}"
+        )
+
 @app.post('/api/trending')
 async def get_trending_products(request: Request):
     """Identify and return hot/trending products from Shopee API"""

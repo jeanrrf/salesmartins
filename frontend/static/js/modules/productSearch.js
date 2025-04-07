@@ -156,7 +156,16 @@ export class ProductSearch {
                 includeRecommendations: true // Enable recommendations
             };
 
-            const response = await api.post('/search', searchParams);
+            const response = await api.post('/api/search', {
+                keyword: searchParams.keyword,
+                sortType: searchParams.sortType,
+                limit: searchParams.limit,
+                minPrice: searchParams.minPrice,
+                maxPrice: searchParams.maxPrice,
+                minCommission: searchParams.minCommission,
+                includeRecommendations: searchParams.includeRecommendations
+            });
+
             this.currentProducts = response.products || [];
             this.recommendations = response.recommendations || [];
 

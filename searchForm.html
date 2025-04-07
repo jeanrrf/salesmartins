@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Formulário de Pesquisa</title>
+    <script src="formatSearch.js"></script>
+</head>
+<body>
+    <h2>Pesquisa com Palavras-chave</h2>
+    
+    <form action="/search" method="GET" onsubmit="return handleSearchSubmit(this)">
+        <div>
+            <input type="text" name="q" placeholder="Ex: mangueira para jardim" style="width: 300px;">
+            <button type="submit">Pesquisar</button>
+        </div>
+        <small>Digite palavras-chave separadas por espaço. Serão convertidas para: mangueira+para+jardim</small>
+    </form>
+
+    <!-- Exemplo de como o mesmo pode ser usado com outro nome de campo -->
+    <h3>Outro exemplo (campo diferente):</h3>
+    <form action="/busca" method="GET" onsubmit="return handleSearchSubmit(this, 'keyword')">
+        <div>
+            <input type="text" name="keyword" placeholder="Ex: mangueira para jardim" style="width: 300px;">
+            <button type="submit">Pesquisar</button>
+        </div>
+    </form>
+
+    <!-- Para demonstrar a formatação em tempo real -->
+    <h3>Visualização em tempo real:</h3>
+    <input type="text" id="demoInput" placeholder="Digite algo aqui" style="width: 300px;">
+    <div>Resultado: <span id="result"></span></div>
+
+    <script>
+        // Demonstração de formatação em tempo real
+        const demoInput = document.getElementById('demoInput');
+        const result = document.getElementById('result');
+        
+        demoInput.addEventListener('input', function() {
+            result.textContent = formatSearchQuery(this.value);
+        });
+    </script>
+</body>
+</html>

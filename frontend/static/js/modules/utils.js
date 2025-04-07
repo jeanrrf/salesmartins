@@ -138,24 +138,24 @@ export const api = {
 
     async post(endpoint, data) {
         try {
-            const response = await fetch(`${API_URL}${endpoint}`, {
+            const response = await fetch(`${API_URL || ''}${endpoint}`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
                 },
                 body: JSON.stringify(data)
             });
-
-            const responseData = await response.json();
-
+            
             if (!response.ok) {
-                throw new Error(responseData.detail || 'Erro desconhecido');
+                const errorText = await response.text();
+                console.error(`Erro na API (${response.status}):`, errorText);
+                throw new Error(`Erro na requisição: ${response.status} - ${errorText}`);
             }
-
-            return responseData;
+            
+            return await response.json();
         } catch (error) {
             console.error('Erro na API:', error);
-            throw new Error(`Erro na requisição: ${error.message}`);
+            throw error;
         }
     }
 };
