@@ -1,33 +1,16 @@
 import sys
 import os
-
-# Add the parent directory to sys.path
-sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-
-from backend.shopee_affiliate_auth import graphql_query, GraphQLRequest
+import logging
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
-from typing import Optional, Dict, Any, List
+from fastapi.staticfiles import StaticFiles
+from typing import Dict, Any, Optional, List
 from fastapi.responses import JSONResponse
 
-# Patch para compatibilidade com Werkzeug em Python 3.13
-try:
-    import werkzeug.urls
-    if not hasattr(werkzeug.urls, 'url_quote'):
-        if hasattr(werkzeug.urls, 'quote'):
-            werkzeug.urls.url_quote = werkzeug.urls.quote
-        else:
-            from urllib.parse import quote
-            werkzeug.urls.url_quote = quote
-    print("API: Werkzeug url_quote patched successfully")
-except ImportError:
-    print("API: Failed to patch werkzeug.urls")
-
-import json
-import logging
-import math
-from datetime import datetime, timedelta
-from backend.utils.database import save_product, get_products, get_db_connection
+# Import directly from the package
+from shopee_affiliate_auth import graphql_query, GraphQLRequest
+from utils.database import save_product, get_products
+from models import Base, Product
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -35,14 +18,17 @@ logger = logging.getLogger(__name__)
 
 app = FastAPI()
 
-# Configure CORS
+# Setup CORS middleware
+origins = [
+    "http://localhost:8000",
+    "http://localhost:8001",
+    "http://127.0.0.1:8000",
+    "http://127.0.0.1:8001"
+]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        "https://salesmartins.onrender.com",
-        "http://localhost:8001",
-        "http://localhost:5000"
-    ],
+    allow_origins=origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

@@ -1,18 +1,16 @@
-{
-  "categories": [
-    {
-      "id": 100001,
-      "name": "Eletrônicos",
-      "sigla": "ELE",
-      "level": 1,
-      "keywords": ["eletrônico", "gadget", "computador", "laptop", "notebook", "tablet", "monitor"]
-    },
-    {
-      "id": 100006,
-      "name": "Celulares e Acessórios",
-      "sigla": "CEL",
-      "level": 1,
-      "keywords": ["celular", "smartphone", "iphone", "android", "carregador"]
-    }
-  ]
-}
+[
+  {
+    "id": "100001",
+    "name": "Eletrônicos",
+    "sigla": "ELE",
+    "level": 1,
+    "keywords": ["eletrônico", "gadget", "computador", "laptop", "notebook", "tablet", "monitor"]
+  },
+  {
+    "id": "100006",
+    "name": "Celulares e Acessórios",
+    "sigla": "CEL",
+    "level": 1,
+    "keywords": ["celular", "smartphone", "iphone", "android", "carregador"]
+  }
+]
