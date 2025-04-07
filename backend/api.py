@@ -6,6 +6,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from typing import Dict, Any, Optional, List
 from fastapi.responses import JSONResponse
+import sqlite3
 
 # Import directly from the package
 from .shopee_affiliate_auth import graphql_query, GraphQLRequest
@@ -233,6 +234,33 @@ async def get_categories():
         return JSONResponse(
             content={'success': False, 'message': f'Erro ao carregar categorias: {str(e)}'}, 
             status_code=500
+        )
+
+@app.get("/categories")
+async def get_categories():
+    try:
+        conn = sqlite3.connect('shopee-analytics.db')
+        cursor = conn.cursor()
+        
+        cursor.execute("SELECT * FROM categories ORDER BY name")
+        categories = cursor.fetchall()
+        
+        result = []
+        for cat in categories:
+            result.append({
+                "id": str(cat[0]),
+                "name": cat[1],
+                "level": cat[2]
+            })
+        
+        conn.close()
+        return {"categories": result}
+        
+    except Exception as e:
+        logger.error(f"Erro ao buscar categorias: {str(e)}")
+        raise HTTPException(
+            status_code=500,
+            detail=f"Erro ao buscar categorias: {str(e)}"
         )
 
 @app.post('/api/search')

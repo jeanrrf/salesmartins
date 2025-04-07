@@ -158,40 +158,24 @@ function showToast(message, type = 'info') {
         document.body.appendChild(toastContainer);
     }
 
-    // Criar o toast
-    const toastEl = document.createElement('div');
-    toastEl.className = `toast align-items-center text-white bg-${type} border-0`;
-    toastEl.role = 'alert';
-    toastEl.ariaLive = 'assertive';
-    toastEl.ariaAtomic = 'true';
-
-    // Conteúdo do toast
-    toastEl.innerHTML = `
+    // Criar elemento do toast
+    const toast = document.createElement('div');
+    toast.className = `toast align-items-center text-white bg-${type} border-0`;
+    toast.setAttribute('role', 'alert');
+    toast.innerHTML = `
         <div class="d-flex">
-            <div class="toast-body">${message}</div>
-            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Fechar"></button>
+            <div class="toast-body">
+                ${message}
+            </div>
+            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
         </div>
     `;
+    toastContainer.appendChild(toast);
 
-    // Adicionar o toast ao container
-    toastContainer.appendChild(toastEl);
-
-    // Inicializar o toast do Bootstrap
-    const toast = new bootstrap.Toast(toastEl, {
-        autohide: true,
-        delay: 5000
-    });
-
-    // Exibir o toast
-    toast.show();
-
-    // Remover o toast quando fechado
-    toastEl.addEventListener('hidden.bs.toast', () => {
-        toastEl.remove();
-    });
-
-    // Log no console
-    console.log(`[${type.toUpperCase()}] ${message}`);
+    // Mostrar o toast por 5 segundos
+    setTimeout(() => {
+        toast.remove();
+    }, 5000);
 }
 
 function updateLinkStatusIndicator(stats) {

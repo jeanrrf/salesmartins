@@ -3,21 +3,31 @@ import { dom } from './utils.js';
 export class UIManager {
     constructor() {
         this.modals = {};
-        this.initializeModals();
+        // Adiar inicialização dos modais até o Bootstrap estar carregado
+        setTimeout(() => this.initializeModals(), 500);
     }
 
     initializeModals() {
-        // Initialize Bootstrap modals
-        const modalElements = document.querySelectorAll('.modal');
-        modalElements.forEach(element => {
-            const modalId = element.id;
-            this.modals[modalId] = new bootstrap.Modal(element);
+        try {
+            if (typeof bootstrap === 'undefined') {
+                console.warn('Bootstrap não carregado. Modais podem não funcionar corretamente.');
+                return;
+            }
 
-            // Add event listeners for modal cleanup
-            element.addEventListener('hidden.bs.modal', () => {
-                this.clearModalForm(modalId);
+            // Initialize Bootstrap modals
+            const modalElements = document.querySelectorAll('.modal');
+            modalElements.forEach(element => {
+                const modalId = element.id;
+                this.modals[modalId] = new bootstrap.Modal(element);
+
+                // Add event listeners for modal cleanup
+                element.addEventListener('hidden.bs.modal', () => {
+                    this.clearModalForm(modalId);
+                });
             });
-        });
+        } catch (error) {
+            console.error('Erro ao inicializar modais:', error);
+        }
     }
 
     showModal(modalId, data = {}) {
@@ -210,35 +220,32 @@ export class UIManager {
 
     // Toast notification system
     showToast(message, type = 'info') {
-        const toastContainer = document.getElementById('toast-container');
-        if (!toastContainer) {
-            this.createToastContainer();
-        }
-
+        // Implementação independente do Bootstrap
+        const container = document.getElementById('toast-container') || this.createToastContainer();
+        
         const toast = document.createElement('div');
-        toast.className = `toast align-items-center border-0 bg-${type}`;
-        toast.setAttribute('role', 'alert');
-        toast.setAttribute('aria-live', 'assertive');
-        toast.setAttribute('aria-atomic', 'true');
-
+        toast.className = `toast-message bg-${type} text-white`;
+        toast.style.cssText = `
+            position: relative;
+            padding: 1rem;
+            margin-bottom: 0.5rem;
+            border-radius: 0.25rem;
+            animation: fadeIn 0.3s ease-in;
+        `;
+        
         toast.innerHTML = `
-            <div class="d-flex">
-                <div class="toast-body text-white">
-                    ${message}
-                </div>
-                <button type="button" class="btn-close btn-close-white me-2 m-auto" 
-                        data-bs-dismiss="toast" aria-label="Fechar"></button>
+            <div class="d-flex justify-content-between align-items-center">
+                <div>${message}</div>
+                <button type="button" class="btn-close btn-close-white" onclick="this.parentElement.parentElement.remove()"></button>
             </div>
         `;
-
-        document.getElementById('toast-container').appendChild(toast);
-        const bsToast = new bootstrap.Toast(toast);
-        bsToast.show();
-
-        // Remove toast after it's hidden
-        toast.addEventListener('hidden.bs.toast', () => {
-            toast.remove();
-        });
+        
+        container.appendChild(toast);
+        
+        setTimeout(() => {
+            toast.style.animation = 'fadeOut 0.3s ease-out forwards';
+            setTimeout(() => toast.remove(), 300);
+        }, 3000);
     }
 
     createToastContainer() {
@@ -247,5 +254,6 @@ export class UIManager {
         container.className = 'toast-container position-fixed bottom-0 end-0 p-3';
         container.style.zIndex = '1050';
         document.body.appendChild(container);
+        return container;
     }
 }

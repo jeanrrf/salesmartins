@@ -6,9 +6,9 @@
 	],
 	"settings": {
 		"github.copilot.advanced": {
-			"maxContextTokens": 2000,
-			"maxPromptTokens": 1500,
-			"maxCompletionTokens": 500
+			"maxContextTokens": 4000,
+			"maxPromptTokens": 2000,
+			"maxCompletionTokens": 1000
 		},
 		"github.copilot.editor.enableAutoCompletions": true,
 		"github.copilot.chat.localeOverride": "pt-br",
