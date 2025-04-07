@@ -11,8 +11,16 @@
 		}
 	],
 	"settings": {
-		"github.copilot.editor.enableAutoCompletions": true,
-		"workbench.editor.limit.enabled": true,
-		"workbench.editor.limit.value": 5
+		"files.autoSave": "afterDelay",
+		"files.autoSaveDelay": 1000,
+		"editor.formatOnSave": true,
+		"editor.formatOnType": true,
+		"editor.formatOnPaste": true,
+		"editor.defaultFormatter": "esbenp.prettier-vscode",
+		"prettier.singleQuote": true,
+		"prettier.trailingComma": "all",
+		"prettier.semi": false,
+		"prettier.arrowParens": "avoid",
+		"prettier.bracketSpacing": true
 	}
 }

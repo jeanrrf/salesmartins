@@ -5,37 +5,42 @@ Este arquivo serve como um registro centralizado de todas as alterações e info
 ## Alterações Recentes
 
 ### Problema
-O módulo `backend` não foi encontrado ao executar o script `run_server.py`. Isso causou um erro `ModuleNotFoundError`.
+O módulo `backend` não foi encontrado ao executar o script `run_server.py`, resultando no erro `ModuleNotFoundError`.
 
 ### Solução
-Adicionamos o diretório raiz do projeto ao `sys.path` no início do arquivo `run_server.py` para garantir que o Python consiga localizar o módulo `backend`.
+Refatoramos a lógica no script `run_server.py` para garantir que o diretório raiz do projeto seja adicionado dinamicamente ao `sys.path`. Além disso, corrigimos o caminho para o módulo `Backend.main` ao iniciar o servidor.
 
 ### Arquivos Modificados
-- **`run_server.py`**: Adicionada a lógica para incluir o diretório raiz no `sys.path`.
+- **`run_server.py`**: Refatorada a lógica para corrigir o problema de importação do módulo `backend`.
 
 ```python
-# Adicionado no início do arquivo
-project_root = os.path.dirname(os.path.abspath(__file__))
+# Adicionado dinamicamente o diretório raiz ao sys.path
+project_root = os.path.abspath(os.path.dirname(__file__))
 if project_root not in sys.path:
     sys.path.insert(0, project_root)
+
+# Corrigido o caminho do módulo ao iniciar o servidor
+subprocess.run([sys.executable, "-m", "uvicorn", "Backend.main:app", "--host", "0.0.0.0", "--port", "3000", "--reload"], check=True)
 ```
 
 ### Problema
-O módulo `backend` ainda não foi encontrado ao executar o script `run_server.py`.
+Necessidade de monitorar portas abertas e tráfego de API em tempo real.
 
 ### Solução
-Adicionamos um comando para imprimir o `sys.path` no início do script `run_server.py` para depuração e verificar se o diretório raiz do projeto está corretamente incluído.
+Implementamos um log separado para registrar informações sobre portas abertas e tráfego de API. O log captura detalhes como a porta utilizada, endpoints acessados e dados trafegados.
 
 ### Arquivos Modificados
-- **`run_server.py`**: Adicionada impressão do `sys.path` para depuração.
+- **`run_server.py`**: Adicionado suporte para monitoramento de portas e tráfego.
+- **`backend/utils/logs.py`**: Criado um logger dedicado para monitoramento de API.
 
-```python
-# Adicionado para depuração
-print("🔍 Python Path:", sys.path)
+### Exemplo de Log
+```plaintext
+2025-03-28 12:00:00 | INFO | API Traffic | Port: 3000 | Endpoint: /health | Method: GET | Status: 200
 ```
 
 ## Observações
-- Certifique-se de que o diretório raiz do projeto contém o pacote `backend` corretamente estruturado.
-- Execute o script novamente e verifique se o caminho do diretório raiz está listado no `sys.path`.
-- Certifique-se de que o pacote `backend` está no local correto dentro do diretório raiz.
+- Certifique-se de que o diretório `Backend` contém o arquivo `__init__.py` para ser reconhecido como um pacote Python.
+- Execute o script novamente para verificar se o problema foi resolvido.
+- Certifique-se de que o diretório `logs` contém permissões de escrita para armazenar os arquivos de log.
+- Verifique o arquivo `api_traffic.log` para monitorar as atividades em tempo real.
 - Este arquivo será atualizado com cada nova análise ou alteração.
