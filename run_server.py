@@ -3,6 +3,8 @@ import subprocess
 import sys
 import platform
 import logging
+import threading
+import time
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s | %(levelname)s | %(message)s")
 
@@ -35,7 +37,19 @@ def run_server():
     except Exception as e:
         logging.warning(f"Error running the server: {e}")
 
+def monitor_traffic(port):
+    """Monitora o tráfego em uma porta específica."""
+    try:
+        while True:
+            result = subprocess.run(f"netstat -ano | findstr :{port}", shell=True, stdout=subprocess.PIPE, text=True)
+            for line in result.stdout.strip().split("\n"):
+                logging.info(f"Port {port} traffic: {line}")
+            time.sleep(5)  # Monitorar a cada 5 segundos
+    except Exception as e:
+        logging.warning(f"Unable to monitor traffic on port {port}: {e}")
+
 if __name__ == "__main__":
     install_dependencies()
     clear_port(3000)
+    threading.Thread(target=monitor_traffic, args=(3000,), daemon=True).start()
     run_server()

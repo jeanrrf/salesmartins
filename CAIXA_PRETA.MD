@@ -27,15 +27,32 @@ subprocess.run([sys.executable, "-m", "uvicorn", "Backend.main:app", "--host", "
 Necessidade de monitorar portas abertas e tráfego de API em tempo real.
 
 ### Solução
-Implementamos um log separado para registrar informações sobre portas abertas e tráfego de API. O log captura detalhes como a porta utilizada, endpoints acessados e dados trafegados.
+Adicionamos um monitoramento em tempo real para registrar detalhes sobre portas abertas e tráfego de API.
 
 ### Arquivos Modificados
-- **`run_server.py`**: Adicionado suporte para monitoramento de portas e tráfego.
-- **`backend/utils/logs.py`**: Criado um logger dedicado para monitoramento de API.
+- **`run_server.py`**: Adicionado monitoramento de tráfego em tempo real.
+- **`backend/utils/logs.py`**: Criado um logger dedicado para monitoramento de tráfego de API.
 
 ### Exemplo de Log
 ```plaintext
-2025-03-28 12:00:00 | INFO | API Traffic | Port: 3000 | Endpoint: /health | Method: GET | Status: 200
+2025-03-28 12:00:00 | INFO | Monitoring traffic on port 3000...
+2025-03-28 12:00:01 | INFO | Port 3000 traffic: TCP    0.0.0.0:3000           0.0.0.0:0              LISTENING       12345
+```
+
+### Problema
+Monitoramento de tráfego em tempo real não funcionava corretamente.
+
+### Solução
+Corrigimos a função `monitor_traffic` para rodar em uma thread separada e registrar o tráfego continuamente.
+
+### Arquivos Modificados
+- **`run_server.py`**: Corrigido o monitoramento de tráfego em tempo real.
+- **`backend/utils/logs.py`**: Garantido que o logger de tráfego de API está configurado corretamente.
+
+### Exemplo de Log
+```plaintext
+2025-03-28 12:00:00 | INFO | Port 3000 traffic: TCP    0.0.0.0:3000           0.0.0.0:0              LISTENING       12345
+2025-03-28 12:00:05 | INFO | Port 3000 traffic: TCP    0.0.0.0:3000           0.0.0.0:0              ESTABLISHED     12345
 ```
 
 ## Observações
