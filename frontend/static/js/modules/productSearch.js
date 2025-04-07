@@ -1,6 +1,6 @@
 //###################################################################################################
-//# Arquivo: main.py                                                                               #
-//# Descrição: Este script realiza a conexão com a API e processa os dados recebidos.             #
+//# Arquivo: productSearch.js                                                                      #
+//# Descrição: Este script realiza a conexão com a API e processa os dados recebidos.              #
 //# Autor: Jean Rosso                                                                              #
 //# Data: 28 de março de 2025                                                                      #
 //###################################################################################################
@@ -9,7 +9,7 @@ import { CategoryManager } from './categoryManager.js';
 import { LinkGenerator } from './linkGenerator.js';
 import { TemplateManager } from './templateManager.js';
 import { UIManager } from './uiManager.js';
-import { api, dom, notify } from './utils.js';
+import { api, dom, notify, handleImageError } from './utils.js';
 
 export class ProductSearch {
     constructor() {
@@ -276,25 +276,32 @@ export class ProductSearch {
     }
 
     renderResults() {
-        const resultsCount = document.getElementById('results-count');
-        if (resultsCount) {
-            resultsCount.textContent = this.currentProducts.length > 0
-                ? `${this.currentProducts.length} produtos encontrados`
-                : 'Nenhum produto encontrado';
-        }
+        const container = document.getElementById('products-container');
+        if (!container) return;
 
-        if (this.currentProducts.length === 0) {
-            dom.show('no-results');
-            dom.hide('products-container');
+        if (!this.currentProducts.length) {
+            container.innerHTML = `
+                <div class="col-12 text-center py-5">
+                    <p class="text-muted">Nenhum produto encontrado</p>
+                </div>
+            `;
             return;
         }
 
-        dom.hide('no-results');
-        dom.show('products-container');
-        this.renderProducts(this.currentProducts);
-
-        this.addSelectionCheckboxes();
-        this.toggleBulkActions(this.currentProducts.length > 0);
+        container.innerHTML = this.currentProducts.map(product => `
+            <div class="col-md-3 mb-4">
+                <div class="card product-card">
+                    <img src="${product.imageUrl}" 
+                         class="card-img-top" 
+                         alt="${product.name}"
+                         onerror="window.handleImageError(this)">
+                    <div class="card-body">
+                        <h5 class="card-title">${product.productName}</h5>
+                        <p class="card-text">${this.formatCurrency(product.priceMin)}</p>
+                    </div>
+                </div>
+            </div>
+        `).join('');
     }
 
     renderProducts(products) {
@@ -327,7 +334,7 @@ export class ProductSearch {
             <div class="col-md-6 col-lg-4 mb-4">
                 <div class="card product-card h-100 ${product.existsInDatabase ? 'border-secondary' : ''}" data-category-id="${categoryInfo.id}" data-product-id="${product.itemId}">
                     <div class="category-badge">${categoryInfo.name}</div>
-                    <img src="${product.imageUrl}" class="card-img-top product-image" alt="${product.productName}">
+                    <img src="${product.imageUrl}" class="card-img-top product-image" alt="${product.productName}" onerror="window.handleImageError(this)">
                     <div class="card-body">
                         <div class="mb-2">${badges.join(' ')}</div>
                         <h5 class="card-title">${product.productName}</h5>

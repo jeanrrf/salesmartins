@@ -1,3 +1,10 @@
+# ###################################################################################################
+# Arquivo: api.py                                                                               #
+# Descrição: Este script define a API backend usando FastAPI.                                    #
+# Autor: Jean Rosso                                                                              #
+# Data: 28 de março de 2025                                                                      #
+# ###################################################################################################
+
 import sys
 import os
 import logging

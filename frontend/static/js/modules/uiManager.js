@@ -1,3 +1,10 @@
+// ###################################################################################################
+// Arquivo: uiManager.js                                                                          #
+// Descrição: Este script gerencia a interface do usuário, incluindo modais e notificações.        #
+// Autor: Jean Rosso                                                                              #
+// Data: 28 de março de 2025                                                                      #
+// ###################################################################################################
+
 import { dom } from './utils.js';
 
 export class UIManager {

@@ -1,3 +1,10 @@
+// ###################################################################################################
+// Arquivo: logging.js                                                                           #
+// Descrição: Este script adiciona logging para requisições e respostas da API.                   #
+// Autor: Jean Rosso                                                                              #
+// Data: 28 de março de 2025                                                                      #
+// ###################################################################################################
+
 // Add API request logging
 const originalFetch = window.fetch;
 window.fetch = async (...args) => {

@@ -1,3 +1,10 @@
+// ###################################################################################################
+// Arquivo: productAnalytics.js                                                                    #
+// Descrição: Este script implementa a lógica para análise de produtos.                            #
+// Autor: Jean Rosso                                                                              #
+// Data: 28 de março de 2025                                                                      #
+// ###################################################################################################
+
 import { api, formatters, dom, notify } from './utils.js';
 import { CategoryManager } from './categoryManager.js';
 import { TemplateManager } from './templateManager.js';

@@ -1,3 +1,10 @@
+// ###################################################################################################
+// Arquivo: utils.js                                                                             #
+// Descrição: Este script contém funções utilitárias e configurações globais.                      #
+// Autor: Jean Rosso                                                                              #
+// Data: 28 de março de 2025                                                                      #
+// ###################################################################################################
+
 // Se estiver em produção (Render), use a URL do Render, senão use localhost
 export const API_URL = window.location.hostname === 'salesmartins.onrender.com' 
     ? 'https://salesmartins.onrender.com' 
@@ -260,7 +267,7 @@ function createLinkStatusIndicator(stats) {
 export async function waitForBackend(url, timeout = 30000) {
     const start = Date.now();
     let lastError = '';
-    
+
     while (Date.now() - start < timeout) {
         try {
             const response = await fetch(`${url}/health`);
@@ -271,10 +278,14 @@ export async function waitForBackend(url, timeout = 30000) {
             lastError = `Status: ${response.status}`;
         } catch (error) {
             lastError = error.message;
-            await new Promise(resolve => setTimeout(resolve, 1000));
         }
+
+        // Adicionar um pequeno atraso antes de tentar novamente
+        await new Promise(resolve => setTimeout(resolve, 1000));
     }
-    
+
+    // Notificar o erro após o tempo limite
+    console.error(`Servidor não está respondendo. Último erro: ${lastError}`);
     notify.error(`Servidor não está respondendo. Último erro: ${lastError}`);
     return false;
 }

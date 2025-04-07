@@ -1,3 +1,10 @@
+// ###################################################################################################
+// Arquivo: scripts.js                                                                           #
+// Descrição: Este script contém funções para animações e interações gerais do frontend.           #
+// Autor: Jean Rosso                                                                              #
+// Data: 28 de março de 2025                                                                      #
+// ###################################################################################################
+
 // Enhanced Dynamic Banner Animation
 document.addEventListener('DOMContentLoaded', () => {
     const banner = document.getElementById('dynamic-banner');

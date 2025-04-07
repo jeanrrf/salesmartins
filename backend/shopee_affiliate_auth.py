@@ -1,3 +1,10 @@
+# ###################################################################################################
+# Arquivo: shopee_affiliate_auth.py                                                              #
+# Descrição: Este script lida com a autenticação e as rotas da API para o programa de afiliados Shopee. #
+# Autor: Jean Rosso                                                                              #
+# Data: 28 de março de 2025                                                                      #
+# ###################################################################################################
+
 import os
 import logging
 import hmac

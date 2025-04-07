@@ -1,3 +1,10 @@
+// ###################################################################################################
+// Arquivo: templateManager.js                                                                     #
+// Descrição: Este script gerencia templates para geração de SubIDs.                               #
+// Autor: Jean Rosso                                                                              #
+// Data: 28 de março de 2025                                                                      #
+// ###################################################################################################
+
 import { storage, notify } from './utils.js';
 
 const DEFAULT_TEMPLATE = {

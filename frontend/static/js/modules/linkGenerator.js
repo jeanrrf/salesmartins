@@ -1,3 +1,10 @@
+// ###################################################################################################
+// Arquivo: linkGenerator.js                                                                       #
+// Descrição: Este script gera links de afiliados com base em templates e categorias.              #
+// Autor: Jean Rosso                                                                              #
+// Data: 28 de março de 2025                                                                      #
+// ###################################################################################################
+
 import { api, notify } from './utils.js';
 
 export class LinkGenerator {

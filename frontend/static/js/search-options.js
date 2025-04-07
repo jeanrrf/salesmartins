@@ -1,3 +1,10 @@
+// ###################################################################################################
+// Arquivo: search-options.js                                                                      #
+// Descrição: Este script implementa as opções avançadas de busca de produtos.                     #
+// Autor: Jean Rosso                                                                              #
+// Data: 28 de março de 2025                                                                      #
+// ###################################################################################################
+
 /**
  * search-options.js
  * Script responsável por implementar as opções avançadas de busca de produtos

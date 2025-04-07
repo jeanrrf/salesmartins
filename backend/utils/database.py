@@ -1,3 +1,10 @@
+# ###################################################################################################
+# Arquivo: database.py                                                                          #
+# Descrição: Este script contém funções utilitárias para interagir com o banco de dados.          #
+# Autor: Jean Rosso                                                                              #
+# Data: 28 de março de 2025                                                                      #
+# ###################################################################################################
+
 """
 Database utility module.
 

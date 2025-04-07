@@ -1,3 +1,10 @@
+# ###################################################################################################
+# Arquivo: models.py                                                                            #
+# Descrição: Este script define os modelos de banco de dados usando SQLAlchemy.                   #
+# Autor: Jean Rosso                                                                              #
+# Data: 28 de março de 2025                                                                      #
+# ###################################################################################################
+
 import os
 import sys
 import logging

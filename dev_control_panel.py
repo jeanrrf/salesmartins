@@ -1,3 +1,10 @@
+# ###################################################################################################
+# Arquivo: dev_control_panel.py                                                                  #
+# Descrição: Este script implementa um painel de controle para desenvolvedores usando Flask e SocketIO. #
+# Autor: Jean Rosso                                                                              #
+# Data: 28 de março de 2025                                                                      #
+# ###################################################################################################
+
 import os
 import sys
 import json

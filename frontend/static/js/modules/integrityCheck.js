@@ -1,3 +1,10 @@
+// ###################################################################################################
+// Arquivo: integrityCheck.js                                                                      #
+// Descrição: Este script verifica a integridade dos elementos críticos da interface.              #
+// Autor: Jean Rosso                                                                              #
+// Data: 28 de março de 2025                                                                      #
+// ###################################################################################################
+
 /**
  * Módulo de Verificação de Integridade
  * 
