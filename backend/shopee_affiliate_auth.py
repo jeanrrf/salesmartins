@@ -142,7 +142,7 @@ init_db()
 app = FastAPI()
 
 # Importar e usar a função setup_cors
-from cors_middleware import setup_cors
+from backend.utils.cors_middleware import setup_cors  # Corrigir caminho de importação
 setup_cors(app)
 
 # Montar os arquivos estáticos do frontend

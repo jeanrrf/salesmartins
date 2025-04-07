@@ -32,19 +32,19 @@
     "keywords": ["sutiãs", "calcinhas", "lingerie", "pijamas", "meias"]
   },
   {
-  "id": "100001-05",
-  "parent_id": "100001",
-  "name": "Roupas de Praia Femininas",
-  "sigla": "MDF-PRA",
-  "level": 2,
-  "keywords": ["biquínis", "saídas de praia", "sungas", "chapéus de praia", "cangas"]
+    "id": "100001-05",
+    "parent_id": "100001",
+    "name": "Roupas de Praia Femininas",
+    "sigla": "MDF-PRA",
+    "level": 2,
+    "keywords": ["biquínis", "saídas de praia", "sungas", "chapéus de praia", "cangas"]
   },
   {
-  "id": "100001-06",
-  "parent_id": "100001",
-  "name": "Plus Size Feminino",
-  "sigla": "MDF-PLU",
-  "level": 2,
-  "keywords": ["vestidos plus size", "blusas plus size", "calças plus size", "saias plus size", "moda GG"]
+    "id": "100001-06",
+    "parent_id": "100001",
+    "name": "Plus Size Feminino",
+    "sigla": "MDF-PLU",
+    "level": 2,
+    "keywords": ["vestidos plus size", "blusas plus size", "calças plus size", "saias plus size", "moda GG"]
   }
 ]

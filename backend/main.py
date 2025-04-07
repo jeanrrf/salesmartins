@@ -1,32 +1,21 @@
+# ###################################################################################################
+# AS CATEGORIAS NÃO VÊM DA API, VÊM DOS ARQUIVOS JSON: CATEGORIAS, NIVEL2 E NIVEL3                  #
+# ###################################################################################################
+
 import os
-import importlib
-import uvicorn
 from fastapi import FastAPI
-from cors_middleware import setup_cors
+from backend.routes import router
+from backend.utils.logs import setup_api_logs
 
-def create_app():
-    """Criar e configurar a aplicação FastAPI principal"""
-    app = FastAPI(title="Sentinnell API")
-    
-    # Configurar CORS
-    setup_cors(app)
-    
-    # Importar rotas de outros módulos
-    try:
-        from api import app as api_app
-        # Incluir todas as rotas da api.py
-        app.mount("/api", api_app)
-    except ImportError:
-        print("Módulo api.py não encontrado")
-    
-    @app.get("/health")
-    def health_check():
-        return {"status": "ok"}
-    
-    return app
+# Configurar logs exclusivos para API
+setup_api_logs()
 
-app = create_app()
+# Criar a aplicação FastAPI
+app = FastAPI(title="Sentinnell API")
 
-if __name__ == "__main__":
-    port = int(os.getenv("PORT", 8000))
-    uvicorn.run("main:app", host="0.0.0.0", port=port, reload=True)
+# Incluir rotas
+app.include_router(router)
+
+@app.get("/health")
+async def health_check():
+    return {"status": "online"}
