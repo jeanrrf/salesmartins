@@ -21,6 +21,9 @@
 		"prettier.trailingComma": "all",
 		"prettier.semi": false,
 		"prettier.arrowParens": "avoid",
-		"prettier.bracketSpacing": true
+		"prettier.bracketSpacing": true,
+		"[json]": {
+			"editor.defaultFormatter": "vscode.json-language-features"
+		}
 	}
 }
