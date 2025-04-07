@@ -290,35 +290,44 @@ async function waitForBackend(maxAttempts = 10, interval = 2000) {
     const statusIndicator = document.getElementById('backend-status');
     let attempts = 0;
 
+    // Atualizar indicador de status para "Conectando..."
+    if (statusIndicator) {
+        statusIndicator.innerHTML = '<i class="bi bi-hourglass-split text-warning"></i> Conectando ao servidor...';
+        statusIndicator.classList.remove('text-danger', 'text-success');
+        statusIndicator.classList.add('text-warning');
+    }
+
     return new Promise((resolve, reject) => {
         const checkBackend = async () => {
             try {
                 attempts++;
+                
+                // Atualizar mensagem com número de tentativas
+                if (statusIndicator && attempts > 1) {
+                    statusIndicator.innerHTML = `<i class="bi bi-hourglass-split text-warning"></i> Conectando ao servidor... (tentativa ${attempts}/${maxAttempts})`;
+                }
+                
                 const response = await fetch('/health');
                 
                 if (response.ok) {
                     if (statusIndicator) {
                         statusIndicator.innerHTML = '<i class="bi bi-check-circle-fill text-success"></i> Conectado ao servidor';
-                        statusIndicator.classList.remove('text-danger');
+                        statusIndicator.classList.remove('text-danger', 'text-warning');
                         statusIndicator.classList.add('text-success');
                     }
                     console.log('Backend conectado e funcionando!');
                     resolve(true);
                 } else {
-                    throw new Error('Resposta não OK do backend');
+                    throw new Error('Serviço de saúde retornou status não-OK');
                 }
             } catch (error) {
-                console.log(`Tentativa ${attempts}/${maxAttempts} - Backend não disponível: ${error.message}`);
-                
-                if (statusIndicator) {
-                    statusIndicator.innerHTML = `<i class="bi bi-exclamation-triangle-fill text-danger"></i> Reconectando ao servidor (${attempts}/${maxAttempts})...`;
-                    statusIndicator.classList.remove('text-success');
-                    statusIndicator.classList.add('text-danger');
-                }
+                console.log(`Tentativa ${attempts} falhou: ${error.message}`);
                 
                 if (attempts >= maxAttempts) {
                     if (statusIndicator) {
-                        statusIndicator.innerHTML = '<i class="bi bi-x-circle-fill text-danger"></i> Falha na conexão com o servidor';
+                        statusIndicator.innerHTML = '<i class="bi bi-x-circle-fill text-danger"></i> Não foi possível conectar ao servidor';
+                        statusIndicator.classList.remove('text-warning', 'text-success');
+                        statusIndicator.classList.add('text-danger');
                     }
                     reject(new Error(`Não foi possível conectar ao backend após ${maxAttempts} tentativas`));
                 } else {

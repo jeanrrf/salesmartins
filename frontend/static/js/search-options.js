@@ -37,7 +37,7 @@ function setupSearchOptions() {
         <div class="search-options-header">
             <button type="button" class="btn-toggle-options">Opções avançadas</button>
         </div>
-        <div class="search-options-content" style="display:none;">
+        <div class="search-options-content" style="display:none; transition: all 0.3s ease;">
             <div class="form-check">
                 <input type="checkbox" class="form-check-input" id="excludeExisting" name="excludeExisting">
                 <label class="form-check-label" for="excludeExisting">Excluir produtos já existentes no banco</label>
@@ -74,11 +74,24 @@ function setupSearchOptions() {
     const optionsContent = optionsContainer.querySelector('.search-options-content');
     
     toggleButton.addEventListener('click', function() {
-        if (optionsContent.style.display === 'none') {
+        const isHidden = optionsContent.style.display === 'none';
+        
+        // Aplicar transição suave
+        if (isHidden) {
             optionsContent.style.display = 'block';
+            // Pequeno delay para permitir a transição CSS
+            setTimeout(() => {
+                optionsContent.style.maxHeight = '300px';
+                optionsContent.style.opacity = '1';
+            }, 10);
             toggleButton.textContent = 'Ocultar opções avançadas';
         } else {
-            optionsContent.style.display = 'none';
+            optionsContent.style.maxHeight = '0';
+            optionsContent.style.opacity = '0';
+            // Esperar a transição terminar antes de ocultar
+            setTimeout(() => {
+                optionsContent.style.display = 'none';
+            }, 300);
             toggleButton.textContent = 'Opções avançadas';
         }
     });

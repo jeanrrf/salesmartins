@@ -141,7 +141,13 @@ export class ProductSearch {
             return;
         }
 
+        // Mostrar indicador de carregamento com mensagem informativa
         dom.show('loading-indicator');
+        const loadingText = document.querySelector('#loading-indicator .loading-text');
+        if (loadingText) {
+            loadingText.textContent = 'Buscando produtos...';
+        }
+        
         dom.hide('products-container');
         dom.hide('no-results');
 
@@ -266,7 +272,10 @@ export class ProductSearch {
     applyFilters() {
         const filteredProducts = this.currentProducts.filter(product => {
             const price = parseFloat(product.priceMin);
-            const commission = parseFloat(product.commissionRate);
+            // Converter comissão para número e normalizar formato (decimal ou porcentagem)
+            const commission = typeof product.commissionRate === 'string' && product.commissionRate.includes('%') 
+                ? parseFloat(product.commissionRate) / 100 
+                : parseFloat(product.commissionRate);
 
             const meetsMinPrice = !this.filters.minPrice || price >= this.filters.minPrice;
             const meetsMaxPrice = !this.filters.maxPrice || price <= this.filters.maxPrice;
