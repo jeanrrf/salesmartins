@@ -90,15 +90,16 @@ export const api = {
                 body: JSON.stringify(data)
             });
 
+            const responseData = await response.json();
+
             if (!response.ok) {
-                const errorData = await response.json().catch(() => null);
-                throw new Error(`API Error: ${response.status} - ${errorData?.detail || 'Erro desconhecido'}`);
+                throw new Error(responseData.detail || 'Erro desconhecido');
             }
 
-            return await response.json();
+            return responseData;
         } catch (error) {
-            console.error('API Error:', error);
-            throw error;
+            console.error('Erro na API:', error);
+            throw new Error(`Erro na requisição: ${error.message}`);
         }
     }
 };
@@ -143,6 +144,11 @@ export const notify = {
         // Atualiza o indicador visual, se existir
         updateLinkStatusIndicator(stats);
     }
+};
+
+export const handleImageError = (img) => {
+    img.onerror = null; // Previne loop infinito
+    img.src = '/static/images/no-image.png';
 };
 
 function showToast(message, type = 'info') {
@@ -251,21 +257,25 @@ function createLinkStatusIndicator(stats) {
     container.prepend(indicator);
 }
 
-async function waitForBackend(url, timeout = 30000) {
+export async function waitForBackend(url, timeout = 30000) {
     const start = Date.now();
+    let lastError = '';
+    
     while (Date.now() - start < timeout) {
         try {
-            const response = await fetch(url);
+            const response = await fetch(`${url}/health`);
             if (response.ok) {
-                console.log("Backend is ready.");
+                console.log("Backend está pronto e respondendo.");
                 return true;
             }
+            lastError = `Status: ${response.status}`;
         } catch (error) {
-            console.warn("Waiting for backend...");
+            lastError = error.message;
+            await new Promise(resolve => setTimeout(resolve, 1000));
         }
-        await new Promise(resolve => setTimeout(resolve, 1000));
     }
-    console.error("Backend did not respond within the timeout period.");
+    
+    notify.error(`Servidor não está respondendo. Último erro: ${lastError}`);
     return false;
 }
 

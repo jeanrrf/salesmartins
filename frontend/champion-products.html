@@ -90,12 +90,13 @@
                             <div class="mb-3">
                                 <label for="keyword" class="form-label">Palavra-chave</label>
                                 <input type="text" id="keyword" class="form-control"
-                                    placeholder="Ex: smartphone, tênis...">
+                                    placeholder="Ex: smartphone, tênis..." 
+                                    aria-label="Digite uma palavra-chave para busca">
                             </div>
 
                             <div class="mb-3">
                                 <label for="sortType" class="form-label">Ordenar por</label>
-                                <select id="sortType" class="form-select">
+                                <select id="sortType" class="form-select" aria-label="Selecionar ordem dos resultados">
                                     <option value="2" selected>Mais vendidos</option>
                                     <option value="4">Melhor preço</option>
                                     <option value="5">Maior comissão</option>
@@ -108,7 +109,7 @@
 
                             <div class="input-group mb-3">
                                 <label class="input-group-text" for="limit">Produtos por página:</label>
-                                <select class="form-select" id="limit">
+                                <select class="form-select" id="limit" aria-label="Selecionar quantidade de produtos por página">
                                     <option value="1">1 produto</option>
                                     <option value="10">10 produtos</option>
                                     <option value="20" selected>20 produtos</option>
@@ -194,7 +195,7 @@
             <div class="modal-content">
                 <div class="modal-header">
                     <h5 class="modal-title">Gerar Link de Afiliado</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar modal"></button>
                 </div>
                 <div class="modal-body">
                     <div id="link-product-info" class="mb-4"></div>
@@ -280,7 +281,7 @@
             <div class="modal-content">
                 <div class="modal-header">
                     <h5 class="modal-title">Editor de Templates de Links</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar editor de templates"></button>
                 </div>
                 <div class="modal-body">
                     <div class="alert alert-info">
@@ -355,13 +356,13 @@
             <div class="modal-content">
                 <div class="modal-header">
                     <h5 class="modal-title" id="categorySelectionModalLabel">Atualizar Categorias</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar modal de seleção de categoria"></button>
                 </div>
                 <div class="modal-body">
                     <form>
                         <div class="mb-3">
                             <label for="category-selection" class="form-label">Selecione a nova categoria</label>
-                            <select id="category-selection" class="form-select">
+                            <select id="category-selection" class="form-select" aria-label="Selecionar nova categoria">
                                 <!-- Options will be dynamically populated -->
                             </select>
                         </div>

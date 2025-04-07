@@ -204,6 +204,13 @@ def create_auth_header(payload: str = "") -> dict:
 def read_root():
     return {"message": "Shopee Affiliate API - Data Viewer"}
 
+@app.get("/health")
+async def health_check():
+    """
+    Endpoint para verificar se o servidor está funcionando
+    """
+    return {"status": "ok", "timestamp": time.time()}
+
 @app.post("/graphql")
 async def graphql_query(request: GraphQLRequest):
     try:
