@@ -1,0 +1,25 @@
+{
+	"folders": [
+		{
+			"path": "."
+		}
+	],
+	"settings": {
+		"github.copilot.advanced": {
+			"maxContextTokens": 2000,
+			"maxPromptTokens": 1500,
+			"maxCompletionTokens": 500
+		},
+		"github.copilot.inlineSuggest.enable": true,
+		"github.copilot.chat.localeOverride": "pt-BR",
+		"workbench.editor.limit.enabled": true,
+		"workbench.editor.limit.value": 5,
+		"workbench.editor.limit.perEditorGroup": true,
+		"workbench.editor.showTabs": "multiple",
+		"workbench.editor.tabSizing": "fit",
+		"workbench.editor.closeOnFileDelete": true,
+		"workbench.editor.enablePreview": true,
+		"workbench.editor.enablePreviewFromQuickOpen": true,
+		"workbench.editor.showIcons": true
+	}
+}

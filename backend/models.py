@@ -17,47 +17,21 @@ Base = declarative_base()
 
 # Definir caminho do banco de dados
 if os.environ.get('RENDER') == "1":
-    # No ambiente Render, usamos um banco de dados em memória para evitar problemas de acesso ao disco
+    # No ambiente Render, usamos um banco de dados em memória
     logger.info("🔄 Ambiente Render detectado: Usando banco de dados em memória")
-    DB_PATH = ":memory:"  # SQLite in-memory database
-    engine = create_engine(f'sqlite:///{DB_PATH}?cache=shared', 
-                          connect_args={'check_same_thread': False})
-    
-    # Função para carregar dados do disco para a memória
-    def load_data_from_disk():
-        try:
-            # Tente ambos os caminhos possíveis
-            disk_paths = ["/data/shopee-analytics.db", 
-                         "/opt/render/project/src/shopee-analytics.db"]
-            
-            for disk_path in disk_paths:
-                if os.path.exists(disk_path):
-                    logger.info(f"✅ Encontrado banco de dados em disco: {disk_path}")
-                    
-                    # Conectar ao banco de dados em memória
-                    memory_conn = engine.raw_connection().connection
-                    
-                    # Carregar o banco de dados do disco para a memória
-                    logger.info(f"🔄 Carregando dados do disco para a memória...")
-                    disk_conn = sqlite3.connect(disk_path)
-                    query = "".join(line for line in disk_conn.iterdump())
-                    memory_conn.executescript(query)
-                    disk_conn.close()
-                    
-                    logger.info(f"✅ Dados carregados com sucesso do arquivo {disk_path} para a memória")
-                    return True
-            
-            logger.warning("⚠️ Nenhum arquivo de banco de dados encontrado no disco")
-            return False
-        except Exception as e:
-            logger.error(f"❌ Erro ao carregar dados do disco para a memória: {str(e)}")
-            return False
+    DB_PATH = ":memory:"
 else:
-    # Em ambiente de desenvolvimento, usar arquivo normal
+    # Em ambiente de desenvolvimento, usar arquivo no diretório data
     logger.info("🔄 Ambiente de desenvolvimento: Usando arquivo de banco de dados padrão")
-    BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-    DB_PATH = os.path.join(os.path.dirname(BASE_DIR), "shopee-analytics.db")
-    engine = create_engine(f'sqlite:///{DB_PATH}')
+    DB_PATH = os.environ.get('DB_PATH')
+    if not DB_PATH:
+        BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+        DB_PATH = os.path.join(BASE_DIR, "data", "shopee-analytics.db")
+    
+    # Ensure directory exists
+    os.makedirs(os.path.dirname(DB_PATH), exist_ok=True)
+
+engine = create_engine(f'sqlite:///{DB_PATH}', connect_args={'check_same_thread': False})
 
 # Definir modelo Product
 class Product(Base):
@@ -104,6 +78,35 @@ Base.metadata.create_all(engine)
 
 # Se estivermos no Render, carregar dados do disco para a memória
 if os.environ.get('RENDER') == "1":
+    def load_data_from_disk():
+        try:
+            # Tente ambos os caminhos possíveis
+            disk_paths = ["/data/shopee-analytics.db", 
+                         "/opt/render/project/src/shopee-analytics.db"]
+            
+            for disk_path in disk_paths:
+                if os.path.exists(disk_path):
+                    logger.info(f"✅ Encontrado banco de dados em disco: {disk_path}")
+                    
+                    # Conectar ao banco de dados em memória
+                    memory_conn = engine.raw_connection().connection
+                    
+                    # Carregar o banco de dados do disco para a memória
+                    logger.info(f"🔄 Carregando dados do disco para a memória...")
+                    disk_conn = sqlite3.connect(disk_path)
+                    query = "".join(line for line in disk_conn.iterdump())
+                    memory_conn.executescript(query)
+                    disk_conn.close()
+                    
+                    logger.info(f"✅ Dados carregados com sucesso do arquivo {disk_path} para a memória")
+                    return True
+            
+            logger.warning("⚠️ Nenhum arquivo de banco de dados encontrado no disco")
+            return False
+        except Exception as e:
+            logger.error(f"❌ Erro ao carregar dados do disco para a memória: {str(e)}")
+            return False
+
     load_data_from_disk()
 
 # Criar uma sessão local para interagir com o banco de dados

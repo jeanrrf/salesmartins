@@ -1,8 +1,0 @@
-README.md
-setup.py
-shopee_analytics.egg-info/PKG-INFO
-shopee_analytics.egg-info/SOURCES.txt
-shopee_analytics.egg-info/dependency_links.txt
-shopee_analytics.egg-info/entry_points.txt
-shopee_analytics.egg-info/requires.txt
-shopee_analytics.egg-info/top_level.txt
