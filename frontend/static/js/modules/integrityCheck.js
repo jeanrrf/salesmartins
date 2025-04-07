@@ -86,7 +86,7 @@ export class IntegrityCheck {
      */
     showAlert(missing) {
         // Somente exibir em ambiente de desenvolvimento
-        if (process.env.NODE_ENV !== 'production') {
+        if (process.env.NODE_ENV !== 'developer') {
             const alert = document.createElement('div');
             alert.style.position = 'fixed';
             alert.style.top = '0';

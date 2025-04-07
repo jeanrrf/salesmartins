@@ -242,6 +242,36 @@ async def get_categories_level3():
             detail=f"Erro ao buscar categorias de nível 3: {str(e)}"
         )
 
+@app.get("/db/categories")
+async def get_all_categories():
+    """Endpoint para obter todas as categorias (L1, L2 e L3) juntas"""
+    try:
+        categories = []
+        
+        # Carregar categorias L1
+        l1_categories = get_categories_from_json(level=1)
+        if l1_categories:
+            categories.extend(l1_categories)
+        
+        # Carregar categorias L2
+        l2_categories = get_categories_from_json(level=2)
+        if l2_categories:
+            categories.extend(l2_categories)
+        
+        # Carregar categorias L3
+        l3_categories = get_categories_from_json(level=3)
+        if l3_categories:
+            categories.extend(l3_categories)
+        
+        logger.info(f"Retornando {len(categories)} categorias de todos os níveis")
+        return categories
+    except Exception as e:
+        logger.error(f"Erro ao buscar todas as categorias: {str(e)}")
+        raise HTTPException(
+            status_code=500,
+            detail=f"Erro ao buscar todas as categorias: {str(e)}"
+        )
+
 @app.get("/health")
 async def health_check():
     """Endpoint para verificar se a API está funcionando"""

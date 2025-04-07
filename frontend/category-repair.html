@@ -282,10 +282,32 @@
                             </div>
                             <input type="hidden" id="edit-product-id">
                             
-                            <label for="category-select" class="form-label">Selecione a Categoria Correta:</label>
-                            <select id="category-select" class="form-select mb-3">
-                                <!-- Opções preenchidas via JavaScript -->
-                            </select>
+                            <div class="mb-3">
+                                <label for="category-select-l1" class="form-label">Categoria Principal (L1):</label>
+                                <select id="category-select-l1" class="form-select">
+                                    <!-- Opções preenchidas via JavaScript -->
+                                </select>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="category-select-l2" class="form-label">Subcategoria (L2):</label>
+                                <select id="category-select-l2" class="form-select">
+                                    <option value="">Selecione uma subcategoria</option>
+                                    <!-- Opções preenchidas via JavaScript -->
+                                </select>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="category-select-l3" class="form-label">Subcategoria (L3):</label>
+                                <select id="category-select-l3" class="form-select">
+                                    <option value="">Selecione uma subcategoria (opcional)</option>
+                                    <!-- Opções preenchidas via JavaScript -->
+                                </select>
+                            </div>
+                            
+                            <div class="alert alert-info" id="category-path-display">
+                                <strong>Caminho selecionado:</strong> <span id="selected-category-path"></span>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -306,25 +328,6 @@
 
         const categoryManager = new CategoryManager();
 
-        // Substituir a função loadCategories existente
-        async function loadCategories() {
-            try {
-                await categoryManager.initialize();
-                
-                // Preencher o select de categorias
-                if (categorySelect) {
-                    categorySelect.innerHTML = categoryManager.categories.map(cat => 
-                        `<option value="${cat.id}">${cat.name}</option>`
-                    ).join('');
-                } else {
-                    console.error('Category select element is missing');
-                }
-            } catch (error) {
-                console.error('Erro ao carregar categorias:', error);
-                showStatus('Erro ao carregar categorias.', 'error');
-            }
-        }
-
         // API URL
         const API_URL = 'http://localhost:8001';
         
@@ -337,15 +340,18 @@
         const problemProductsEl = document.getElementById('problem-products');
         const repairedProductsEl = document.getElementById('repaired-products');
         const repairStatus = document.getElementById('repair-status');
-        const categorySelect = document.getElementById('category-select');
-        const productInfo = document.getElementById('product-info');
         const editProductId = document.getElementById('edit-product-id');
         const saveCategory = document.getElementById('save-category');
+        
+        // Seletores de categorias
+        const categorySelectL1 = document.getElementById('category-select-l1');
+        const categorySelectL2 = document.getElementById('category-select-l2');
+        const categorySelectL3 = document.getElementById('category-select-l3');
+        const selectedCategoryPath = document.getElementById('selected-category-path');
         
         // Variáveis para armazenar dados
         let allProducts = [];
         let problemProducts = [];
-        let categories = [];
         let repairedCount = 0;
         let repairLogs = [];
         
@@ -380,6 +386,124 @@
             }).format(price);
         }
         
+        // Inicializar categorias
+        async function initializeCategories() {
+            try {
+                await categoryManager.initialize();
+                
+                // Preencher select de categorias L1
+                const l1Categories = categoryManager.getL1Categories();
+                if (categorySelectL1) {
+                    categorySelectL1.innerHTML = `
+                        <option value="">Selecione uma categoria</option>
+                        ${l1Categories.map(cat => 
+                            `<option value="${cat.id}">${cat.name}</option>`
+                        ).join('')}
+                    `;
+                }
+                
+                return true;
+            } catch (error) {
+                console.error('Erro ao inicializar categorias:', error);
+                showStatus('Erro ao carregar categorias.', 'error');
+                return false;
+            }
+        }
+        
+        // Event listeners para seletores de categorias
+        function setupCategorySelectors() {
+            categorySelectL1.addEventListener('change', function() {
+                const selectedL1 = this.value;
+                updateCategorySelects(selectedL1);
+            });
+            
+            categorySelectL2.addEventListener('change', function() {
+                const selectedL2 = this.value;
+                updateL3Categories(selectedL2);
+            });
+            
+            // Atualizar o caminho de categorias quando qualquer seletor mudar
+            categorySelectL1.addEventListener('change', updateCategoryPathDisplay);
+            categorySelectL2.addEventListener('change', updateCategoryPathDisplay);
+            categorySelectL3.addEventListener('change', updateCategoryPathDisplay);
+        }
+        
+        // Atualizar seletores de categorias L2 e L3 com base na seleção de L1
+        function updateCategorySelects(l1Id) {
+            // Limpar e desabilitar L3 primeiro
+            categorySelectL3.innerHTML = '<option value="">Selecione uma subcategoria (opcional)</option>';
+            categorySelectL3.disabled = true;
+            
+            // Atualizar L2
+            if (l1Id) {
+                const l2Categories = categoryManager.getL2Categories(l1Id);
+                categorySelectL2.innerHTML = `
+                    <option value="">Selecione uma subcategoria</option>
+                    ${l2Categories.map(cat => 
+                        `<option value="${cat.id}">${cat.name}</option>`
+                    ).join('')}
+                `;
+                categorySelectL2.disabled = l2Categories.length === 0;
+            } else {
+                categorySelectL2.innerHTML = '<option value="">Selecione uma subcategoria</option>';
+                categorySelectL2.disabled = true;
+            }
+            
+            updateCategoryPathDisplay();
+        }
+        
+        // Atualizar seletor de categorias L3 com base na seleção de L2
+        function updateL3Categories(l2Id) {
+            if (l2Id) {
+                const l3Categories = categoryManager.getL3Categories(l2Id);
+                categorySelectL3.innerHTML = `
+                    <option value="">Selecione uma subcategoria (opcional)</option>
+                    ${l3Categories.map(cat => 
+                        `<option value="${cat.id}">${cat.name}</option>`
+                    ).join('')}
+                `;
+                categorySelectL3.disabled = l3Categories.length === 0;
+            } else {
+                categorySelectL3.innerHTML = '<option value="">Selecione uma subcategoria (opcional)</option>';
+                categorySelectL3.disabled = true;
+            }
+            
+            updateCategoryPathDisplay();
+        }
+        
+        // Atualizar exibição do caminho da categoria
+        function updateCategoryPathDisplay() {
+            const l1Id = categorySelectL1.value;
+            const l2Id = categorySelectL2.value;
+            const l3Id = categorySelectL3.value;
+            
+            let path = [];
+            
+            if (l1Id) {
+                path.push(categoryManager.getCategoryName(l1Id));
+                
+                if (l2Id) {
+                    path.push(categoryManager.getCategoryName(l2Id));
+                    
+                    if (l3Id) {
+                        path.push(categoryManager.getCategoryName(l3Id));
+                    }
+                }
+            }
+            
+            if (path.length > 0) {
+                selectedCategoryPath.textContent = path.join(' > ');
+            } else {
+                selectedCategoryPath.textContent = 'Nenhuma categoria selecionada';
+            }
+        }
+        
+        // Obter ID da categoria mais específica selecionada
+        function getSelectedCategoryId() {
+            // Retornar a categoria mais específica selecionada (L3 > L2 > L1)
+            return categorySelectL3.value || categorySelectL2.value || categorySelectL1.value;
+        }
+        
         async function loadRepairLogs() {
             try {
                 const response = await axios.get(`${API_URL}/api/repair-logs`);
@@ -394,9 +518,15 @@
             return repairLogs.some(item => item.id === productId);
         }
 
-        async function saveRepairLogs(productId, oldCat, newCat) {
+        async function saveRepairLogs(productId, oldCat, newCat, categoryPath) {
             // Adicionar ao array local
-            repairLogs.push({ id: productId, oldCategory: oldCat, newCategory: newCat });
+            repairLogs.push({ 
+                id: productId, 
+                oldCategory: oldCat, 
+                newCategory: newCat,
+                categoryPath: categoryPath,
+                timestamp: new Date().toISOString()
+            });
             
             try {
                 // Enviar para a API para salvar no arquivo
@@ -527,6 +657,44 @@
                 </div>
             `;
             
+            // Resetar os selects
+            categorySelectL1.value = '';
+            categorySelectL2.innerHTML = '<option value="">Selecione uma subcategoria</option>';
+            categorySelectL2.disabled = true;
+            categorySelectL3.innerHTML = '<option value="">Selecione uma subcategoria (opcional)</option>';
+            categorySelectL3.disabled = true;
+            
+            // Se o produto tem categoria, tentar selecioná-la automaticamente
+            if (product.category_id) {
+                const category = categoryManager.getCategoryById(product.category_id);
+                if (category) {
+                    const level = categoryManager.getCategoryLevel(product.category_id);
+                    
+                    if (level === 1) {
+                        categorySelectL1.value = product.category_id;
+                        updateCategorySelects(product.category_id);
+                    } else if (level === 2) {
+                        if (category.parent_id) {
+                            categorySelectL1.value = category.parent_id;
+                            updateCategorySelects(category.parent_id);
+                            categorySelectL2.value = product.category_id;
+                            updateL3Categories(product.category_id);
+                        }
+                    } else if (level === 3) {
+                        const parentCategory = categoryManager.getCategoryById(category.parent_id);
+                        if (parentCategory && parentCategory.parent_id) {
+                            categorySelectL1.value = parentCategory.parent_id;
+                            updateCategorySelects(parentCategory.parent_id);
+                            categorySelectL2.value = category.parent_id;
+                            updateL3Categories(category.parent_id);
+                            categorySelectL3.value = product.category_id;
+                        }
+                    }
+                }
+            }
+            
+            updateCategoryPathDisplay();
+            
             // Mostrar o modal
             editModal.show();
         }
@@ -546,18 +714,28 @@
                 showStatus('Este item já foi reparado antes.', 'success');
                 return false;
             }
+            
+            if (!categoryId) {
+                showStatus('Selecione uma categoria válida.', 'error');
+                return false;
+            }
+            
             showLoading();
             try {
-                // Obter nome da categoria do CategoryManager
-                const category = categoryManager.categoryMap[categoryId];
+                // Obter categoria do CategoryManager
+                const category = categoryManager.getCategoryById(categoryId);
                 if (!category) {
                     throw new Error('Categoria não encontrada');
                 }
-
+                
+                // Obter caminho completo da categoria
+                const categoryPath = categoryManager.getCategoryPath(categoryId);
+                
                 // Enviar solicitação de atualização para a API
                 const response = await axios.put(`${API_URL}/db/products/${productId}`, {
                     category_id: categoryId,
-                    category_name: category.name // Incluir o nome da categoria
+                    category_name: category.name,
+                    category_path: categoryPath
                 });
                 
                 if (response.status === 200) {
@@ -578,13 +756,14 @@
                             productCard.parentElement.remove();
                         }
                         
-                        await saveRepairLogs(productId, productOldCategory, categoryId);
+                        await saveRepairLogs(productId, productOldCategory, categoryId, categoryPath);
                     }
                     
                     // Atualizar o produto na lista completa
                     const allIndex = allProducts.findIndex(p => p.id == productId);
                     if (allIndex !== -1) {
                         allProducts[allIndex].category_id = categoryId;
+                        allProducts[allIndex].category_name = category.name;
                     }
                     
                     // Desativar botão de reparo em massa se não houver mais problemas
@@ -612,7 +791,7 @@
             }
         }
         
-        // Reparar todos os produtos automaticamente
+        // Reparar todos os produtos automaticamente com sugestões inteligentes
         async function repairAllProducts() {
             if (!confirm(`Deseja realmente reparar automaticamente ${problemProducts.length} produtos?`)) {
                 return;
@@ -623,28 +802,17 @@
             let failed = 0;
             
             try {
-                // Criar um mapa para sugerir categorias com base em palavras-chave
-                const categoryKeywords = [
-                    { category: "100001", keywords: ["eletrônico", "gadget", "computador", "laptop", "notebook", "tablet", "monitor", "teclado", "mouse", "fone"] },
-                    { category: "100006", keywords: ["celular", "smartphone", "iphone", "android", "carregador", "capa", "película", "cabo usb", "fone de ouvido"] },
-                    { category: "100018", keywords: ["vestido", "blusa", "feminina", "mulher", "maquiagem", "batom", "salto", "sandália", "bolsa"] },
-                    { category: "100019", keywords: ["masculino", "homem", "camisa", "camiseta", "calça", "bermuda", "cueca", "meia", "gravata"] },
-                    { category: "100039", keywords: ["casa", "decoração", "móvel", "cozinha", "quarto", "sala", "tapete", "cortina", "toalha"] },
-                    { category: "100040", keywords: ["bebê", "criança", "infantil", "fralda", "chupeta", "mamadeira", "brinquedo", "carrinho"] },
-                    { category: "100041", keywords: ["beleza", "cuidado", "shampoo", "perfume", "creme", "hidratante", "maquiagem", "batom"] },
-                    { category: "100042", keywords: ["esporte", "fitness", "academia", "futebol", "basquete", "tênis", "bicicleta", "bike"] },
-                    { category: "100048", keywords: ["jogo", "hobby", "videogame", "console", "playstation", "xbox", "nintendo", "card", "tabuleiro"] },
-                    { category: "100049", keywords: ["automotivo", "carro", "moto", "acessório", "limpeza", "óleo", "pneu", "alarme"] },
-                    { category: "100050", keywords: ["ferramenta", "construção", "martelo", "chave", "parafuso", "elétrica", "manual", "alicate"] }
-                ];
+                const suggestions = buildAdvancedCategorySuggestions();
                 
                 for (const product of [...problemProducts]) {
-                    const productName = product.name.toLowerCase();
-                    let bestCategory = findBestCategory(productName, categoryKeywords);
+                    const bestCategory = findBestCategoryForProduct(product, suggestions);
                     
-                    const categoryId = bestCategory || "100001";
+                    if (!bestCategory) {
+                        failed++;
+                        continue;
+                    }
                     
-                    const success = await repairProduct(product.id, categoryId);
+                    const success = await repairProduct(product.id, bestCategory);
                     
                     if (success) {
                         successful++;
@@ -666,25 +834,147 @@
             }
         }
         
-        function findBestCategory(productName, categoryKeywords) {
-            let bestCategory = null;
-            let bestMatches = 0;
+        function buildAdvancedCategorySuggestions() {
+            // Retorna um mapeamento mais avançado de palavras-chave → categorias, com pontuações de relevância
             
-            for (const catInfo of categoryKeywords) {
-                const matches = catInfo.keywords.filter(keyword => 
-                    productName.includes(keyword.toLowerCase())
-                ).length;
+            // Primeiro, vamos usar as categorias carregadas do sistema
+            const suggestions = [];
+            
+            // Adicionar categorias L1
+            const l1Categories = categoryManager.getL1Categories();
+            l1Categories.forEach(category => {
+                // Adicionar a própria categoria como palavra-chave com pontuação alta
+                suggestions.push({
+                    categoryId: category.id,
+                    keywords: [category.name.toLowerCase()],
+                    score: 10,
+                    level: 1
+                });
                 
-                if (matches > bestMatches) {
-                    bestMatches = matches;
-                    bestCategory = catInfo.category;
+                // Adicionar palavras-chave genéricas para categorias principais
+                const wordsArray = category.name.toLowerCase().split(/\s+/);
+                suggestions.push({
+                    categoryId: category.id,
+                    keywords: wordsArray.filter(word => word.length > 3),
+                    score: 5,
+                    level: 1
+                });
+                
+                // Adicionar subcategorias L2
+                const l2Categories = categoryManager.getL2Categories(category.id);
+                l2Categories.forEach(subcat => {
+                    // Adicionar a própria subcategoria como palavra-chave com pontuação alta
+                    suggestions.push({
+                        categoryId: subcat.id,
+                        keywords: [subcat.name.toLowerCase()],
+                        score: 15,
+                        level: 2
+                    });
+                    
+                    // Adicionar palavras individuais da subcategoria
+                    const subWordsArray = subcat.name.toLowerCase().split(/\s+/);
+                    suggestions.push({
+                        categoryId: subcat.id,
+                        keywords: subWordsArray.filter(word => word.length > 3),
+                        score: 8,
+                        level: 2
+                    });
+                    
+                    // Adicionar subcategorias L3
+                    const l3Categories = categoryManager.getL3Categories(subcat.id);
+                    l3Categories.forEach(subsubcat => {
+                        // Adicionar a própria subcategoria como palavra-chave com pontuação muito alta
+                        suggestions.push({
+                            categoryId: subsubcat.id,
+                            keywords: [subsubcat.name.toLowerCase()],
+                            score: 20,
+                            level: 3
+                        });
+                        
+                        // Adicionar palavras individuais da subcategoria
+                        const subSubWordsArray = subsubcat.name.toLowerCase().split(/\s+/);
+                        suggestions.push({
+                            categoryId: subsubcat.id,
+                            keywords: subSubWordsArray.filter(word => word.length > 3),
+                            score: 10,
+                            level: 3
+                        });
+                    });
+                });
+            });
+            
+            // Adicionar palavras-chave específicas para categorias comuns (caso não estejam bem definidas no banco)
+            const commonCategories = [
+                { categoryId: "1", keywords: ["eletrônico", "gadget", "computador", "laptop", "notebook", "tablet"], score: 12 },
+                { categoryId: "2", keywords: ["celular", "smartphone", "iphone", "android", "carregador"], score: 12 },
+                { categoryId: "3", keywords: ["moda", "vestido", "blusa", "feminina", "mulher", "maquiagem"], score: 12 },
+                { categoryId: "4", keywords: ["masculino", "homem", "camisa", "camiseta", "calça"], score: 12 },
+                { categoryId: "5", keywords: ["casa", "decoração", "móvel", "cozinha", "quarto"], score: 12 },
+                { categoryId: "6", keywords: ["bebê", "criança", "infantil", "fralda", "brinquedo"], score: 12 }
+            ];
+            
+            return [...suggestions, ...commonCategories];
+        }
+        
+        function findBestCategoryForProduct(product, suggestions) {
+            const productName = product.name.toLowerCase();
+            const productDesc = (product.description || '').toLowerCase();
+            const combinedText = productName + ' ' + productDesc;
+            
+            // Calcular pontuação para cada sugestão
+            const scores = [];
+            
+            for (const suggestion of suggestions) {
+                let score = 0;
+                
+                for (const keyword of suggestion.keywords) {
+                    if (!keyword) continue;
+                    
+                    // Verificar ocorrências do termo exato
+                    if (productName.includes(keyword)) {
+                        score += suggestion.score;
+                    }
+                    
+                    if (productDesc && productDesc.includes(keyword)) {
+                        score += suggestion.score / 2; // Menor peso para descrição
+                    }
+                    
+                    // Verificar palavras individuais
+                    const productWords = combinedText.split(/\s+/);
+                    if (productWords.includes(keyword)) {
+                        score += suggestion.score / 3;
+                    }
+                    
+                    // Bônus para correspondências no início do nome
+                    if (productName.startsWith(keyword)) {
+                        score += suggestion.score * 1.5;
+                    }
+                }
+                
+                if (score > 0) {
+                    scores.push({
+                        categoryId: suggestion.categoryId,
+                        score: score,
+                        level: suggestion.level || 1
+                    });
                 }
             }
             
-            return bestMatches > 0 ? bestCategory : null;
+            // Ordenar por pontuação (maior primeiro)
+            scores.sort((a, b) => {
+                // Primeiro por pontuação
+                if (b.score !== a.score) {
+                    return b.score - a.score;
+                }
+                // Em caso de empate, priorizar categorias mais específicas (L3 > L2 > L1)
+                return b.level - a.level;
+            });
+            
+            // Retornar o ID da categoria com maior pontuação
+            return scores.length > 0 ? scores[0].categoryId : null;
         }
         
-        document.addEventListener('DOMContentLoaded', () => {
+        document.addEventListener('DOMContentLoaded', async () => {
             const requiredElements = {
                 'btnScanProducts': btnScanProducts,
                 'btnRepairAll': btnRepairAll,
@@ -693,8 +983,9 @@
                 'problemProductsEl': problemProductsEl,
                 'repairedProductsEl': repairedProductsEl,
                 'repairStatus': repairStatus,
-                'categorySelect': categorySelect,
-                'productInfo': productInfo,
+                'categorySelectL1': categorySelectL1,
+                'categorySelectL2': categorySelectL2,
+                'categorySelectL3': categorySelectL3,
                 'editProductId': editProductId,
                 'saveCategory': saveCategory
             };
@@ -709,15 +1000,25 @@
                 return;
             }
 
-            loadCategories();
-            loadRepairLogs();
+            // Inicializar categorias
+            await initializeCategories();
+            
+            // Configurar seletores de categorias
+            setupCategorySelectors();
+            
+            await loadRepairLogs();
             
             btnScanProducts.addEventListener('click', scanProducts);
             btnRepairAll.addEventListener('click', repairAllProducts);
             
             saveCategory.addEventListener('click', async () => {
                 const productId = editProductId.value;
-                const categoryId = categorySelect.value;
+                const categoryId = getSelectedCategoryId();
+                
+                if (!categoryId) {
+                    showStatus('Selecione uma categoria válida.', 'error');
+                    return;
+                }
                 
                 editModal.hide();
                 
