@@ -382,7 +382,15 @@ class CustomHTTPHandler(http.server.SimpleHTTPRequestHandler):
             super().copyfile(source, outputfile)
     
     def log_message(self, format, *args):
-        logger.info(f"🌐 Frontend Request: {args[0]} {args[1]} - Status: {args[2]}")
+        # Implementação corrigida com verificação de comprimento:
+        if len(args) >= 3:
+            logger.info(f"🌐 Frontend Request: {args[0]} {args[1]} - Status: {args[2]}")
+        elif len(args) == 2:
+            logger.info(f"🌐 Frontend Request: {args[0]} {args[1]}")
+        elif len(args) == 1:
+            logger.info(f"🌐 Frontend Request: {args[0]}")
+        else:
+            logger.info(f"🌐 Frontend Request: {format}")
 
 def launch_in_new_console(command, cwd, env=None, title=None):
     """Launch a process in a new console window."""

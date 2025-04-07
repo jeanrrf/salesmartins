@@ -389,11 +389,6 @@ export class ProductAnalytics {
                 }
             }
             
-            // Filtrar por categoria
-            if (criteria.categoryId && product.categoryId !== criteria.categoryId) {
-                return false;
-            }
-            
             // Filtrar por preço mínimo
             if (criteria.minPrice && product.priceMin < criteria.minPrice) {
                 return false;

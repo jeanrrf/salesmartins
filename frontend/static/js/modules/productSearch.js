@@ -19,11 +19,8 @@ export class ProductSearch {
 
     async initialize() {
         try {
-            // Inicializar o carregador de categorias
+            // Inicializar o carregador de categorias apenas para informações de produto
             await this.categoryLoader.initialize();
-            
-            // Preencher o filtro de categorias
-            this.populateCategoryFilter();
             
             // Inicializar componentes básicos
             this._setupEventListeners();
@@ -36,16 +33,6 @@ export class ProductSearch {
             console.error('Erro ao inicializar o módulo de busca:', error);
             notify.error('Falha ao inicializar o buscador de produtos.');
             return false;
-        }
-    }
-
-    /**
-     * Preenche o filtro de categorias com os dados carregados
-     */
-    populateCategoryFilter() {
-        const categoryFilter = document.getElementById('category-filter');
-        if (categoryFilter) {
-            categoryFilter.innerHTML = this.categoryLoader.getCategorySelectOptions();
         }
     }
 
@@ -105,7 +92,7 @@ export class ProductSearch {
         }
     }
 
-    searchProducts(query = '', category = '') {
+    searchProducts(query = '') {
         const searchTerms = query.toLowerCase().split(' ').filter(term => term.length > 0);
         
         this.filteredProducts = [...this.products];
@@ -119,26 +106,6 @@ export class ProductSearch {
                 return searchTerms.every(term => 
                     productName.includes(term) || productDesc.includes(term)
                 );
-            });
-        }
-        
-        // Filtrar por categoria
-        if (category) {
-            this.filteredProducts = this.filteredProducts.filter(product => {
-                // Se o produto tem a categoria exata
-                if (product.category_id === category) return true;
-                
-                // Se é categoria de nível 1 e o produto pertence a alguma subcategoria dela
-                const productCategory = this.categoryLoader.getCategoryById(product.category_id);
-                if (!productCategory) return false;
-                
-                // Se estamos filtrando por categoria nível 1 e o produto está em uma subcategoria dela
-                if (productCategory.level === 2 && productCategory.parent_id === category) return true;
-                
-                // Se estamos filtrando por categoria nível 2 e o produto está em uma subcategoria dela
-                if (productCategory.level === 3 && productCategory.parent_id === category) return true;
-                
-                return false;
             });
         }
         
@@ -244,13 +211,12 @@ export class ProductSearch {
     _setupEventListeners() {
         const searchForm = document.getElementById('search-form');
         const searchInput = document.getElementById('search-query');
-        const categoryFilter = document.getElementById('category-filter');
         const searchButton = document.getElementById('search-button');
         
         if (searchForm) {
             searchForm.addEventListener('submit', (e) => {
                 e.preventDefault();
-                this.searchProducts(searchInput.value, categoryFilter?.value || '');
+                this.searchProducts(searchInput.value);
             });
         }
         
@@ -259,82 +225,25 @@ export class ProductSearch {
                 // Evita busca automática a cada digitação
                 // Se quiser busca automática, descomente as linhas abaixo:
                 // if (!searchInput.value) {
-                //     this.searchProducts('', categoryFilter?.value || '');
+                //     this.searchProducts('');
                 // }
-            });
-        }
-        
-        if (categoryFilter) {
-            categoryFilter.addEventListener('change', () => {
-                this.searchProducts(searchInput?.value || '', categoryFilter.value);
             });
         }
         
         if (searchButton) {
             searchButton.addEventListener('click', (e) => {
                 e.preventDefault();
-                this.searchProducts(searchInput?.value || '', categoryFilter?.value || '');
+                this.searchProducts(searchInput?.value || '');
             });
         }
-    }
-    
-    _setupProductEventListeners() {
-        document.querySelectorAll('.view-product').forEach(button => {
-            button.addEventListener('click', (e) => {
-                const productId = e.currentTarget.dataset.productId;
-                this._viewProduct(productId);
+
+        // Adiciona evento de ordenação
+        const sortSelect = document.getElementById('sort-select');
+        if (sortSelect) {
+            sortSelect.addEventListener('change', () => {
+                this._applySorting();
+                this._renderProducts(this.filteredProducts);
             });
-        });
-        
-        document.querySelectorAll('.quick-link').forEach(button => {
-            button.addEventListener('click', (e) => {
-                const productId = e.currentTarget.dataset.productId;
-                this._generateQuickLink(productId);
-            });
-        });
-    }
-    
-    _viewProduct(productId) {
-        const product = this.products.find(p => p.id === productId);
-        if (!product) return;
-        
-        console.log('Visualizando produto:', product);
-        
-        alert(`Visualizando: ${product.name}\nPreço: ${this._formatPrice(product.price)}`);
-    }
-    
-    _generateQuickLink(productId) {
-        const product = this.products.find(p => p.id === productId);
-        if (!product) return;
-        
-        console.log('Gerando link rápido para:', product);
-        
-        const link = `https://exemplo.com/produto/${productId}?ref=sentinnell`;
-        
-        navigator.clipboard.writeText(link)
-            .then(() => notify.success('Link copiado para a área de transferência!'))
-            .catch(() => notify.error('Não foi possível copiar o link.'));
-    }
-    
-    _updateResultsCount() {
-        const countElement = document.getElementById('results-count');
-        if (countElement) {
-            countElement.textContent = `${this.filteredProducts.length} produtos encontrados`;
         }
-    }
-    
-    _showLoading() {
-        document.getElementById('loading-indicator')?.style.display = 'block';
-    }
-    
-    _hideLoading() {
-        document.getElementById('loading-indicator')?.style.display = 'none';
-    }
-    
-    _formatPrice(price) {
-        return new Intl.NumberFormat('pt-BR', {
-            style: 'currency',
-            currency: 'BRL'
-        }).format(price || 0);
     }
 }

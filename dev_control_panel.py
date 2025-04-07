@@ -284,6 +284,16 @@ def index():
     
     return render_template('index.html', service_status=service_status)
 
+@app.route('/favicon.ico')
+def favicon():
+    # Retorna o favicon.ico se existir, ou um HTTP 204 (No Content) se não existir
+    favicon_path = os.path.join(os.path.dirname(__file__), 'frontend', 'favicon.ico')
+    if os.path.exists(favicon_path):
+        return send_from_directory(os.path.join(app.root_path, 'frontend'),
+                                   'favicon.ico', mimetype='image/vnd.microsoft.icon')
+    else:
+        return '', 204
+
 @app.route('/api/service/<service>/start', methods=['POST'])
 def start_service(service):
     if service == 'shopee_backend':
