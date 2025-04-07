@@ -122,83 +122,153 @@ export const dom = {
     }
 };
 
+// Add CORS handling utility
 export const api = {
-    async get(endpoint) {
+    baseUrl: 'http://localhost:8001',
+    
+    async get(endpoint, params = {}) {
         try {
-            const response = await fetch(`${API_URL}${endpoint}`);
+            const url = new URL(`${this.baseUrl}${endpoint}`);
+            Object.keys(params).forEach(key => url.searchParams.append(key, params[key]));
+            
+            const response = await fetch(url, {
+                method: 'GET',
+                headers: {
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json',
+                    'Access-Control-Allow-Origin': '*'
+                },
+                credentials: 'include' // For handling cookies if needed
+            });
+            
             if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
+                throw new Error(`API Error: ${response.status} ${response.statusText}`);
             }
+            
             return await response.json();
         } catch (error) {
-            console.error(`Error fetching ${endpoint}:`, error);
+            console.error(`API GET Error (${endpoint}):`, error);
             throw error;
         }
     },
-
-    async post(endpoint, data) {
+    
+    async post(endpoint, data = {}) {
         try {
-            const response = await fetch(`${API_URL || ''}${endpoint}`, {
+            const response = await fetch(`${this.baseUrl}${endpoint}`, {
                 method: 'POST',
                 headers: {
-                    'Content-Type': 'application/json'
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json',
+                    'Access-Control-Allow-Origin': '*'
                 },
+                credentials: 'include',
                 body: JSON.stringify(data)
             });
             
             if (!response.ok) {
-                const errorText = await response.text();
-                console.error(`Erro na API (${response.status}):`, errorText);
-                throw new Error(`Erro na requisição: ${response.status} - ${errorText}`);
+                throw new Error(`API Error: ${response.status} ${response.statusText}`);
             }
             
             return await response.json();
         } catch (error) {
-            console.error('Erro na API:', error);
+            console.error(`API POST Error (${endpoint}):`, error);
+            throw error;
+        }
+    },
+    
+    async put(endpoint, data = {}) {
+        try {
+            const response = await fetch(`${this.baseUrl}${endpoint}`, {
+                method: 'PUT',
+                headers: {
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json',
+                    'Access-Control-Allow-Origin': '*'
+                },
+                credentials: 'include',
+                body: JSON.stringify(data)
+            });
+            
+            if (!response.ok) {
+                throw new Error(`API Error: ${response.status} ${response.statusText}`);
+            }
+            
+            return await response.json();
+        } catch (error) {
+            console.error(`API PUT Error (${endpoint}):`, error);
+            throw error;
+        }
+    },
+    
+    async delete(endpoint) {
+        try {
+            const response = await fetch(`${this.baseUrl}${endpoint}`, {
+                method: 'DELETE',
+                headers: {
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json',
+                    'Access-Control-Allow-Origin': '*'
+                },
+                credentials: 'include'
+            });
+            
+            if (!response.ok) {
+                throw new Error(`API Error: ${response.status} ${response.statusText}`);
+            }
+            
+            return await response.json();
+        } catch (error) {
+            console.error(`API DELETE Error (${endpoint}):`, error);
             throw error;
         }
     }
 };
 
+// Add toast notification utility
 export const notify = {
-    success: (message) => {
-        dom.showToast(message, 'success');
+    show(message, type = 'info', duration = 3000) {
+        const toastContainer = document.getElementById('toast-container') || this.createToastContainer();
+        
+        const toast = document.createElement('div');
+        toast.className = `toast-message alert alert-${type} shadow`;
+        toast.innerHTML = message;
+        toast.style.animation = 'fadeIn 0.3s ease-in';
+        
+        toastContainer.appendChild(toast);
+        
+        setTimeout(() => {
+            toast.style.animation = 'fadeOut 0.3s ease-out';
+            setTimeout(() => {
+                if (toastContainer.contains(toast)) {
+                    toastContainer.removeChild(toast);
+                }
+            }, 300);
+        }, duration);
     },
-
-    error: (message) => {
-        dom.showToast(message, 'danger');
+    
+    createToastContainer() {
+        const container = document.createElement('div');
+        container.id = 'toast-container';
+        container.className = 'toast-container position-fixed bottom-0 end-0 p-3';
+        container.style.zIndex = '9999';
+        document.body.appendChild(container);
+        return container;
     },
-
-    warning: (message) => {
-        dom.showToast(message, 'warning');
+    
+    success(message, duration = 3000) {
+        this.show(message, 'success', duration);
     },
-
-    info: (message) => {
-        dom.showToast(message, 'info');
+    
+    error(message, duration = 5000) {
+        this.show(message, 'danger', duration);
     },
-
-    // Especializado para notificar sobre links de afiliados
-    affiliateStatus: (stats) => {
-        if (stats.total === 0) return;
-
-        let type = 'info';
-        let message = '';
-
-        if (stats.withLinks === stats.total) {
-            type = 'success';
-            message = `✅ ${stats.withLinks}/${stats.total} links de afiliados gerados (100%)`;
-        } else if (stats.withLinks === 0) {
-            type = 'warning';
-            message = `⚠️ Nenhum link de afiliado foi gerado (0/${stats.total})`;
-        } else {
-            type = 'info';
-            message = `ℹ️ ${stats.withLinks}/${stats.total} links de afiliados gerados (${stats.percentage}%)`;
-        }
-
-        dom.showToast(message, type);
-
-        // Atualiza o indicador visual, se existir
-        updateLinkStatusIndicator(stats);
+    
+    info(message, duration = 3000) {
+        this.show(message, 'info', duration);
+    },
+    
+    warning(message, duration = 4000) {
+        this.show(message, 'warning', duration);
     }
 };
 

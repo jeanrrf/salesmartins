@@ -76,23 +76,45 @@
                 <div class="search-container">
                     <form id="search-form" class="mb-0">
                         <div class="row g-3">
-                            <div class="col-md-6">
+                            <div class="col-md-4">
+                                <label for="search-query" class="visually-hidden">Buscar produtos</label>
                                 <div class="input-group">
-                                    <span class="input-group-text"><i class="bi bi-search"></i></span>
-                                    <input type="text" id="search-query" class="form-control" placeholder="Buscar por palavras-chave">
+                                    <span class="input-group-text" title="Buscar"><i class="bi bi-search"></i></span>
+                                    <input type="text" id="search-query" class="form-control" placeholder="Buscar por palavras-chave" aria-label="Buscar por palavras-chave">
                                 </div>
                             </div>
                             
-                            <div class="col-md-6">
+                            <div class="col-md-3">
+                                <label for="category-filter" class="visually-hidden">Filtrar por categoria</label>
                                 <div class="input-group">
-                                    <span class="input-group-text"><i class="bi bi-sort-down"></i></span>
-                                    <select id="sort-select" class="form-select">
+                                    <span class="input-group-text" title="Categoria"><i class="bi bi-tag"></i></span>
+                                    <select id="category-filter" class="form-select" aria-label="Filtrar por categoria">
+                                        <option value="">Todas as categorias</option>
+                                        <option value="eletronicos">Eletrônicos</option>
+                                        <option value="moda">Moda</option>
+                                        <option value="casa">Casa e Decoração</option>
+                                        <option value="beleza">Beleza</option>
+                                    </select>
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-3">
+                                <label for="sort-select" class="visually-hidden">Ordenar por</label>
+                                <div class="input-group">
+                                    <span class="input-group-text" title="Ordenar"><i class="bi bi-sort-down"></i></span>
+                                    <select id="sort-select" class="form-select" aria-label="Ordenar por">
                                         <option value="sales">Vendas (maior primeiro)</option>
                                         <option value="price-asc">Preço (menor primeiro)</option>
                                         <option value="price-desc">Preço (maior primeiro)</option>
                                         <option value="commission">Comissão % (maior primeiro)</option>
                                     </select>
                                 </div>
+                            </div>
+                            
+                            <div class="col-md-2">
+                                <button type="submit" class="btn btn-primary w-100" id="search-button">
+                                    <i class="bi bi-search me-1"></i> Buscar
+                                </button>
                             </div>
                         </div>
                     </form>

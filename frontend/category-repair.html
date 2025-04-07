@@ -1,256 +1,92 @@
-<!-- ################################################################################################### -->
-<!-- Arquivo: category-repair.html                                                                 -->
-<!-- Descrição: Interface para reparar categorias de produtos.                                      -->
-<!-- Autor: Jean Rosso                                                                              -->
-<!-- Data: 28 de março de 2025                                                                      -->
-<!-- ################################################################################################### -->
 <!DOCTYPE html>
-<html lang="pt-BR">
-
+<html lang="pt-br">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Reparador de Categorias - SENTINNELL Analytics</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
-    <!-- Google Fonts -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link
-        href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;600;700&family=Raleway:wght@300;400;700;900&family=Bruno+Ace+SC&display=swap"
-        rel="stylesheet">
+    <title>Reparo de Categorias | SENTINNELL GERADOR</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="static/css/styles.css">
     <style>
-        :root {
-            --primary-color: #2A3990;
-            --secondary-color: #6777c7;
-            --accent-color: #FF5757;
-            --dark-color: #1E293B;
-            --light-color: #F8FAFC;
-        }
-
-        body {
-            font-family: 'Montserrat', sans-serif;
+        .search-container {
             background-color: #f8f9fa;
-        }
-
-        h1, h2, h3, h4, h5, h6 {
-            font-family: 'Raleway', sans-serif;
-            font-weight: 600;
-        }
-
-        .navbar-brand {
-            font-family: 'Bruno Ace SC', cursive;
-            background: linear-gradient(135deg, #00c6ff, #0072ff, #ff0099, #ff6a00);
-            background-size: 300% 300%;
-            -webkit-background-clip: text;
-            background-clip: text;
-            -webkit-text-fill-color: transparent;
-            animation: gradientShift 5s ease infinite;
-        }
-
-        @keyframes gradientShift {
-            0% { background-position: 0% 50%; }
-            50% { background-position: 100% 50%; }
-            100% { background-position: 0% 50%; }
-        }
-
-        .btn-primary {
-            background-color: var(--primary-color);
-            border-color: var(--primary-color);
-        }
-
-        .btn-primary:hover {
-            background-color: var(--secondary-color);
-            border-color: var(--secondary-color);
-        }
-
-        .card {
-            border: none;
-            border-radius: 10px;
-            box-shadow: 0 0.5rem 1rem rgba(0,0,0,0.05);
-            transition: all 0.3s ease;
-        }
-
-        .card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 1rem 2rem rgba(0,0,0,0.1);
-        }
-
-        .product-card {
-            transition: all 0.3s ease;
-            position: relative;
-        }
-
-        .product-card.needs-repair {
-            border-left: 4px solid var(--accent-color);
-        }
-
-        .product-image {
-            height: 150px;
-            object-fit: contain;
-        }
-
-        .badge-category {
-            position: absolute;
-            top: 10px;
-            right: 10px;
-        }
-
-        #loading-indicator {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0,0,0,0.3);
-            z-index: 9999;
-            justify-content: center;
-            align-items: center;
-        }
-
-        .spinner {
-            width: 3rem;
-            height: 3rem;
-        }
-
-        .category-badge {
-            font-size: 0.8rem;
-            padding: 0.25rem 0.5rem;
-            border-radius: 50px;
-        }
-
-        .repair-status {
-            padding: 10px;
             border-radius: 8px;
-            margin-bottom: 20px;
-            display: none;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
         }
-
-        .repair-success {
-            background-color: #d1e7dd;
-            border: 1px solid #badbcc;
-            color: #0f5132;
-        }
-
-        .repair-error {
-            background-color: #f8d7da;
-            border: 1px solid #f5c2c7;
-            color: #842029;
+        .stats-container {
+            background-color: #fff;
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
         }
     </style>
 </head>
-
 <body>
-    <!-- Barra de Navegação -->
-    <nav class="navbar navbar-expand-lg navbar-dark bg-dark mb-4">
-        <div class="container">
-            <a class="navbar-brand" href="index.html">SENTINNELL</a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-            <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav">
-                    <li class="nav-item">
-                        <a class="nav-link" href="index.html">Painel Principal</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="champion-products.html">Buscador de Produtos</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="vitrine.html">Vitrine</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link active" href="category-repair.html">Reparador de Categorias</a>
-                    </li>
-                </ul>
+    <div class="container-fluid">
+        <header class="bg-dark text-white p-3 mb-4">
+            <div class="row align-items-center">
+                <div class="col-md-6">
+                    <h1><i class="bi bi-tools text-warning me-2"></i>Reparo de Categorias</h1>
+                    <p class="mb-0">Ferramenta para corrigir produtos sem categorização adequada</p>
+                </div>
+                <div class="col-md-6 text-md-end">
+                    <a href="index.html" class="btn btn-outline-light me-2"><i class="bi bi-house"></i> Home</a>
+                    <a href="champion-products.html" class="btn btn-outline-light"><i class="bi bi-trophy"></i> Champion Products</a>
+                </div>
             </div>
-        </div>
-    </nav>
+        </header>
 
-    <!-- Conteúdo Principal -->
-    <div class="container">
-        <div class="row mb-4">
+        <div class="row">
             <div class="col-12">
-                <h1 class="mb-3">Reparador de Categorias</h1>
-                <p class="lead">Esta ferramenta identifica e corrige produtos com categorias ausentes ou incorretas no banco de dados.</p>
-
-                <div id="repair-status" class="repair-status"></div>
-            </div>
-        </div>
-
-        <!-- Controles -->
-        <div class="row mb-4">
-            <div class="col-md-12">
-                <div class="card">
-                    <div class="card-body">
-                        <h4 class="card-title">Opções de Reparo</h4>
-                        <div class="row">
-                            <div class="col-md-6">
-                                <button id="btn-scan-products" class="btn btn-primary w-100 mb-3">
-                                    <i class="bi bi-search"></i> Escanear Produtos com Problemas
-                                </button>
-                            </div>
-                            <div class="col-md-6">
-                                <button id="btn-repair-all" class="btn btn-success w-100 mb-3" disabled>
-                                    <i class="bi bi-wrench"></i> Reparar Todos Automaticamente
-                                </button>
-                            </div>
+                <!-- Informações e estatísticas -->
+                <div class="search-container">
+                    <div class="row">
+                        <div class="col-md-8">
+                            <h4>Ferramenta de Reparo de Categorias</h4>
+                            <p>Esta ferramenta permite corrigir produtos que estão sem categoria ou com categorias inválidas.</p>
+                            <p>O reparo automático usa algoritmos de correspondência de palavras-chave para sugerir categorias apropriadas para os produtos.</p>
                         </div>
-                        <div class="row mt-3">
-                            <div class="col-md-12">
-                                <div class="alert alert-info">
-                                    <strong><i class="bi bi-info-circle"></i> Como funciona:</strong>
-                                    <p class="mb-0">1. Clique em "Escanear Produtos" para detectar todos os itens com problemas de categoria.</p>
-                                    <p class="mb-0">2. Repare individualmente ou use "Reparar Todos" para corrigir automaticamente.</p>
-                                    <p class="mb-0">3. Produtos com categorias corrigidas funcionarão normalmente na vitrine.</p>
+                        <div class="col-md-4 text-md-end">
+                            <button id="auto-repair-btn" class="btn btn-primary">
+                                <i class="bi bi-magic"></i> Reparo Automático
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Estatísticas de categorização -->
+                <div class="stats-container" id="category-repair-stats">
+                    <div class="card">
+                        <div class="card-body">
+                            <h5 class="card-title">Status da Categorização</h5>
+                            <p class="mb-1">Carregando estatísticas...</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Indicador de processamento -->
+                <div id="repair-indicator" style="display:none;">
+                    <div class="d-flex justify-content-center my-3">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Processando...</span>
+                        </div>
+                    </div>
+                    <p class="text-center text-muted">Processando reparo de categorias. Isso pode levar algum tempo...</p>
+                </div>
+
+                <!-- Lista de produtos sem categoria -->
+                <div class="card mb-4">
+                    <div class="card-body">
+                        <h5 class="card-title">Produtos sem Categoria</h5>
+                        <div id="uncategorized-products">
+                            <div class="text-center py-4">
+                                <div class="spinner-border text-primary" role="status">
+                                    <span class="visually-hidden">Carregando produtos...</span>
                                 </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Estatísticas -->
-        <div class="row mb-4">
-            <div class="col-md-4">
-                <div class="card bg-light">
-                    <div class="card-body text-center">
-                        <h5>Total de Produtos</h5>
-                        <h2 id="total-products">-</h2>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-4">
-                <div class="card bg-warning text-white">
-                    <div class="card-body text-center">
-                        <h5>Produtos com Problemas</h5>
-                        <h2 id="problem-products">-</h2>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-4">
-                <div class="card bg-success text-white">
-                    <div class="card-body text-center">
-                        <h5>Produtos Reparados</h5>
-                        <h2 id="repaired-products">0</h2>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Lista de Produtos com Problemas -->
-        <div class="row mb-4">
-            <div class="col-12">
-                <div class="card">
-                    <div class="card-header bg-light">
-                        <h4>Produtos Que Precisam de Reparo</h4>
-                    </div>
-                    <div class="card-body">
-                        <div id="products-container" class="row">
-                            <div class="col-12 text-center py-5">
-                                <p class="text-muted">Clique em "Escanear Produtos" para começar.</p>
+                                <p class="mt-2">Buscando produtos não categorizados...</p>
                             </div>
                         </div>
                     </div>
@@ -259,775 +95,27 @@
         </div>
     </div>
 
-    <!-- Loading Indicator -->
-    <div id="loading-indicator">
-        <div class="spinner-border spinner text-primary" role="status">
-            <span class="visually-hidden">Carregando...</span>
-        </div>
-    </div>
+    <!-- Toast container for notifications -->
+    <div id="toast-container" class="toast-container position-fixed bottom-0 end-0 p-3"></div>
 
-    <!-- Modal de Edição de Categoria -->
-    <div class="modal fade" id="edit-category-modal" tabindex="-1" aria-labelledby="editCategoryModalLabel" aria-hidden="true">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="editCategoryModalLabel">Editar Categoria</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar modal de edição"></button>
-                </div>
-                <div class="modal-body">
-                    <div class="row mb-4">
-                        <div class="col-12">
-                            <div id="product-info" class="mb-3">
-                                <!-- Informações do produto preenchidas via JavaScript -->
-                            </div>
-                            <input type="hidden" id="edit-product-id">
-                            
-                            <div class="mb-3">
-                                <label for="category-select-l1" class="form-label">Categoria Principal (L1):</label>
-                                <select id="category-select-l1" class="form-select">
-                                    <!-- Opções preenchidas via JavaScript -->
-                                </select>
-                            </div>
-                            
-                            <div class="mb-3">
-                                <label for="category-select-l2" class="form-label">Subcategoria (L2):</label>
-                                <select id="category-select-l2" class="form-select">
-                                    <option value="">Selecione uma subcategoria</option>
-                                    <!-- Opções preenchidas via JavaScript -->
-                                </select>
-                            </div>
-                            
-                            <div class="mb-3">
-                                <label for="category-select-l3" class="form-label">Subcategoria (L3):</label>
-                                <select id="category-select-l3" class="form-select">
-                                    <option value="">Selecione uma subcategoria (opcional)</option>
-                                    <!-- Opções preenchidas via JavaScript -->
-                                </select>
-                            </div>
-                            
-                            <div class="alert alert-info" id="category-path-display">
-                                <strong>Caminho selecionado:</strong> <span id="selected-category-path"></span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                    <button type="button" class="btn btn-primary" id="save-category">Salvar Alterações</button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Script -->
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="static/js/libs/axios.min.js"></script>
+    
     <script type="module">
-        import { CategoryManager } from './static/js/modules/categoryManager.js';
-        import { api } from './static/js/modules/utils.js';
+        import { CategoryRepair } from './static/js/modules/categoryRepair.js';
+        import { notify } from './static/js/modules/utils.js';
 
-        const categoryManager = new CategoryManager();
-
-        // API URL
-        const API_URL = 'http://localhost:8001';
-        
-        // Elementos do DOM
-        const loadingIndicator = document.getElementById('loading-indicator');
-        const btnScanProducts = document.getElementById('btn-scan-products');
-        const btnRepairAll = document.getElementById('btn-repair-all');
-        const productsContainer = document.getElementById('products-container');
-        const totalProductsEl = document.getElementById('total-products');
-        const problemProductsEl = document.getElementById('problem-products');
-        const repairedProductsEl = document.getElementById('repaired-products');
-        const repairStatus = document.getElementById('repair-status');
-        const editProductId = document.getElementById('edit-product-id');
-        const saveCategory = document.getElementById('save-category');
-        
-        // Seletores de categorias
-        const categorySelectL1 = document.getElementById('category-select-l1');
-        const categorySelectL2 = document.getElementById('category-select-l2');
-        const categorySelectL3 = document.getElementById('category-select-l3');
-        const selectedCategoryPath = document.getElementById('selected-category-path');
-        
-        // Variáveis para armazenar dados
-        let allProducts = [];
-        let problemProducts = [];
-        let repairedCount = 0;
-        let repairLogs = [];
-        
-        // Modal de edição
-        const editModal = new bootstrap.Modal(document.getElementById('edit-category-modal'));
-        
-        // Funções utilitárias
-        function showLoading() {
-            loadingIndicator.style.display = 'flex';
-        }
-        
-        function hideLoading() {
-            loadingIndicator.style.display = 'none';
-        }
-        
-        function showStatus(message, type) {
-            repairStatus.className = 'repair-status';
-            repairStatus.classList.add(type === 'success' ? 'repair-success' : 'repair-error');
-            repairStatus.textContent = message;
-            repairStatus.style.display = 'block';
-            
-            // Auto-hide after 5 seconds
-            setTimeout(() => {
-                repairStatus.style.display = 'none';
-            }, 5000);
-        }
-        
-        function formatPrice(price) {
-            return new Intl.NumberFormat('pt-BR', {
-                style: 'currency',
-                currency: 'BRL'
-            }).format(price);
-        }
-        
-        // Inicializar categorias
-        async function initializeCategories() {
-            try {
-                await categoryManager.initialize();
-                
-                // Preencher select de categorias L1
-                const l1Categories = categoryManager.getL1Categories();
-                if (categorySelectL1) {
-                    categorySelectL1.innerHTML = `
-                        <option value="">Selecione uma categoria</option>
-                        ${l1Categories.map(cat => 
-                            `<option value="${cat.id}">${cat.name}</option>`
-                        ).join('')}
-                    `;
-                }
-                
-                return true;
-            } catch (error) {
-                console.error('Erro ao inicializar categorias:', error);
-                showStatus('Erro ao carregar categorias.', 'error');
-                return false;
-            }
-        }
-        
-        // Event listeners para seletores de categorias
-        function setupCategorySelectors() {
-            categorySelectL1.addEventListener('change', function() {
-                const selectedL1 = this.value;
-                updateCategorySelects(selectedL1);
-            });
-            
-            categorySelectL2.addEventListener('change', function() {
-                const selectedL2 = this.value;
-                updateL3Categories(selectedL2);
-            });
-            
-            // Atualizar o caminho de categorias quando qualquer seletor mudar
-            categorySelectL1.addEventListener('change', updateCategoryPathDisplay);
-            categorySelectL2.addEventListener('change', updateCategoryPathDisplay);
-            categorySelectL3.addEventListener('change', updateCategoryPathDisplay);
-        }
-        
-        // Atualizar seletores de categorias L2 e L3 com base na seleção de L1
-        function updateCategorySelects(l1Id) {
-            // Limpar e desabilitar L3 primeiro
-            categorySelectL3.innerHTML = '<option value="">Selecione uma subcategoria (opcional)</option>';
-            categorySelectL3.disabled = true;
-            
-            // Atualizar L2
-            if (l1Id) {
-                const l2Categories = categoryManager.getL2Categories(l1Id);
-                categorySelectL2.innerHTML = `
-                    <option value="">Selecione uma subcategoria</option>
-                    ${l2Categories.map(cat => 
-                        `<option value="${cat.id}">${cat.name}</option>`
-                    ).join('')}
-                `;
-                categorySelectL2.disabled = l2Categories.length === 0;
-            } else {
-                categorySelectL2.innerHTML = '<option value="">Selecione uma subcategoria</option>';
-                categorySelectL2.disabled = true;
-            }
-            
-            updateCategoryPathDisplay();
-        }
-        
-        // Atualizar seletor de categorias L3 com base na seleção de L2
-        function updateL3Categories(l2Id) {
-            if (l2Id) {
-                const l3Categories = categoryManager.getL3Categories(l2Id);
-                categorySelectL3.innerHTML = `
-                    <option value="">Selecione uma subcategoria (opcional)</option>
-                    ${l3Categories.map(cat => 
-                        `<option value="${cat.id}">${cat.name}</option>`
-                    ).join('')}
-                `;
-                categorySelectL3.disabled = l3Categories.length === 0;
-            } else {
-                categorySelectL3.innerHTML = '<option value="">Selecione uma subcategoria (opcional)</option>';
-                categorySelectL3.disabled = true;
-            }
-            
-            updateCategoryPathDisplay();
-        }
-        
-        // Atualizar exibição do caminho da categoria
-        function updateCategoryPathDisplay() {
-            const l1Id = categorySelectL1.value;
-            const l2Id = categorySelectL2.value;
-            const l3Id = categorySelectL3.value;
-            
-            let path = [];
-            
-            if (l1Id) {
-                path.push(categoryManager.getCategoryName(l1Id));
-                
-                if (l2Id) {
-                    path.push(categoryManager.getCategoryName(l2Id));
-                    
-                    if (l3Id) {
-                        path.push(categoryManager.getCategoryName(l3Id));
-                    }
-                }
-            }
-            
-            if (path.length > 0) {
-                selectedCategoryPath.textContent = path.join(' > ');
-            } else {
-                selectedCategoryPath.textContent = 'Nenhuma categoria selecionada';
-            }
-        }
-        
-        // Obter ID da categoria mais específica selecionada
-        function getSelectedCategoryId() {
-            // Retornar a categoria mais específica selecionada (L3 > L2 > L1)
-            return categorySelectL3.value || categorySelectL2.value || categorySelectL1.value;
-        }
-        
-        async function loadRepairLogs() {
-            try {
-                const response = await axios.get(`${API_URL}/api/repair-logs`);
-                repairLogs = response.data.repairedItems || [];
-            } catch (error) {
-                console.warn('Não foi possível carregar logs de reparo:', error);
-                repairLogs = [];
-            }
-        }
-
-        function wasAlreadyRepaired(productId) {
-            return repairLogs.some(item => item.id === productId);
-        }
-
-        async function saveRepairLogs(productId, oldCat, newCat, categoryPath) {
-            // Adicionar ao array local
-            repairLogs.push({ 
-                id: productId, 
-                oldCategory: oldCat, 
-                newCategory: newCat,
-                categoryPath: categoryPath,
-                timestamp: new Date().toISOString()
-            });
-            
-            try {
-                // Enviar para a API para salvar no arquivo
-                await axios.post(`${API_URL}/api/repair-logs`, {
-                    repairedItems: repairLogs
-                });
-            } catch (error) {
-                console.error('Erro ao salvar logs de reparo:', error);
-                showStatus('Aviso: Não foi possível salvar o histórico de reparos', 'error');
-            }
-        }
-        
-        // Escanear produtos com problemas
-        async function scanProducts() {
-            await loadRepairLogs();
-            showLoading();
-            try {
-                // Use the new endpoint that directly returns products with category issues
-                const response = await axios.get(`${API_URL}/db/products-with-category-issues`);
-                const products = response.data || [];
-                allProducts = products;
-                
-                // These products already have category issues, so we can use them directly
-                problemProducts = products;
-                
-                // Atualizar contadores
-                if (totalProductsEl) totalProductsEl.textContent = products.length;
-                if (problemProductsEl) problemProductsEl.textContent = problemProducts.length;
-                
-                // Habilitar botão de reparo em massa se houver problemas
-                if (btnRepairAll) btnRepairAll.disabled = problemProducts.length === 0;
-                
-                // Exibir produtos com problemas
-                renderProblemProducts();
-                
-                // Mostrar mensagem de status
-                if (problemProducts.length > 0) {
-                    showStatus(`Encontrados ${problemProducts.length} produtos com problemas de categoria.`, 'error');
-                } else {
-                    showStatus('Nenhum produto com problemas encontrado!', 'success');
-                }
-            } catch (error) {
-                console.error('Erro ao escanear produtos:', error);
-                showStatus('Erro ao escanear produtos.', 'error');
-            } finally {
-                hideLoading();
-            }
-        }
-        
-        // Exibir produtos com problemas
-        function renderProblemProducts() {
-            if (problemProducts.length === 0) {
-                productsContainer.innerHTML = `
-                    <div class="col-12 text-center py-5">
-                        <p class="text-success"><i class="bi bi-check-circle"></i> Não há produtos com problemas de categoria.</p>
-                    </div>
-                `;
-                return;
-            }
-            
-            productsContainer.innerHTML = problemProducts.map((product, index) => {
-                // Determinar o problema específico
-                let problemBadge;
-                if (!product.category_id) {
-                    problemBadge = `<span class="badge bg-danger">Sem categoria</span>`;
-                } else if (!categories.some(cat => cat.id === String(product.category_id))) {
-                    problemBadge = `<span class="badge bg-warning text-dark">Categoria inválida: ${product.category_id}</span>`;
-                }
-                
-                return `
-                    <div class="col-md-6 col-lg-4 mb-4">
-                        <div class="card product-card needs-repair" id="product-${product.id}">
-                            <div class="card-body">
-                                <div class="d-flex mb-3">
-                                    <img src="${product.image_url || 'https://placehold.co/100x100?text=Sem+Imagem'}" class="product-image me-3" alt="${product.name}">
-                                    <div>
-                                        <h5 class="card-title">${product.name}</h5>
-                                        <p class="card-text mb-1">${formatPrice(product.price)}</p>
-                                        <div>${problemBadge}</div>
-                                    </div>
-                                </div>
-                                <div class="d-flex justify-content-between mt-3">
-                                    <button class="btn btn-sm btn-outline-primary repair-button" data-product-id="${product.id}" data-index="${index}">
-                                        <i class="bi bi-wrench"></i> Reparar
-                                    </button>
-                                    <button class="btn btn-sm btn-outline-info preview-button" data-product-id="${product.id}">
-                                        <i class="bi bi-eye"></i> Visualizar
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                `;
-            }).join('');
-            
-            // Adicionar event listeners aos botões
-            document.querySelectorAll('.repair-button').forEach(button => {
-                button.addEventListener('click', function() {
-                    const productId = this.getAttribute('data-product-id');
-                    const index = parseInt(this.getAttribute('data-index'));
-                    openEditModal(productId, index);
-                });
-            });
-            
-            document.querySelectorAll('.preview-button').forEach(button => {
-                button.addEventListener('click', function() {
-                    const productId = this.getAttribute('data-product-id');
-                    previewProduct(productId);
-                });
-            });
-        }
-        
-        // Abrir modal de edição
-        function openEditModal(productId, index) {
-            const product = problemProducts[index];
-            
-            editProductId.value = productId;
-            
-            // Preencher informações do produto
-            productInfo.innerHTML = `
-                <div class="d-flex align-items-center">
-                    <img src="${product.image_url || 'https://placehold.co/100x100?text=Sem+Imagem'}" style="width: 80px; height: 80px; object-fit: cover;" class="me-3">
-                    <div>
-                        <h5>${product.name}</h5>
-                        <p class="mb-0">${formatPrice(product.price)}</p>
-                        <p class="mb-0 text-muted">ID: ${product.id}</p>
-                    </div>
-                </div>
-            `;
-            
-            // Resetar os selects
-            categorySelectL1.value = '';
-            categorySelectL2.innerHTML = '<option value="">Selecione uma subcategoria</option>';
-            categorySelectL2.disabled = true;
-            categorySelectL3.innerHTML = '<option value="">Selecione uma subcategoria (opcional)</option>';
-            categorySelectL3.disabled = true;
-            
-            // Se o produto tem categoria, tentar selecioná-la automaticamente
-            if (product.category_id) {
-                const category = categoryManager.getCategoryById(product.category_id);
-                if (category) {
-                    const level = categoryManager.getCategoryLevel(product.category_id);
-                    
-                    if (level === 1) {
-                        categorySelectL1.value = product.category_id;
-                        updateCategorySelects(product.category_id);
-                    } else if (level === 2) {
-                        if (category.parent_id) {
-                            categorySelectL1.value = category.parent_id;
-                            updateCategorySelects(category.parent_id);
-                            categorySelectL2.value = product.category_id;
-                            updateL3Categories(product.category_id);
-                        }
-                    } else if (level === 3) {
-                        const parentCategory = categoryManager.getCategoryById(category.parent_id);
-                        if (parentCategory && parentCategory.parent_id) {
-                            categorySelectL1.value = parentCategory.parent_id;
-                            updateCategorySelects(parentCategory.parent_id);
-                            categorySelectL2.value = category.parent_id;
-                            updateL3Categories(category.parent_id);
-                            categorySelectL3.value = product.category_id;
-                        }
-                    }
-                }
-            }
-            
-            updateCategoryPathDisplay();
-            
-            // Mostrar o modal
-            editModal.show();
-        }
-        
-        // Visualizar produto
-        function previewProduct(productId) {
-            const product = allProducts.find(p => p.id == productId);
-            if (!product) return;
-            
-            // Abrir em uma nova janela (por exemplo, na vitrine)
-            window.open(`vitrine.html?product=${productId}`, '_blank');
-        }
-        
-        // Reparar um produto
-        async function repairProduct(productId, categoryId) {
-            if (wasAlreadyRepaired(productId)) {
-                showStatus('Este item já foi reparado antes.', 'success');
-                return false;
-            }
-            
-            if (!categoryId) {
-                showStatus('Selecione uma categoria válida.', 'error');
-                return false;
-            }
-            
-            showLoading();
-            try {
-                // Obter categoria do CategoryManager
-                const category = categoryManager.getCategoryById(categoryId);
-                if (!category) {
-                    throw new Error('Categoria não encontrada');
-                }
-                
-                // Obter caminho completo da categoria
-                const categoryPath = categoryManager.getCategoryPath(categoryId);
-                
-                // Enviar solicitação de atualização para a API
-                const response = await axios.put(`${API_URL}/db/products/${productId}`, {
-                    category_id: categoryId,
-                    category_name: category.name,
-                    category_path: categoryPath
-                });
-                
-                if (response.status === 200) {
-                    // Incrementar contador de reparos
-                    repairedCount++;
-                    repairedProductsEl.textContent = repairedCount;
-                    
-                    // Remover produto da lista de problemas
-                    const index = problemProducts.findIndex(p => p.id == productId);
-                    if (index !== -1) {
-                        const productOldCategory = problemProducts[index].category_id;
-                        problemProducts.splice(index, 1);
-                        problemProductsEl.textContent = problemProducts.length;
-                        
-                        // Remover o elemento da interface
-                        const productCard = document.getElementById(`product-${productId}`);
-                        if (productCard) {
-                            productCard.parentElement.remove();
-                        }
-                        
-                        await saveRepairLogs(productId, productOldCategory, categoryId, categoryPath);
-                    }
-                    
-                    // Atualizar o produto na lista completa
-                    const allIndex = allProducts.findIndex(p => p.id == productId);
-                    if (allIndex !== -1) {
-                        allProducts[allIndex].category_id = categoryId;
-                        allProducts[allIndex].category_name = category.name;
-                    }
-                    
-                    // Desativar botão de reparo em massa se não houver mais problemas
-                    btnRepairAll.disabled = problemProducts.length === 0;
-                    
-                    // Mostrar mensagem de sucesso
-                    showStatus('Produto reparado com sucesso!', 'success');
-                    
-                    // Se a lista de problemas estiver vazia, atualizar a exibição
-                    if (problemProducts.length === 0) {
-                        renderProblemProducts();
-                    }
-                    
-                    return true;
-                } else {
-                    showStatus('Erro ao reparar produto.', 'error');
-                    return false;
-                }
-            } catch (error) {
-                console.error('Erro ao reparar produto:', error);
-                showStatus('Erro ao reparar produto: ' + (error.message || 'Erro desconhecido'), 'error');
-                return false;
-            } finally {
-                hideLoading();
-            }
-        }
-        
-        // Reparar todos os produtos automaticamente com sugestões inteligentes
-        async function repairAllProducts() {
-            if (!confirm(`Deseja realmente reparar automaticamente ${problemProducts.length} produtos?`)) {
-                return;
-            }
-            
-            showLoading();
-            let successful = 0;
-            let failed = 0;
-            
-            try {
-                const suggestions = buildAdvancedCategorySuggestions();
-                
-                for (const product of [...problemProducts]) {
-                    const bestCategory = findBestCategoryForProduct(product, suggestions);
-                    
-                    if (!bestCategory) {
-                        failed++;
-                        continue;
-                    }
-                    
-                    const success = await repairProduct(product.id, bestCategory);
-                    
-                    if (success) {
-                        successful++;
-                    } else {
-                        failed++;
-                    }
-                }
-                
-                if (failed === 0) {
-                    showStatus(`Todos os ${successful} produtos foram reparados com sucesso!`, 'success');
-                } else {
-                    showStatus(`${successful} produtos reparados, mas ${failed} falharam.`, 'error');
-                }
-            } catch (error) {
-                console.error('Erro ao reparar todos os produtos:', error);
-                showStatus('Erro ao reparar produtos: ' + error.message, 'error');
-            } finally {
-                hideLoading();
-            }
-        }
-        
-        function buildAdvancedCategorySuggestions() {
-            // Retorna um mapeamento mais avançado de palavras-chave → categorias, com pontuações de relevância
-            
-            // Primeiro, vamos usar as categorias carregadas do sistema
-            const suggestions = [];
-            
-            // Adicionar categorias L1
-            const l1Categories = categoryManager.getL1Categories();
-            l1Categories.forEach(category => {
-                // Adicionar a própria categoria como palavra-chave com pontuação alta
-                suggestions.push({
-                    categoryId: category.id,
-                    keywords: [category.name.toLowerCase()],
-                    score: 10,
-                    level: 1
-                });
-                
-                // Adicionar palavras-chave genéricas para categorias principais
-                const wordsArray = category.name.toLowerCase().split(/\s+/);
-                suggestions.push({
-                    categoryId: category.id,
-                    keywords: wordsArray.filter(word => word.length > 3),
-                    score: 5,
-                    level: 1
-                });
-                
-                // Adicionar subcategorias L2
-                const l2Categories = categoryManager.getL2Categories(category.id);
-                l2Categories.forEach(subcat => {
-                    // Adicionar a própria subcategoria como palavra-chave com pontuação alta
-                    suggestions.push({
-                        categoryId: subcat.id,
-                        keywords: [subcat.name.toLowerCase()],
-                        score: 15,
-                        level: 2
-                    });
-                    
-                    // Adicionar palavras individuais da subcategoria
-                    const subWordsArray = subcat.name.toLowerCase().split(/\s+/);
-                    suggestions.push({
-                        categoryId: subcat.id,
-                        keywords: subWordsArray.filter(word => word.length > 3),
-                        score: 8,
-                        level: 2
-                    });
-                    
-                    // Adicionar subcategorias L3
-                    const l3Categories = categoryManager.getL3Categories(subcat.id);
-                    l3Categories.forEach(subsubcat => {
-                        // Adicionar a própria subcategoria como palavra-chave com pontuação muito alta
-                        suggestions.push({
-                            categoryId: subsubcat.id,
-                            keywords: [subsubcat.name.toLowerCase()],
-                            score: 20,
-                            level: 3
-                        });
-                        
-                        // Adicionar palavras individuais da subcategoria
-                        const subSubWordsArray = subsubcat.name.toLowerCase().split(/\s+/);
-                        suggestions.push({
-                            categoryId: subsubcat.id,
-                            keywords: subSubWordsArray.filter(word => word.length > 3),
-                            score: 10,
-                            level: 3
-                        });
-                    });
-                });
-            });
-            
-            // Adicionar palavras-chave específicas para categorias comuns (caso não estejam bem definidas no banco)
-            const commonCategories = [
-                { categoryId: "1", keywords: ["eletrônico", "gadget", "computador", "laptop", "notebook", "tablet"], score: 12 },
-                { categoryId: "2", keywords: ["celular", "smartphone", "iphone", "android", "carregador"], score: 12 },
-                { categoryId: "3", keywords: ["moda", "vestido", "blusa", "feminina", "mulher", "maquiagem"], score: 12 },
-                { categoryId: "4", keywords: ["masculino", "homem", "camisa", "camiseta", "calça"], score: 12 },
-                { categoryId: "5", keywords: ["casa", "decoração", "móvel", "cozinha", "quarto"], score: 12 },
-                { categoryId: "6", keywords: ["bebê", "criança", "infantil", "fralda", "brinquedo"], score: 12 }
-            ];
-            
-            return [...suggestions, ...commonCategories];
-        }
-        
-        function findBestCategoryForProduct(product, suggestions) {
-            const productName = product.name.toLowerCase();
-            const productDesc = (product.description || '').toLowerCase();
-            const combinedText = productName + ' ' + productDesc;
-            
-            // Calcular pontuação para cada sugestão
-            const scores = [];
-            
-            for (const suggestion of suggestions) {
-                let score = 0;
-                
-                for (const keyword of suggestion.keywords) {
-                    if (!keyword) continue;
-                    
-                    // Verificar ocorrências do termo exato
-                    if (productName.includes(keyword)) {
-                        score += suggestion.score;
-                    }
-                    
-                    if (productDesc && productDesc.includes(keyword)) {
-                        score += suggestion.score / 2; // Menor peso para descrição
-                    }
-                    
-                    // Verificar palavras individuais
-                    const productWords = combinedText.split(/\s+/);
-                    if (productWords.includes(keyword)) {
-                        score += suggestion.score / 3;
-                    }
-                    
-                    // Bônus para correspondências no início do nome
-                    if (productName.startsWith(keyword)) {
-                        score += suggestion.score * 1.5;
-                    }
-                }
-                
-                if (score > 0) {
-                    scores.push({
-                        categoryId: suggestion.categoryId,
-                        score: score,
-                        level: suggestion.level || 1
-                    });
-                }
-            }
-            
-            // Ordenar por pontuação (maior primeiro)
-            scores.sort((a, b) => {
-                // Primeiro por pontuação
-                if (b.score !== a.score) {
-                    return b.score - a.score;
-                }
-                // Em caso de empate, priorizar categorias mais específicas (L3 > L2 > L1)
-                return b.level - a.level;
-            });
-            
-            // Retornar o ID da categoria com maior pontuação
-            return scores.length > 0 ? scores[0].categoryId : null;
-        }
-        
         document.addEventListener('DOMContentLoaded', async () => {
-            const requiredElements = {
-                'btnScanProducts': btnScanProducts,
-                'btnRepairAll': btnRepairAll,
-                'productsContainer': productsContainer,
-                'totalProductsEl': totalProductsEl,
-                'problemProductsEl': problemProductsEl,
-                'repairedProductsEl': repairedProductsEl,
-                'repairStatus': repairStatus,
-                'categorySelectL1': categorySelectL1,
-                'categorySelectL2': categorySelectL2,
-                'categorySelectL3': categorySelectL3,
-                'editProductId': editProductId,
-                'saveCategory': saveCategory
-            };
-            
-            const missingElements = Object.entries(requiredElements)
-                .filter(([name, element]) => !element)
-                .map(([name]) => name);
-                
-            if (missingElements.length > 0) {
-                console.error('Elementos do DOM ausentes:', missingElements.join(', '));
-                showStatus('Erro na inicialização: elementos da página ausentes', 'error');
-                return;
-            }
+            try {
+                // Inicializar módulo de reparo de categorias
+                const repairModule = new CategoryRepair();
+                await repairModule.initialize();
 
-            // Inicializar categorias
-            await initializeCategories();
-            
-            // Configurar seletores de categorias
-            setupCategorySelectors();
-            
-            await loadRepairLogs();
-            
-            btnScanProducts.addEventListener('click', scanProducts);
-            btnRepairAll.addEventListener('click', repairAllProducts);
-            
-            saveCategory.addEventListener('click', async () => {
-                const productId = editProductId.value;
-                const categoryId = getSelectedCategoryId();
-                
-                if (!categoryId) {
-                    showStatus('Selecione uma categoria válida.', 'error');
-                    return;
-                }
-                
-                editModal.hide();
-                
-                await repairProduct(productId, categoryId);
-            });
-            
-            console.log('Reparador de categorias inicializado com sucesso.');
+            } catch (error) {
+                console.error('Erro ao inicializar a ferramenta de reparo:', error);
+                notify.error('Erro ao inicializar. Por favor, recarregue a página.');
+            }
         });
     </script>
 </body>
-
 </html>
