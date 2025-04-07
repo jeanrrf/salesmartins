@@ -638,30 +638,12 @@
                     { category: "100050", keywords: ["ferramenta", "construção", "martelo", "chave", "parafuso", "elétrica", "manual", "alicate"] }
                 ];
                 
-                // Processar cada produto com problema
                 for (const product of [...problemProducts]) {
-                    // Tentar encontrar uma categoria apropriada baseada no nome do produto
                     const productName = product.name.toLowerCase();
+                    let bestCategory = findBestCategory(productName, categoryKeywords);
                     
-                    // Encontrar a melhor categoria baseada em palavras-chave
-                    let bestCategory = null;
-                    let bestMatches = 0;
+                    const categoryId = bestCategory || "100001";
                     
-                    for (const catInfo of categoryKeywords) {
-                        const matches = catInfo.keywords.filter(keyword => 
-                            productName.includes(keyword.toLowerCase())
-                        ).length;
-                        
-                        if (matches > bestMatches) {
-                            bestMatches = matches;
-                            bestCategory = catInfo.category;
-                        }
-                    }
-                    
-                    // Se não encontrou nenhuma correspondência, usar a primeira categoria
-                    const categoryId = bestMatches > 0 ? bestCategory : "100001";
-                    
-                    // Reparar o produto com a categoria sugerida
                     const success = await repairProduct(product.id, categoryId);
                     
                     if (success) {
@@ -671,7 +653,6 @@
                     }
                 }
                 
-                // Mostrar resultado final
                 if (failed === 0) {
                     showStatus(`Todos os ${successful} produtos foram reparados com sucesso!`, 'success');
                 } else {
@@ -685,9 +666,25 @@
             }
         }
         
-        // Inicializar
+        function findBestCategory(productName, categoryKeywords) {
+            let bestCategory = null;
+            let bestMatches = 0;
+            
+            for (const catInfo of categoryKeywords) {
+                const matches = catInfo.keywords.filter(keyword => 
+                    productName.includes(keyword.toLowerCase())
+                ).length;
+                
+                if (matches > bestMatches) {
+                    bestMatches = matches;
+                    bestCategory = catInfo.category;
+                }
+            }
+            
+            return bestMatches > 0 ? bestCategory : null;
+        }
+        
         document.addEventListener('DOMContentLoaded', () => {
-            // Verificar se todos os elementos do DOM foram encontrados corretamente
             const requiredElements = {
                 'btnScanProducts': btnScanProducts,
                 'btnRepairAll': btnRepairAll,
@@ -702,7 +699,6 @@
                 'saveCategory': saveCategory
             };
             
-            // Verificar elementos ausentes
             const missingElements = Object.entries(requiredElements)
                 .filter(([name, element]) => !element)
                 .map(([name]) => name);
@@ -713,11 +709,9 @@
                 return;
             }
 
-            // Carregar categorias ao iniciar
             loadCategories();
             loadRepairLogs();
             
-            // Event listeners
             btnScanProducts.addEventListener('click', scanProducts);
             btnRepairAll.addEventListener('click', repairAllProducts);
             
@@ -727,7 +721,6 @@
                 
                 editModal.hide();
                 
-                // Reparar o produto com a categoria selecionada
                 await repairProduct(productId, categoryId);
             });
             

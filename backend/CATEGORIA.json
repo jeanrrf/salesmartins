@@ -11,6 +11,6 @@
     "name": "Celulares e Acessórios",
     "sigla": "CEL",
     "level": 1,
-    "keywords": ["celular", "smartphone", "iphone", "android", "carregador"]
+    "keywoyrds": ["celular", "smartphone", "iphone", "android", "carregador"]
   }
 ]

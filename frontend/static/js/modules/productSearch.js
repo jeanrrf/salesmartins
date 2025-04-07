@@ -190,7 +190,6 @@ export class ProductSearch {
 
     /**
      * Aplica um sistema de pontuação aos produtos com base em múltiplos fatores
-     * e retorna uma lista ordenada do maior para o menor score
      * @param {Array} products Lista de produtos a serem pontuados
      * @returns {Array} Lista de produtos ordenada por pontuação
      */
@@ -201,32 +200,28 @@ export class ProductSearch {
         const maxSales = Math.max(...products.map(p => parseInt(p.sales) || 0));
         const maxCommission = Math.max(...products.map(p => parseFloat(p.commissionRate) || 0));
         const maxRating = Math.max(...products.map(p => parseFloat(p.ratingStar) || 0));
-
-        // Preço é tratado inversamente - menor preço = maior pontuação
         const minPrice = Math.min(...products.map(p => parseFloat(p.priceMin) || Infinity));
         const maxPrice = Math.max(...products.map(p => parseFloat(p.priceMin) || 0));
+        
+        // Pesos para cada fator
+        const weights = {
+            sales: 0.35,
+            commission: 0.30,
+            rating: 0.20,
+            price: 0.15
+        };
 
-        // Adicionando pontuação a cada produto
+        // Adicionar pontuação a cada produto
         const scoredProducts = products.map(product => {
-            // Normalizar cada métrica para um valor entre 0 e 1
+            // Normalizar métricas
             const salesNormalized = maxSales > 0 ? (parseInt(product.sales) || 0) / maxSales : 0;
             const commissionNormalized = maxCommission > 0 ? (parseFloat(product.commissionRate) || 0) / maxCommission : 0;
             const ratingNormalized = maxRating > 0 ? (parseFloat(product.ratingStar) || 0) / maxRating : 0;
-
-            // Para o preço, invertemos a lógica (menor preço = maior pontuação)
             const priceRange = maxPrice - minPrice;
             const priceNormalized = priceRange > 0 ? 
                 1 - ((parseFloat(product.priceMin) || maxPrice) - minPrice) / priceRange : 0;
 
-            // Pesos para cada fator (ajustáveis conforme necessidade)
-            const weights = {
-                sales: 0.35,      // 35% - Vendas são um forte indicador de sucesso
-                commission: 0.30, // 30% - Comissão afeta diretamente o lucro
-                rating: 0.20,     // 20% - Avaliações indicam qualidade
-                price: 0.15       // 15% - Preço afeta conversão
-            };
-
-            // Calculando pontuação final (entre 0 e 100)
+            // Calcular pontuação final
             const score = (
                 (salesNormalized * weights.sales) + 
                 (commissionNormalized * weights.commission) + 
@@ -240,7 +235,6 @@ export class ProductSearch {
             };
         });
 
-        // Ordenar por pontuação em ordem decrescente
         return scoredProducts.sort((a, b) => b.score - a.score);
     }
 

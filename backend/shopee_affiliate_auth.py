@@ -211,13 +211,6 @@ def create_auth_header(payload: str = "") -> dict:
 def read_root():
     return {"message": "Shopee Affiliate API - Data Viewer"}
 
-@app.get("/health")
-async def health_check():
-    """
-    Endpoint para verificar se o servidor está funcionando
-    """
-    return {"status": "ok", "timestamp": time.time()}
-
 @app.post("/graphql")
 async def graphql_query(request: GraphQLRequest):
     try:
@@ -642,24 +635,17 @@ async def search_products(request: SearchRequest):
                 
         # Verificar quais produtos já existem no banco de dados se solicitado
         if request.excludeExisting:
-            # Extrair os item_ids dos produtos
-            item_ids = [str(product.get('itemId')) for product in products]
-            if item_ids:
-                # Conectar ao banco de dados
-                conn = sqlite3.connect('shopee-analytics.db')
-                cursor = conn.cursor()
-                # Consultar produtos existentes
-                placeholders = ', '.join(['?' for _ in item_ids])
-                cursor.execute(f"SELECT shopee_id FROM products WHERE shopee_id IN ({placeholders})", item_ids)
-                existing_ids = {str(row[0]) for row in cursor.fetchall()}
-                # Filtrar produtos existentes
-                products = [p for p in products if str(p.get('itemId')) not in existing_ids]
-                # Marcar produtos que já existem
-                for product in products:
-                    product['existsInDatabase'] = str(product.get('itemId')) in existing_ids
-                conn.close()
-                
-                logger.info(f"Filtered out {len(existing_ids)} existing products from results")
+            conn = sqlite3.connect('shopee-analytics.db')
+            cursor = conn.cursor()
+            cursor.execute("SELECT shopee_id FROM product")
+            existing_ids = [str(row[0]) for row in cursor.fetchall()]
+            
+            # Usar list comprehension em vez de loop
+            products = [p for p in products if str(p.get('itemId')) not in existing_ids]
+            for product in products:
+                product['existsInDatabase'] = str(product.get('itemId')) in existing_ids
+            conn.close()
+            logger.info(f"Filtered out {len(existing_ids)} existing products from results")
                 
         # Aplicar filtro de produtos em alta, se solicitado
         if request.hotProductsOnly:

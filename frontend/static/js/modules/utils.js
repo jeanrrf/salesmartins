@@ -11,6 +11,11 @@ export const API_URL = window.location.hostname === 'salesmartins.onrender.com'
     : 'http://localhost:8001';
 
 export const formatters = {
+    /**
+     * Formata valores monetários para exibição
+     * @param {number} value - Valor a ser formatado
+     * @returns {string} - Valor formatado como moeda brasileira
+     */
     currency: (value) => {
         if (!value) return 'N/A';
         return new Intl.NumberFormat('pt-BR', {
@@ -19,6 +24,11 @@ export const formatters = {
         }).format(parseFloat(value));
     },
 
+    /**
+     * Formata valores percentuais para exibição
+     * @param {number} value - Valor decimal a ser formatado (ex: 0.25)
+     * @returns {string} - Valor formatado como porcentagem (ex: 25.00%)
+     */
     percent: (value) => {
         if (!value) return 'N/A';
         return (parseFloat(value) * 100).toFixed(2) + '%';
@@ -44,6 +54,9 @@ export const storage = {
     }
 };
 
+/**
+ * Centralizando funções de manipulação de DOM para evitar duplicação
+ */
 export const dom = {
     show: (element) => {
         if (typeof element === 'string') {
@@ -70,6 +83,42 @@ export const dom = {
         if (element) {
             element.style.display = show ? 'block' : 'none';
         }
+    },
+
+    /**
+     * Mostra um toast de notificação
+     * @param {string} message - Mensagem a ser exibida
+     * @param {string} type - Tipo de notificação (success, error, warning, info)
+     */
+    showToast: (message, type = 'info') => {
+        const toast = document.createElement('div');
+        toast.className = `toast align-items-center text-white bg-${type} border-0 show`;
+        toast.setAttribute('role', 'alert');
+        toast.setAttribute('aria-live', 'assertive');
+        toast.setAttribute('aria-atomic', 'true');
+        
+        toast.innerHTML = `
+            <div class="d-flex">
+                <div class="toast-body">${message}</div>
+                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+            </div>
+        `;
+        
+        const toastContainer = document.getElementById('toast-container');
+        if (!toastContainer) {
+            const container = document.createElement('div');
+            container.id = 'toast-container';
+            container.className = 'toast-container position-fixed bottom-0 end-0 p-3';
+            document.body.appendChild(container);
+            container.appendChild(toast);
+        } else {
+            toastContainer.appendChild(toast);
+        }
+        
+        setTimeout(() => {
+            toast.classList.remove('show');
+            setTimeout(() => toast.remove(), 500);
+        }, 5000);
     }
 };
 
@@ -113,19 +162,19 @@ export const api = {
 
 export const notify = {
     success: (message) => {
-        showToast(message, 'success');
+        dom.showToast(message, 'success');
     },
 
     error: (message) => {
-        showToast(message, 'danger');
+        dom.showToast(message, 'danger');
     },
 
     warning: (message) => {
-        showToast(message, 'warning');
+        dom.showToast(message, 'warning');
     },
 
     info: (message) => {
-        showToast(message, 'info');
+        dom.showToast(message, 'info');
     },
 
     // Especializado para notificar sobre links de afiliados
@@ -146,7 +195,7 @@ export const notify = {
             message = `ℹ️ ${stats.withLinks}/${stats.total} links de afiliados gerados (${stats.percentage}%)`;
         }
 
-        showToast(message, type);
+        dom.showToast(message, type);
 
         // Atualiza o indicador visual, se existir
         updateLinkStatusIndicator(stats);
@@ -157,39 +206,6 @@ export const handleImageError = (img) => {
     img.onerror = null; // Previne loop infinito
     img.src = '/static/images/no-image.png';
 };
-
-function showToast(message, type = 'info') {
-    // Verificar se já existe um container de toasts
-    let toastContainer = document.getElementById('toast-container');
-
-    if (!toastContainer) {
-        // Criar o container de toasts
-        toastContainer = document.createElement('div');
-        toastContainer.id = 'toast-container';
-        toastContainer.className = 'toast-container position-fixed bottom-0 end-0 p-3';
-        toastContainer.style.zIndex = '1050';
-        document.body.appendChild(toastContainer);
-    }
-
-    // Criar elemento do toast
-    const toast = document.createElement('div');
-    toast.className = `toast align-items-center text-white bg-${type} border-0`;
-    toast.setAttribute('role', 'alert');
-    toast.innerHTML = `
-        <div class="d-flex">
-            <div class="toast-body">
-                ${message}
-            </div>
-            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
-        </div>
-    `;
-    toastContainer.appendChild(toast);
-
-    // Mostrar o toast por 5 segundos
-    setTimeout(() => {
-        toast.remove();
-    }, 5000);
-}
 
 function updateLinkStatusIndicator(stats) {
     const indicator = document.getElementById('link-status-indicator');
@@ -264,38 +280,56 @@ function createLinkStatusIndicator(stats) {
     container.prepend(indicator);
 }
 
-export async function waitForBackend(url, timeout = 30000) {
-    const start = Date.now();
-    let lastError = '';
+/**
+ * Função que aguarda o backend estar disponível antes de continuar
+ * @param {number} maxAttempts Número máximo de tentativas
+ * @param {number} interval Intervalo entre tentativas em ms
+ * @returns {Promise} Promessa que resolve quando o backend estiver disponível
+ */
+async function waitForBackend(maxAttempts = 10, interval = 2000) {
+    const statusIndicator = document.getElementById('backend-status');
+    let attempts = 0;
 
-    while (Date.now() - start < timeout) {
-        try {
-            const response = await fetch(`${url}/health`);
-            if (response.ok) {
-                console.log("Backend está pronto e respondendo.");
-                return true;
+    return new Promise((resolve, reject) => {
+        const checkBackend = async () => {
+            try {
+                attempts++;
+                const response = await fetch('/health');
+                
+                if (response.ok) {
+                    if (statusIndicator) {
+                        statusIndicator.innerHTML = '<i class="bi bi-check-circle-fill text-success"></i> Conectado ao servidor';
+                        statusIndicator.classList.remove('text-danger');
+                        statusIndicator.classList.add('text-success');
+                    }
+                    console.log('Backend conectado e funcionando!');
+                    resolve(true);
+                } else {
+                    throw new Error('Resposta não OK do backend');
+                }
+            } catch (error) {
+                console.log(`Tentativa ${attempts}/${maxAttempts} - Backend não disponível: ${error.message}`);
+                
+                if (statusIndicator) {
+                    statusIndicator.innerHTML = `<i class="bi bi-exclamation-triangle-fill text-danger"></i> Reconectando ao servidor (${attempts}/${maxAttempts})...`;
+                    statusIndicator.classList.remove('text-success');
+                    statusIndicator.classList.add('text-danger');
+                }
+                
+                if (attempts >= maxAttempts) {
+                    if (statusIndicator) {
+                        statusIndicator.innerHTML = '<i class="bi bi-x-circle-fill text-danger"></i> Falha na conexão com o servidor';
+                    }
+                    reject(new Error(`Não foi possível conectar ao backend após ${maxAttempts} tentativas`));
+                } else {
+                    setTimeout(checkBackend, interval);
+                }
             }
-            lastError = `Status: ${response.status}`;
-        } catch (error) {
-            lastError = error.message;
-        }
-
-        // Adicionar um pequeno atraso antes de tentar novamente
-        await new Promise(resolve => setTimeout(resolve, 1000));
-    }
-
-    // Notificar o erro após o tempo limite
-    console.error(`Servidor não está respondendo. Último erro: ${lastError}`);
-    notify.error(`Servidor não está respondendo. Último erro: ${lastError}`);
-    return false;
+        };
+        
+        checkBackend();
+    });
 }
-
-// Example usage in your frontend initialization
-waitForBackend("http://localhost:8001").then(isReady => {
-    if (!isReady) {
-        alert("Backend server is not available. Please try again later.");
-    }
-});
 
 export const fetchCategories = async () => {
     try {

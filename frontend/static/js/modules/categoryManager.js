@@ -250,6 +250,11 @@ export class CategoryManager {
         `;
     }
 
+    /**
+     * Formata valores monetários para exibição
+     * @param {number} value - Valor a ser formatado
+     * @returns {string} - Valor formatado como moeda brasileira
+     */
     formatCurrency(value) {
         if (!value) return 'N/A';
         return new Intl.NumberFormat('pt-BR', {
@@ -258,6 +263,11 @@ export class CategoryManager {
         }).format(parseFloat(value));
     }
 
+    /**
+     * Formata valores percentuais para exibição
+     * @param {number} value - Valor decimal a ser formatado (ex: 0.25)
+     * @returns {string} - Valor formatado como porcentagem (ex: 25.00%)
+     */
     formatPercent(value) {
         if (!value) return 'N/A';
         return (parseFloat(value) * 100).toFixed(2) + '%';

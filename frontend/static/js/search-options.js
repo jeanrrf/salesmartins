@@ -129,7 +129,7 @@ function searchProducts(searchData) {
         resultsContainer.innerHTML = '<div class="text-center"><div class="spinner-border" role="status"><span class="visually-hidden">Carregando...</span></div></div>';
     }
     
-    // Fazer a requisição à API
+    // Fazer a requisição à API - simplificar para usar apenas o endpoint unificado
     fetch('/search', {
         method: 'POST',
         headers: {

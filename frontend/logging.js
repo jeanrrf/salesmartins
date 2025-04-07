@@ -10,33 +10,40 @@ const originalFetch = window.fetch;
 window.fetch = async (...args) => {
     const [resource, config] = args;
     
-    // Log request
-    console.group('API Request');
-    console.log('URL:', resource);
-    console.log('Method:', config?.method || 'GET');
-    console.log('Headers:', config?.headers);
-    console.log('Body:', config?.body);
-    console.groupEnd();
+    // Só fazer log em ambiente de desenvolvimento
+    const isDev = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+    
+    if (isDev) {
+        console.group('API Request');
+        console.log('URL:', resource);
+        console.log('Method:', config?.method || 'GET');
+        console.log('Headers:', config?.headers);
+        console.log('Body:', config?.body);
+        console.groupEnd();
+    }
 
     try {
         const response = await originalFetch(...args);
         const clone = response.clone();
         
-        // Log response
-        console.group('API Response');
-        console.log('Status:', response.status);
-        console.log('Headers:', Object.fromEntries(response.headers.entries()));
-        try {
-            const data = await clone.json();
-            console.log('Data:', data);
-        } catch (e) {
-            console.log('Response is not JSON');
+        if (isDev) {
+            console.group('API Response');
+            console.log('Status:', response.status);
+            console.log('Headers:', Object.fromEntries(response.headers.entries()));
+            try {
+                const data = await clone.json();
+                console.log('Body:', data);
+            } catch (e) {
+                console.log('Body: [Não é JSON]');
+            }
+            console.groupEnd();
         }
-        console.groupEnd();
         
         return response;
     } catch (error) {
-        console.error('API Error:', error);
+        if (isDev) {
+            console.error('API Error:', error);
+        }
         throw error;
     }
 };

@@ -222,47 +222,18 @@ async def update_categories(request: Request):
         return JSONResponse(content={'success': False, 'message': f'Erro ao processar requisição: {str(e)}'}, status_code=500)
 
 @app.get('/api/categories')
-async def get_categories():
-    try:
-        categories_path = os.path.join(os.path.dirname(__file__), 'CATEGORIA.json')
-        
-        if not os.path.exists(categories_path):
-            return JSONResponse(
-                content={'success': False, 'message': 'Arquivo de categorias não encontrado.'}, 
-                status_code=404
-            )
-            
-        with open(categories_path, 'r', encoding='utf-8') as f:
-            categories = json.load(f)
-            
-        return categories
-    except Exception as e:
-        logger.error(f"Erro ao carregar categorias: {str(e)}")
-        return JSONResponse(
-            content={'success': False, 'message': f'Erro ao carregar categorias: {str(e)}'}, 
-            status_code=500
-        )
-
 @app.get("/categories")
 async def get_categories():
+    """Endpoint para obter todas as categorias cadastradas"""
     try:
-        conn = sqlite3.connect('shopee-analytics.db')
-        cursor = conn.cursor()
+        # Definição de categorias padrão
+        categories = [
+            {"id": "100001", "name": "Eletrônicos", "sigla": "ELE"},
+            {"id": "100002", "name": "Moda", "sigla": "MOD"},
+            # ...existing categories...
+        ]
         
-        cursor.execute("SELECT * FROM categories ORDER BY name")
-        categories = cursor.fetchall()
-        
-        result = []
-        for cat in categories:
-            result.append({
-                "id": str(cat[0]),
-                "name": cat[1],
-                "level": cat[2]
-            })
-        
-        conn.close()
-        return {"categories": result}
-        
+        return categories
     except Exception as e:
         logger.error(f"Erro ao buscar categorias: {str(e)}")
         raise HTTPException(
@@ -270,7 +241,12 @@ async def get_categories():
             detail=f"Erro ao buscar categorias: {str(e)}"
         )
 
-@app.post('/api/search')
+@app.get("/health")
+async def health_check():
+    """Endpoint para verificar se a API está funcionando"""
+    return {"status": "ok", "message": "API is running"}
+
+@app.post('/search')
 async def search_shopee_products(request: Request):
     """Search products in Shopee Affiliate API with keyword"""
     try:
@@ -363,8 +339,11 @@ async def search_shopee_products(request: Request):
             "hotProducts": hot_products
         }
     except Exception as e:
-        logger.error(f"Error in search_shopee_products: {str(e)}")
-        return JSONResponse(content={'error': str(e)}, status_code=500)
+        logger.error(f"Erro na busca: {str(e)}")
+        raise HTTPException(
+            status_code=500,
+            detail=f"Erro ao buscar produtos: {str(e)}"
+        )
 
 @app.post('/api/trending')
 async def get_trending_products(request: Request):
