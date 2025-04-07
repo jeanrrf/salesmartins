@@ -1,0 +1,60 @@
+.custom-button {
+    display: inline-block;
+    padding: 10px 20px;
+    font-size: 16px;
+    font-weight: 500;
+    line-height: 1.5;
+    text-align: center;
+    white-space: nowrap;
+    vertical-align: middle;
+    cursor: pointer;
+    user-select: none;
+    border: 1px solid transparent;
+    border-radius: 4px;
+    background-color: var(--primary-color, #FF5722);
+    color: white;
+    transition: all 0.3s ease;
+}
+
+.custom-button:hover {
+    background-color: var(--secondary-color, #FFC107);
+    color: #333;
+    transform: translateY(-2px);
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+}
+
+.custom-button:active {
+    transform: translateY(0);
+    box-shadow: none;
+}
+
+.custom-button:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+/* Button variations can be added here */
+.custom-button.primary {
+    background-color: var(--primary-color, #FF5722);
+}
+
+.custom-button.secondary {
+    background-color: var(--secondary-color, #FFC107);
+    color: #333;
+}
+
+.custom-button.outline {
+    background-color: transparent;
+    border: 1px solid var(--primary-color, #FF5722);
+    color: var(--primary-color, #FF5722);
+}
+
+.custom-button.small {
+    padding: 5px 10px;
+    font-size: 14px;
+}
+
+.custom-button.large {
+    padding: 12px 24px;
+    font-size: 18px;
+}

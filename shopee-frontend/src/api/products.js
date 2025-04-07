@@ -1,46 +1,74 @@
 import axios from 'axios';
+import config from '../config';
 
-const API_BASE_URL = 'https://api.shopee.com'; // Replace with the actual Shopee API base URL
+// Create an axios instance with default config
+const api = axios.create({
+  baseURL: config.API_BASE_URL,
+  timeout: config.API_TIMEOUT,
+  headers: {
+    'Content-Type': 'application/json'
+  }
+});
 
-export const fetchProducts = async (filters = {}) => {
+// Fallback to mock data if API fails
+const handleApiError = async (error, mockDataPath) => {
+  console.error('API request failed:', error);
+  
+  if (config.USE_MOCK_DATA) {
     try {
-        const response = await axios.get(`${API_BASE_URL}/products`, {
-            params: filters,
-        });
-        return response.data;
-    } catch (error) {
-        throw new Error('Error fetching products: ' + error.message);
+      const mockResponse = await axios.get(`${config.FALLBACK_API_URL}/${mockDataPath}`);
+      console.log('Using mock data:', mockResponse.data);
+      return mockResponse.data;
+    } catch (mockError) {
+      console.error('Failed to load mock data:', mockError);
+      throw error; // Re-throw the original error if mock data fails
     }
+  } else {
+    throw error;
+  }
 };
 
+// Fetch products with filters
+export const fetchProducts = async (filters = {}) => {
+  try {
+    const response = await api.get('/products', {
+      params: filters,
+    });
+    return response.data;
+  } catch (error) {
+    return handleApiError(error, 'products.json');
+  }
+};
+
+// Other API functions remain the same
 export const searchProducts = async (query, filters) => {
-    try {
-        const response = await axios.get(`${API_BASE_URL}/products/search`, {
-            params: {
-                query,
-                ...filters,
-            },
-        });
-        return response.data;
-    } catch (error) {
-        throw new Error('Error fetching products: ' + error.message);
-    }
+  try {
+    const response = await api.get('/products/search', {
+      params: {
+        query,
+        ...filters,
+      },
+    });
+    return response.data;
+  } catch (error) {
+    return handleApiError(error, 'products.json');
+  }
 };
 
 export const getProductDetails = async (productId) => {
-    try {
-        const response = await axios.get(`${API_BASE_URL}/products/${productId}`);
-        return response.data;
-    } catch (error) {
-        throw new Error('Error fetching product details: ' + error.message);
-    }
+  try {
+    const response = await api.get(`/products/${productId}`);
+    return response.data;
+  } catch (error) {
+    return handleApiError(error, 'product_details.json');
+  }
 };
 
 export const getProductsByCategory = async (categoryId) => {
-    try {
-        const response = await axios.get(`${API_BASE_URL}/products/category/${categoryId}`);
-        return response.data;
-    } catch (error) {
-        throw new Error('Error fetching products by category: ' + error.message);
-    }
+  try {
+    const response = await api.get(`/products/category/${categoryId}`);
+    return response.data;
+  } catch (error) {
+    return handleApiError(error, 'products.json');
+  }
 };

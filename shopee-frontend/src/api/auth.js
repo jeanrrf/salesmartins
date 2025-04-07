@@ -24,6 +24,9 @@ export const logout = async () => {
     }
 };
 
+// Add this new export to match what's being imported in AuthContext.js
+export const logoutUser = logout; // Export logout as logoutUser for compatibility
+
 export const getUserData = async () => {
     try {
         const token = getToken();
