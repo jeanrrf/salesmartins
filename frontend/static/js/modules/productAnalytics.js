@@ -42,11 +42,13 @@ export class ProductAnalytics {
         }
     }
 
-    renderProducts() {
+    renderProducts(filteredProducts = null) {
         const container = document.getElementById('products-container');
         if (!container) return;
 
-        if (this.products.length === 0) {
+        const productsToRender = filteredProducts || this.products;
+
+        if (productsToRender.length === 0) {
             dom.show('no-products-message');
             dom.hide('products-container');
             return;
@@ -55,7 +57,7 @@ export class ProductAnalytics {
         dom.hide('no-products-message');
         dom.show('products-container');
 
-        container.innerHTML = this.products.map(product => this.createProductCard(product)).join('');
+        container.innerHTML = productsToRender.map(product => this.createProductCard(product)).join('');
         this.attachProductEventListeners();
     }
 
@@ -255,6 +257,13 @@ export class ProductAnalytics {
 
     async generateMassLinks() {
         const selectedProducts = this.products.filter(p => this.selectedProducts.has(p.itemId));
+        
+        if (selectedProducts.length === 0) {
+            this.uiManager.showToast('Nenhum produto selecionado para geração de links', 'warning');
+            return;
+        }
+        
+        this.uiManager.showToast('Gerando links em massa...', 'info');
         const results = await this.linkGenerator.generateBulkLinks(selectedProducts);
         
         // Show results in a modal or toast notifications
@@ -263,24 +272,144 @@ export class ProductAnalytics {
             `${successCount} de ${results.length} links gerados com sucesso!`,
             successCount === results.length ? 'success' : 'warning'
         );
+        
+        // Atualizar a interface para mostrar os links gerados
+        this.renderProducts();
     }
 
-    updateUIState() {
-        const hasSelected = this.selectedProducts.size > 0;
-        dom.toggle('#mass-generate-link', hasSelected);
-        dom.toggle('#mass-category-change', hasSelected);
-        dom.toggle('#compare-products', this.selectedProducts.size >= 2);
-        
-        document.querySelectorAll('.product-card').forEach(card => {
-            const productId = card.dataset.productId;
-            card.classList.toggle('selected-product', this.selectedProducts.has(productId));
-            
-            const selectButton = card.querySelector('.select-product-btn');
-            if (selectButton) {
-                selectButton.innerHTML = this.selectedProducts.has(productId) 
-                    ? '<i class="bi bi-check-circle-fill"></i> Selecionado'
-                    : '<i class="bi bi-plus-circle"></i> Selecionar';
+    showBulkCategoryAdjustment() {
+        const adjustments = this.categoryManager.getAdjustments();
+        if (adjustments.length === 0) {
+            this.uiManager.showToast('Nenhum ajuste de categoria pendente', 'warning');
+            return;
+        }
+
+        if (confirm('Deseja aplicar todos os ajustes de categoria pendentes?')) {
+            try {
+                // Atualizar no banco de dados
+                const productsToUpdate = adjustments.map(([productId, adjustment]) => {
+                    const product = this.findProduct(productId);
+                    if (!product) return null;
+                    
+                    // Atualizar o produto com a nova categoria
+                    return {
+                        ...product,
+                        categoryId: adjustment.newCategoryId,
+                        categoryName: this.categoryManager.categoryMap[adjustment.newCategoryId]?.name || 'Desconhecida'
+                    };
+                }).filter(p => p !== null);
+                
+                if (productsToUpdate.length > 0) {
+                    // Enviar para o backend
+                    this.categoryManager.updateCategoriesInDatabase(productsToUpdate)
+                        .then(result => {
+                            this.uiManager.showToast(`${result.updated || 0} categorias atualizadas no banco de dados`, 'success');
+                        })
+                        .catch(error => {
+                            console.error('Erro ao salvar categorias no banco:', error);
+                            this.uiManager.showToast('Erro ao salvar categorias no banco de dados', 'error');
+                        });
+                }
+                
+                this.categoryManager.clearAdjustments();
+                this.renderProducts();
+                this.uiManager.showToast('Ajustes de categoria aplicados com sucesso!', 'success');
+            } catch (error) {
+                console.error('Erro ao aplicar ajustes de categoria:', error);
+                this.uiManager.showToast('Erro ao aplicar ajustes de categoria', 'error');
             }
+        }
+    }
+
+    exportSelectedToCSV() {
+        const selectedProducts = this.products.filter(p => this.selectedProducts.has(p.itemId));
+        
+        if (selectedProducts.length === 0) {
+            this.uiManager.showToast('Nenhum produto selecionado para exportação', 'warning');
+            return;
+        }
+        
+        try {
+            // Cabeçalhos CSV
+            const headers = ['ID', 'Nome', 'Preço', 'Comissão', 'Vendas', 'Loja', 'Categoria', 'Link Afiliado'];
+            
+            // Dados do CSV
+            const csvData = selectedProducts.map(product => {
+                const categoryInfo = this.categoryManager.getCategoryInfo(product);
+                return [
+                    product.itemId,
+                    `"${product.productName.replace(/"/g, '""')}"`,
+                    product.priceMin,
+                    product.commissionRate,
+                    product.sales || 0,
+                    `"${product.shopName?.replace(/"/g, '""') || ''}"`,
+                    `"${categoryInfo.name}"`,
+                    product.affiliateLink || ''
+                ];
+            });
+            
+            // Montar o CSV
+            const csvContent = [
+                headers.join(','),
+                ...csvData.map(row => row.join(','))
+            ].join('\n');
+            
+            // Criar blob e link para download
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            const url = URL.createObjectURL(blob);
+            
+            link.setAttribute('href', url);
+            link.setAttribute('download', `produtos-selecionados-${new Date().toISOString().slice(0, 10)}.csv`);
+            link.style.visibility = 'hidden';
+            
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            
+            this.uiManager.showToast(`${selectedProducts.length} produtos exportados com sucesso!`, 'success');
+        } catch (error) {
+            console.error('Erro ao exportar produtos:', error);
+            this.uiManager.showToast('Erro ao exportar produtos para CSV', 'error');
+        }
+    }
+
+    filterProducts(criteria = {}) {
+        if (!this.products.length) return [];
+        
+        return this.products.filter(product => {
+            // Filtrar por texto de busca
+            if (criteria.searchText) {
+                const searchText = criteria.searchText.toLowerCase();
+                const productName = product.productName.toLowerCase();
+                const shopName = product.shopName?.toLowerCase() || '';
+                
+                if (!productName.includes(searchText) && !shopName.includes(searchText)) {
+                    return false;
+                }
+            }
+            
+            // Filtrar por categoria
+            if (criteria.categoryId && product.categoryId !== criteria.categoryId) {
+                return false;
+            }
+            
+            // Filtrar por preço mínimo
+            if (criteria.minPrice && product.priceMin < criteria.minPrice) {
+                return false;
+            }
+            
+            // Filtrar por preço máximo
+            if (criteria.maxPrice && product.priceMin > criteria.maxPrice) {
+                return false;
+            }
+            
+            // Filtrar por comissão mínima
+            if (criteria.minCommission && parseFloat(product.commissionRate) < criteria.minCommission) {
+                return false;
+            }
+            
+            return true;
         });
     }
 
@@ -289,6 +418,17 @@ export class ProductAnalytics {
         document.getElementById('mass-select')?.addEventListener('click', () => this.toggleMassSelection());
         document.getElementById('mass-generate-link')?.addEventListener('click', () => this.generateMassLinks());
         document.getElementById('mass-category-change')?.addEventListener('click', () => this.showBulkCategoryAdjustment());
+        document.getElementById('export-selected')?.addEventListener('click', () => this.exportSelectedToCSV());
+        
+        // Campo de busca rápida
+        const searchField = document.getElementById('product-search');
+        if (searchField) {
+            searchField.addEventListener('input', (e) => {
+                const searchText = e.target.value;
+                const filteredProducts = this.filterProducts({ searchText });
+                this.renderProducts(filteredProducts);
+            });
+        }
         
         // Modal event listeners
         document.getElementById('save-category-adjustment')?.addEventListener('click', () => {
@@ -302,19 +442,5 @@ export class ProductAnalytics {
                 this.uiManager.showToast('Categoria atualizada com sucesso!', 'success');
             }
         });
-    }
-
-    showBulkCategoryAdjustment() {
-        const adjustments = this.categoryManager.getAdjustments();
-        if (adjustments.length === 0) {
-            this.uiManager.showToast('Nenhum ajuste de categoria pendente', 'warning');
-            return;
-        }
-
-        if (confirm('Deseja aplicar todos os ajustes de categoria pendentes?')) {
-            this.categoryManager.clearAdjustments();
-            this.renderProducts();
-            this.uiManager.showToast('Ajustes de categoria aplicados com sucesso!', 'success');
-        }
     }
 }

@@ -15,6 +15,7 @@ import json
 import sqlite3
 import sys
 from pathlib import Path
+from datetime import datetime
 
 # Add the project root to the Python path
 project_root = str(Path(__file__).parent.parent)
@@ -260,6 +261,13 @@ def create_auth_header(payload: str = "") -> dict:
         "Content-Type": "application/json"
     }
 
+# Exportar a função get_db_connection para uso no api.py
+def get_db_connection():
+    """Cria e retorna uma conexão com o banco de dados SQLite"""
+    conn = sqlite3.connect('shopee-analytics.db')
+    conn.row_factory = sqlite3.Row  # Para retornar dicts em vez de tuplas
+    return conn
+
 @app.get("/")
 def read_root():
     return {"message": "Shopee Affiliate API - Data Viewer"}
@@ -323,655 +331,107 @@ async def graphql_query(request: GraphQLRequest):
             detail=f"Erro ao executar query GraphQL: {str(e)}"
         )
 
-class SearchRequest(BaseModel):
-    keyword: str
-    sortType: Optional[int] = 0  # RELEVANCE_DESC = 1, ITEM_SOLD_DESC = 2, etc
-    limit: Optional[int] = 20
-    minPrice: Optional[float] = None
-    maxPrice: Optional[float] = None
-    minCommission: Optional[float] = None
-    includeRecommendations: Optional[bool] = False
-    page: Optional[int] = 1
-    productCatId: Optional[int] = None
-    shopId: Optional[int] = None
-    isAMSOffer: Optional[bool] = None
-    isKeySeller: Optional[bool] = None
-
-@app.post("/search")
-async def search_products(request: SearchRequest):
+@app.post("/update-categories")
+async def update_categories(data: dict):
     """
-    Endpoint para buscar produtos com base em palavras-chave usando a API GraphQL da Shopee
+    Endpoint para atualizar as categorias dos produtos no banco de dados
     """
     try:
-        # Query GraphQL para buscar produtos
-        query = """
-        query searchProducts($keyword: String!, $sortType: Int, $limit: Int, $page: Int) {
-            productOfferV2(keyword: $keyword, sortType: $sortType, limit: $limit, page: $page) {
-                nodes {
-                    itemId
-                    productName
-                    commissionRate
-                    sellerCommissionRate
-                    shopeeCommissionRate
-                    sales
-                    priceMin
-                    priceMax
-                    productCatIds
-                    ratingStar
-                    priceDiscountRate
-                    imageUrl
-                    shopId
-                    shopName
-                    shopType
-                    productLink
-                    offerLink
-                    periodStartTime
-                    periodEndTime
-                }
-                pageInfo {
-                    page
-                    limit
-                    hasNextPage
-                }
-            }
-        }
-        """
-        
-        # Variáveis para a consulta GraphQL
-        variables = {
-            "keyword": request.keyword,
-            "sortType": request.sortType,
-            "limit": request.limit,
-            "page": request.page
-        }
-        
-        # Adicionar filtros opcionais se fornecidos
-        if request.productCatId:
-            variables["productCatId"] = request.productCatId
-        if request.shopId:
-            variables["shopId"] = request.shopId
-        if request.isAMSOffer is not None:
-            variables["isAMSOffer"] = request.isAMSOffer
-        if request.isKeySeller is not None:
-            variables["isKeySeller"] = request.isKeySeller
-        
-        # Criar a requisição GraphQL
-        graphql_request = GraphQLRequest(
-            query=query,
-            variables=variables
-        )
-        
-        # Usar o endpoint GraphQL interno
-        result = await graphql_query(graphql_request)
-        
-        if not result or "data" not in result:
+        if not data.get("products"):
             raise HTTPException(
-                status_code=500, 
-                detail="Falha ao obter dados da API da Shopee"
+                status_code=400,
+                detail="Dados de produtos não fornecidos"
             )
-        
-        # Filtrar produtos por preço e comissão, se especificado
-        products = result.get("data", {}).get("productOfferV2", {}).get("nodes", [])
-        page_info = result.get("data", {}).get("productOfferV2", {}).get("pageInfo", {})
-        filtered_products = []
-        
-        for product in products:
-            # Converter preços para números
-            price_min = float(product.get("priceMin", "0")) if product.get("priceMin") else 0
-            price_max = float(product.get("priceMax", "0")) if product.get("priceMax") else 0
-            commission_rate = float(product.get("commissionRate", "0")) if product.get("commissionRate") else 0
-            
-            # Aplicar filtros
-            if (request.minPrice is None or price_min >= request.minPrice) and \
-               (request.maxPrice is None or price_max <= request.maxPrice) and \
-               (request.minCommission is None or commission_rate >= request.minCommission):
-                
-                # Formatar preços para exibição
-                product["price"] = price_min  # Para compatibilidade com o frontend
-                product["priceFormatted"] = f"R$ {price_min:.2f}"
-                
-                # Processar dados da loja para formato mais amigável
-                if "shopType" in product and product["shopType"]:
-                    shop_types = []
-                    shop_type_codes = product["shopType"]
-                    if 1 in shop_type_codes:
-                        shop_types.append("Loja Oficial")
-                    if 2 in shop_type_codes:
-                        shop_types.append("Loja Preferida")
-                    if 4 in shop_type_codes:
-                        shop_types.append("Loja Premium")
-                    product["shopTypeLabels"] = shop_types
-                
-                filtered_products.append(product)
-        
-        # Buscar recomendações se solicitado
-        recommendations = []
-        if request.includeRecommendations and filtered_products:
-            # Usar o primeiro produto para buscar recomendações
-            first_product_id = filtered_products[0].get("itemId")
-            if first_product_id:
-                rec_query = """
-                query similarProducts($itemId: Int64!) {
-                    similarProducts(itemId: $itemId) {
-                        products {
-                            itemId
-                            productName
-                            commissionRate
-                            sales
-                            priceMin
-                            priceMax
-                            imageUrl
-                            shopName
-                            offerLink
-                            ratingStar
-                        }
-                    }
-                }
-                """
-                
-                rec_request = GraphQLRequest(
-                    query=rec_query,
-                    variables={"itemId": first_product_id}
-                )
-                
-                rec_result = await graphql_query(rec_request)
-                if rec_result and "data" in rec_result and "similarProducts" in rec_result["data"]:
-                    recommendations = rec_result["data"]["similarProducts"].get("products", [])
-        
-        return {
-            "products": filtered_products,
-            "totalCount": len(filtered_products),
-            "recommendations": recommendations,
-            "pageInfo": page_info
-        }
-        
-    except Exception as e:
-        logger.error(f"Erro na busca: {str(e)}")
-        raise HTTPException(
-            status_code=500,
-            detail=f"Erro ao buscar produtos: {str(e)}"
-        )
 
-@app.post("/shops")
-async def search_shops(
-    keyword: Optional[str] = None,
-    shopId: Optional[int] = None,
-    shopType: Optional[List[int]] = None,
-    isKeySeller: Optional[bool] = None,
-    sortType: Optional[int] = 1,  # LATEST_DESC = 1 por padrão
-    page: Optional[int] = 1,
-    limit: Optional[int] = 20,
-    sellerCommCoveRatio: Optional[str] = None
-):
-    """
-    Endpoint para buscar lojas usando a API GraphQL da Shopee
-    """
-    try:
-        # Query GraphQL para buscar lojas
-        query = """
-        query searchShops($keyword: String, $shopId: Int64, $shopType: [Int], $isKeySeller: Bool, 
-                         $sortType: Int, $page: Int, $limit: Int, $sellerCommCoveRatio: String) {
-            shopOfferV2(keyword: $keyword, shopId: $shopId, shopType: $shopType, isKeySeller: $isKeySeller,
-                      sortType: $sortType, page: $page, limit: $limit, sellerCommCoveRatio: $sellerCommCoveRatio) {
-                nodes {
-                    commissionRate
-                    imageUrl
-                    offerLink
-                    originalLink
-                    shopId
-                    shopName
-                    ratingStar
-                    shopType
-                    remainingBudget
-                    periodStartTime
-                    periodEndTime
-                    sellerCommCoveRatio
-                }
-                pageInfo {
-                    page
-                    limit
-                    hasNextPage
-                }
-            }
-        }
-        """
-        
-        # Variáveis para a consulta GraphQL
-        variables = {
-            "sortType": sortType,
-            "page": page,
-            "limit": limit
-        }
-        
-        # Adicionar parâmetros opcionais se fornecidos
-        if keyword:
-            variables["keyword"] = keyword
-        if shopId:
-            variables["shopId"] = shopId
-        if shopType:
-            variables["shopType"] = shopType
-        if isKeySeller is not None:
-            variables["isKeySeller"] = isKeySeller
-        if sellerCommCoveRatio:
-            variables["sellerCommCoveRatio"] = sellerCommCoveRatio
-        
-        # Criar a requisição GraphQL
-        graphql_request = GraphQLRequest(
-            query=query,
-            variables=variables
-        )
-        
-        # Usar o endpoint GraphQL interno
-        result = await graphql_query(graphql_request)
-        
-        if not result or "data" not in result:
-            raise HTTPException(
-                status_code=500, 
-                detail="Falha ao obter dados de lojas da API da Shopee"
-            )
-        
-        shops = result.get("data", {}).get("shopOfferV2", {}).get("nodes", [])
-        page_info = result.get("data", {}).get("shopOfferV2", {}).get("pageInfo", {})
-        
-        # Processar dados para formato mais amigável
-        for shop in shops:
-            if "remainingBudget" in shop:
-                budget_code = shop["remainingBudget"]
-                if budget_code == 0:
-                    shop["budgetStatus"] = "Ilimitado"
-                elif budget_code == 3:
-                    shop["budgetStatus"] = "Normal (>50%)"
-                elif budget_code == 2:
-                    shop["budgetStatus"] = "Baixo (<50%)"
-                elif budget_code == 1:
-                    shop["budgetStatus"] = "Muito Baixo (<30%)"
-        
-        return {
-            "shops": shops,
-            "pageInfo": page_info
-        }
-        
-    except Exception as e:
-        logger.error(f"Erro na busca de lojas: {str(e)}")
-        raise HTTPException(
-            status_code=500,
-            detail=f"Erro ao buscar lojas: {str(e)}"
-        )
-
-@app.post("/offers")
-async def get_offers(
-    keyword: Optional[str] = None,
-    sortType: Optional[int] = 1,  # LATEST_DESC = 1 por padrão
-    page: Optional[int] = 1,
-    limit: Optional[int] = 20
-):
-    """
-    Endpoint para buscar ofertas usando a API GraphQL
-    """
-    try:
-        # Query GraphQL para buscar ofertas
-        query = """
-        query getOffers($keyword: String, $sortType: Int, $page: Int, $limit: Int) {
-            shopeeOfferV2(keyword: $keyword, sortType: $sortType, page: $page, limit: $limit) {
-                nodes {
-                    commissionRate
-                    offerName
-                    imageUrl
-                    offerLink
-                    originalLink
-                    offerType
-                    categoryId
-                    collectionId
-                    periodStartTime
-                    periodEndTime
-                }
-                pageInfo {
-                    page
-                    limit
-                    hasNextPage
-                }
-            }
-        }
-        """
-        
-        # Variáveis para a consulta GraphQL
-        variables = {
-            "page": page,
-            "limit": limit
-        }
-        
-        if keyword:
-            variables["keyword"] = keyword
-        if sortType:
-            variables["sortType"] = sortType
-        
-        # Criar a requisição GraphQL
-        graphql_request = GraphQLRequest(
-            query=query,
-            variables=variables
-        )
-        
-        # Usar o endpoint GraphQL interno
-        result = await graphql_query(graphql_request)
-        
-        if not result or "data" not in result:
-            raise HTTPException(
-                status_code=500, 
-                detail="Falha ao obter ofertas da API da Shopee"
-            )
-        
-        offers = result.get("data", {}).get("shopeeOfferV2", {}).get("nodes", [])
-        page_info = result.get("data", {}).get("shopeeOfferV2", {}).get("pageInfo", {})
-        
-        # Processa os tipos de oferta para formato mais amigável
-        for offer in offers:
-            if "offerType" in offer:
-                offer_type = offer["offerType"]
-                if offer_type == 1:
-                    offer["offerTypeLabel"] = "Coleção"
-                elif offer_type == 2:
-                    offer["offerTypeLabel"] = "Categoria"
-        
-        # Salvar no banco de dados (opcional)
         conn = sqlite3.connect('shopee-analytics.db')
         cursor = conn.cursor()
         
-        for offer in offers:
-            cursor.execute(
-                "INSERT OR REPLACE INTO offers (offer_name, commission_rate, image_url, offer_link) VALUES (?, ?, ?, ?)",
-                (offer.get("offerName"), offer.get("commissionRate"), offer.get("imageUrl"), offer.get("offerLink"))
-            )
+        # Atualização dos produtos no banco de dados
+        updated_count = 0
+        skipped_count = 0
+        error_count = 0
         
-        conn.commit()
-        conn.close()
-        
-        return {
-            "offers": offers,
-            "pageInfo": page_info
-        }
-        
-    except Exception as e:
-        logger.error(f"Erro ao buscar ofertas: {str(e)}")
-        raise HTTPException(
-            status_code=500,
-            detail=f"Erro ao buscar ofertas: {str(e)}"
-        )
-
-@app.get("/test-offers")
-async def test_offers():
-    """
-    Endpoint de teste para buscar ofertas usando a API GraphQL
-    """
-    try:
-        # Query GraphQL para buscar ofertas
-        query = """
-        {
-            shopeeOfferV2 {
-                nodes {
-                    commissionRate
-                    offerName
-                    imageUrl
-                    offerLink
-                }
-                pageInfo {
-                    page
-                    limit
-                    hasNextPage
-                }
-            }
-        }
-        """
-        
-        # Criar a requisição GraphQL
-        request = GraphQLRequest(query=query)
-        
-        # Usar o endpoint GraphQL interno
-        return await graphql_query(request)
-        
-    except Exception as e:
-        logger.error(f"Error in test_offers: {str(e)}")
-        raise HTTPException(
-            status_code=500,
-            detail=f"Erro ao testar ofertas: {str(e)}"
-        )
-
-@app.get("/db/offers")
-async def get_db_offers():
-    """Get offers from local database"""
-    conn = sqlite3.connect('shopee-analytics.db')
-    conn.row_factory = sqlite3.Row
-    cursor = conn.cursor()
-    cursor.execute("SELECT * FROM offers ORDER BY created_at DESC LIMIT 100")
-    offers = [dict(row) for row in cursor.fetchall()]
-    conn.close()
-    return {"offers": offers}
-
-@app.get("/db/products")
-async def get_db_products():
-    """Get products from local database"""
-    conn = sqlite3.connect('shopee-analytics.db')
-    conn.row_factory = sqlite3.Row
-    cursor = conn.cursor()
-    cursor.execute("SELECT * FROM products ORDER BY created_at DESC LIMIT 100")
-    products = [dict(row) for row in cursor.fetchall()]
-    conn.close()
-    return {"products": products}
-
-@app.put("/db/products/{product_id}")
-async def update_db_product(product_id: int, data: Dict[str, Any]):
-    """Update product in local database"""
-    conn = sqlite3.connect('shopee-analytics.db')
-    cursor = conn.cursor()
-    
-    # Construir a parte SET da query SQL com base nos campos fornecidos
-    set_parts = []
-    update_values = []
-    
-    # Verificar quais campos foram enviados na requisição
-    if 'name' in data:
-        set_parts.append("product_name = ?")
-        update_values.append(data['name'])
-    if 'category_id' in data:
-        set_parts.append("category_id = ?")
-        update_values.append(data['category_id'])
-    if 'price' in data:
-        set_parts.append("price = ?")
-        update_values.append(float(data['price']))
-    if 'original_price' in data:
-        set_parts.append("original_price = ?")
-        update_values.append(float(data['original_price']))
-    if 'stock' in data:
-        set_parts.append("stock = ?")
-        update_values.append(int(data['stock']))
-    
-    if not set_parts:
-        # Se nenhum campo foi fornecido para atualização
-        return {"error": "Nenhum dado fornecido para atualização"}
-    
-    # Adicionar timestamp de atualização
-    set_parts.append("updated_at = CURRENT_TIMESTAMP")
-    # Adicionar o ID à lista de valores
-    update_values.append(product_id)
-
-    try:
-        # Executar a query de atualização
-        query = f"UPDATE products SET {', '.join(set_parts)} WHERE id = ?"
-        cursor.execute(query, update_values)
-        conn.commit()
-        
-        # Verificar se algum registro foi atualizado
-        if cursor.rowcount == 0:
-            conn.close()
-            return {"error": "Produto não encontrado"}
+        for product in data["products"]:
+            try:
+                # Verificar se o produto já existe no banco
+                cursor.execute("SELECT * FROM products WHERE item_id = ?", (product["itemId"],))
+                existing_product = cursor.fetchone()
+                
+                if existing_product:
+                    # Se o produto já existe e já foi processado, podemos pular
+                    if "processed" in product and product["processed"]:
+                        skipped_count += 1
+                        continue
+                        
+                    # Construir a query de atualização
+                    update_fields = []
+                    update_values = []
+                    
+                    # Adicionar campos a serem atualizados
+                    if "categoryId" in product:
+                        update_fields.append("category_id = ?")
+                        update_values.append(product["categoryId"])
+                    
+                    if "categoryIdLevel2" in product:
+                        update_fields.append("category_id_level2 = ?")
+                        update_values.append(product["categoryIdLevel2"])
+                    
+                    if "categoryIdLevel3" in product:
+                        update_fields.append("category_id_level3 = ?")
+                        update_values.append(product["categoryIdLevel3"])
+                    
+                    if "categoryName" in product:
+                        update_fields.append("category_name = ?")
+                        update_values.append(product["categoryName"])
+                    
+                    # Marcar como processado
+                    update_fields.append("processed = ?")
+                    update_values.append(True)
+                    
+                    # Adicionar timestamp de atualização
+                    update_fields.append("updated_at = ?")
+                    update_values.append(datetime.now().isoformat())
+                    
+                    # Adicionar o item_id para a cláusula WHERE
+                    update_values.append(product["itemId"])
+                    
+                    # Executar a atualização apenas se houver campos para atualizar
+                    if update_fields:
+                        cursor.execute(
+                            f"UPDATE products SET {', '.join(update_fields)} WHERE item_id = ?",
+                            tuple(update_values)
+                        )
+                        updated_count += 1
+                else:
+                    # O produto não existe no banco, registrar como erro
+                    error_count += 1
+                    logger.warning(f"Produto com ID {product['itemId']} não encontrado no banco de dados")
             
-        # Buscar o produto atualizado
-        cursor.execute("SELECT * FROM products WHERE id = ?", (product_id,))
-        product = cursor.fetchone()
-        conn.close()
+            except Exception as e:
+                error_count += 1
+                logger.error(f"Erro ao atualizar categoria para produto {product.get('itemId')}: {str(e)}")
         
-        if product:
-            return {
-                "id": product[0],
-                "name": product[1],
-                "price": product[2],
-                "original_price": product[3],
-                "category_id": product[4],
-                "shop_id": product[5],
-                "stock": product[6],
-                "shopee_id": product[7],
-                "updated_at": product[9]
-            }
-        return {"message": "Produto atualizado com sucesso"}
-        
-    except Exception as e:
-        conn.rollback()
-        conn.close()
-        logger.error(f"Error updating product: {str(e)}")
-        raise HTTPException(status_code=500, detail=f"Erro ao atualizar produto: {str(e)}")
-
-@app.get("/categories")
-async def get_categories():
-    """
-    Endpoint para retornar as categorias disponíveis do arquivo CATEGORIA.json
-    """
-    try:
-        current_dir = os.path.dirname(os.path.abspath(__file__))
-        categories_path = os.path.join(current_dir, 'CATEGORIA.json')
-        with open(categories_path, 'r', encoding='utf-8') as f:
-            categories = json.load(f)
-        return categories
-    except Exception as e:
-        logger.error(f"Erro ao carregar categorias: {str(e)}")
-        raise HTTPException(
-            status_code=500,
-            detail=f"Erro ao carregar categorias: {str(e)}"
-        )
-
-@app.get("/product-history/{shopee_id}")
-async def get_product_link_history(shopee_id: str):
-    """
-    Endpoint para buscar o histórico de links de um produto
-    """
-    try:
-        history = await get_products(shopee_id)
-        if not history:
-            raise HTTPException(status_code=404, detail="Produto não encontrado")
-        return history
-    except Exception as e:
-        logger.error(f"Error getting product history: {str(e)}")
-        raise HTTPException(status_code=500, detail=str(e))
-
-@app.get("/db/products/category/{category_id}")
-async def get_products_by_category(category_id: str):
-    """Get products by category ID from local database"""
-    conn = sqlite3.connect('shopee-analytics.db')
-    conn.row_factory = sqlite3.Row
-    cursor = conn.cursor()
-    try:
-        cursor.execute("SELECT * FROM products WHERE category_id = ? ORDER BY created_at DESC LIMIT 100", (category_id,))
-        products = [dict(row) for row in cursor.fetchall()]
-        return products
-    except Exception as e:
-        logger.error(f"Error getting products by category: {str(e)}")
-        raise HTTPException(status_code=500, detail=f"Erro ao buscar produtos por categoria: {str(e)}")
-    finally:
-        conn.close()
-
-@app.get("/db/products/search")
-async def search_db_products(q: str = None):
-    """Search products by name in local database"""
-    if not q or len(q.strip()) < 3:
-        return []
-    conn = sqlite3.connect('shopee-analytics.db')
-    conn.row_factory = sqlite3.Row
-    cursor = conn.cursor()
-    try:
-        # Busca simples por parte do nome do produto
-        cursor.execute("SELECT * FROM products WHERE product_name LIKE ? ORDER BY created_at DESC LIMIT 20", (f'%{q}%',))
-        products = [dict(row) for row in cursor.fetchall()]
-        return products
-    except Exception as e:
-        logger.error(f"Error searching products: {str(e)}")
-        raise HTTPException(status_code=500, detail=f"Erro ao buscar produtos: {str(e)}")
-    finally:
-        conn.close()
-
-@app.get("/db/products-with-category-issues")
-async def get_products_with_category_issues():
-    """Get products that have missing or invalid category IDs"""
-    conn = sqlite3.connect('shopee-analytics.db')
-    conn.row_factory = sqlite3.Row
-    cursor = conn.cursor()
-    
-    # Get products with missing or invalid category_id
-    cursor.execute("""
-        SELECT p.* FROM products p
-        LEFT JOIN categories c ON CAST(p.category_id AS TEXT) = c.id
-        WHERE p.category_id IS NULL 
-        OR p.category_id = ''
-        OR c.id IS NULL
-        ORDER BY p.created_at DESC
-    """)
-    products = [dict(row) for row in cursor.fetchall()]
-    conn.close()
-    return products
-
-# Definir modelo para receber os dados do produto
-class ProductData(BaseModel):
-    product: Dict[str, Any]
-
-@app.post("/db/products")
-async def save_product_to_db(data: ProductData):
-    """
-    Endpoint para salvar um produto no banco de dados local
-    """
-    try:
-        product_data = data.product
-        
-        # Extrair os campos necessários
-        shopee_id = str(product_data.get('itemId', ''))
-        name = product_data.get('productName', '')
-        price = float(product_data.get('priceMin', 0))
-        image_url = product_data.get('imageUrl', '')
-        shop_name = product_data.get('shopName', '')
-        commission_rate = float(product_data.get('commissionRate', 0))
-        category_id = product_data.get('categoryId', '')
-        category_name = product_data.get('categoryName', '')
-        product_url = product_data.get('productLink', '')
-        affiliate_link = product_data.get('affiliateLink', '')
-        sales = int(product_data.get('sales', 0))
-        product_metadata = product_data.get('productMetadata', '{}')
-        
-        # Salvar o produto no banco de dados
-        conn = sqlite3.connect('shopee-analytics.db')
-        cursor = conn.cursor()
-        
-        cursor.execute('''
-        INSERT OR REPLACE INTO products 
-        (item_id, name, price, image_url, shop_name, commission_rate, 
-         category_id, category_name, product_url, affiliate_link, sales, metadata, created_at, updated_at)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'), datetime('now'))
-        ''', (
-            shopee_id, name, price, image_url, shop_name, commission_rate,
-            category_id, category_name, product_url, affiliate_link, sales, product_metadata
-        ))
-        
+        # Commit das alterações
         conn.commit()
         conn.close()
         
-        logger.info(f"Produto {shopee_id} salvo com sucesso!")
-        
         return {
-            "success": True,
-            "message": f"Produto {name} salvo com sucesso!"
+            "success": True, 
+            "updated": updated_count, 
+            "skipped": skipped_count,
+            "errors": error_count,
+            "message": f"{updated_count} produtos atualizados, {skipped_count} ignorados, {error_count} erros"
         }
         
     except Exception as e:
-        logger.error(f"Erro ao salvar produto: {str(e)}")
+        logger.error(f"Erro ao atualizar categorias: {str(e)}")
         raise HTTPException(
             status_code=500,
-            detail=f"Erro ao salvar produto: {str(e)}"
+            detail=f"Erro ao atualizar categorias: {str(e)}"
         )
+
+# Exportar as classes e funções principais para uso no api.py
+__all__ = ['app', 'graphql_query', 'GraphQLRequest', 'get_db_connection']
 
 if __name__ == "__main__":
     import argparse

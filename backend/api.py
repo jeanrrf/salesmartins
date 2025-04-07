@@ -8,44 +8,35 @@
 import sys
 import os
 import logging
+import json
+import time
+from datetime import datetime
+from pathlib import Path
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from typing import Dict, Any, Optional, List
 from fastapi.responses import JSONResponse
-import sqlite3
 
-# Import directly from the package
-from .shopee_affiliate_auth import graphql_query, GraphQLRequest
-from utils.database import save_product, get_products
-from models import Base, Product
+# Importar a instância FastAPI do arquivo shopee_affiliate_auth
+from .shopee_affiliate_auth import app, graphql_query, GraphQLRequest, get_db_connection
 
-# Configure logging
+# Configure logging (mantenha apenas aqui, remova do shopee_affiliate_auth)
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
-
-app = FastAPI()
-
-# Setup CORS middleware
-origins = [
-    "http://localhost:8000",
-    "http://localhost:8001",
-    "http://127.0.0.1:8000",
-    "http://127.0.0.1:8001"
-]
-
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=origins,
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
 
 # Cache para armazenar resultados temporariamente
 cache = {
     "products": None,
     "last_fetch": 0
+}
+
+# Cache para categorias
+_category_cache = {
+    "nivel1": None,
+    "nivel2": None,
+    "nivel3": None,
+    "last_updated": 0
 }
 
 def identify_hot_products(products, min_sales=50, recent_weight=0.6, commission_weight=0.2, price_value_weight=0.2):
@@ -118,6 +109,54 @@ def identify_hot_products(products, min_sales=50, recent_weight=0.6, commission_
     
     return hot_products
 
+def get_categories_from_json(level=1):
+    """
+    Carrega categorias de arquivos JSON baseado no nível desejado
+    
+    Args:
+        level: Nível das categorias (1, 2 ou 3)
+    
+    Returns:
+        Lista de categorias do nível especificado
+    """
+    # Verificar se o cache está válido (menos de 5 minutos)
+    cache_key = f"nivel{level}"
+    current_time = time.time()
+    
+    if _category_cache[cache_key] and current_time - _category_cache["last_updated"] < 300:
+        logger.info(f"Retornando categorias nivel {level} do cache")
+        return _category_cache[cache_key]
+    
+    try:
+        # Caminho base do projeto
+        base_path = Path(__file__).parent
+        
+        if level == 1:
+            filepath = base_path / "CATEGORIA.json"
+        elif level == 2:
+            filepath = base_path / "subCategorias" / "NVL2" / "nivel2.json"
+        elif level == 3:
+            filepath = base_path / "subCategorias" / "NVL3" / "nivel3.json"
+        else:
+            raise ValueError(f"Nível de categoria inválido: {level}")
+        
+        if not filepath.exists():
+            logger.warning(f"Arquivo de categorias não encontrado: {filepath}")
+            return []
+            
+        with open(filepath, 'r', encoding='utf-8') as f:
+            categories = json.load(f)
+            
+        # Atualizar cache
+        _category_cache[cache_key] = categories
+        _category_cache["last_updated"] = current_time
+        
+        logger.info(f"Carregadas {len(categories)} categorias de nível {level}")
+        return categories
+    except Exception as e:
+        logger.error(f"Erro ao carregar categorias de nível {level}: {str(e)}")
+        return []
+
 @app.get('/api/products')
 async def get_all_products():
     """Get all products from the database"""
@@ -156,89 +195,51 @@ async def search_products(
         logger.error(f"Error in search_products: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
 
-@app.post('/api/update-categories')
-async def update_categories(request: Request):
-    """Endpoint para atualizar categorias no banco de dados"""
-    try:
-        data = await request.json()
-        
-        if not data or 'products' not in data:
-            return JSONResponse(content={'success': False, 'message': 'Dados inválidos. A requisição deve conter uma lista de produtos.'}, status_code=400)
-            
-        products = data['products']
-        if not isinstance(products, list):
-            return JSONResponse(content={'success': False, 'message': 'O campo products deve ser uma lista.'}, status_code=400)
-            
-        db_connector = get_db_connection()
-        
-        updated_count = 0
-        failed_count = 0
-        
-        for product in products:
-            try:
-                if 'itemId' not in product or 'categoryId' not in product or 'categoryName' not in product:
-                    failed_count += 1
-                    continue
-                    
-                # Verificar se o produto já existe no banco
-                cursor = db_connector.cursor()
-                cursor.execute(
-                    "SELECT id FROM products WHERE item_id = %s", 
-                    (product['itemId'],)
-                )
-                
-                result = cursor.fetchone()
-                
-                if result:
-                    # Atualizar categoria do produto existente
-                    cursor.execute(
-                        """
-                        UPDATE products 
-                        SET category_id = %s, category_name = %s
-                        WHERE item_id = %s
-                        """,
-                        (product['categoryId'], product['categoryName'], product['itemId'])
-                    )
-                    updated_count += 1
-                else:
-                    # Este produto ainda não existe no banco, então não pode ser atualizado
-                    failed_count += 1
-                    
-                db_connector.commit()
-                
-            except Exception as e:
-                failed_count += 1
-                logger.error(f"Erro ao atualizar categoria do produto {product.get('itemId')}: {str(e)}")
-                
-        return JSONResponse(content={
-            'success': True,
-            'message': f'Processamento concluído. {updated_count} produtos atualizados com sucesso. {failed_count} falhas.',
-            'updated_count': updated_count,
-            'failed_count': failed_count
-        })
-    
-    except Exception as e:
-        logger.error(f"Erro ao processar requisição de atualização de categorias: {str(e)}")
-        return JSONResponse(content={'success': False, 'message': f'Erro ao processar requisição: {str(e)}'}, status_code=500)
-
 @app.get('/api/categories')
 @app.get("/categories")
 async def get_categories():
     """Endpoint para obter todas as categorias cadastradas"""
     try:
-        # Definição de categorias padrão
-        categories = [
-            {"id": "100001", "name": "Eletrônicos", "sigla": "ELE"},
-            {"id": "100002", "name": "Moda", "sigla": "MOD"},
-            # ...existing categories...
-        ]
+        # Carregar categorias do arquivo JSON
+        categories = get_categories_from_json(level=1)
         
+        if not categories:
+            logger.warning("Nenhuma categoria encontrada no arquivo JSON")
+            
         return categories
     except Exception as e:
         logger.error(f"Erro ao buscar categorias: {str(e)}")
         raise HTTPException(
             status_code=500,
             detail=f"Erro ao buscar categorias: {str(e)}"
+        )
+
+@app.get('/api/categories/nivel2')
+@app.get("/categories/nivel2")
+async def get_categories_level2():
+    """Endpoint para obter todas as subcategorias de nível 2"""
+    try:
+        categories = get_categories_from_json(level=2)
+        return categories
+    except Exception as e:
+        logger.error(f"Erro ao buscar categorias de nível 2: {str(e)}")
+        raise HTTPException(
+            status_code=500,
+            detail=f"Erro ao buscar categorias de nível 2: {str(e)}"
+        )
+
+@app.get('/api/categories/nivel3')
+@app.get("/categories/nivel3")
+async def get_categories_level3():
+    """Endpoint para obter todas as subcategorias de nível 3"""
+    try:
+        categories = get_categories_from_json(level=3)
+        return categories
+    except Exception as e:
+        logger.error(f"Erro ao buscar categorias de nível 3: {str(e)}")
+        raise HTTPException(
+            status_code=500,
+            detail=f"Erro ao buscar categorias de nível 3: {str(e)}"
         )
 
 @app.get("/health")
@@ -595,7 +596,3 @@ async def get_repair_logs():
             status_code=500,
             detail=f"Erro ao carregar logs: {str(e)}"
         )
-
-if __name__ == "__main__":
-    import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=5000)

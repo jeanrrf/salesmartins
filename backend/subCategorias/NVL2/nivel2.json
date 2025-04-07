@@ -1,0 +1,50 @@
+[
+  {
+    "id": "100001-01",
+    "parent_id": "100001",
+    "name": "Vestuário Feminino",
+    "sigla": "MDF-VES",
+    "level": 2,
+    "keywords": ["vestidos", "blusas", "saias", "calças", "macacões"]
+  },
+  {
+    "id": "100001-02",
+    "parent_id": "100001",
+    "name": "Calçados Femininos",
+    "sigla": "MDF-CAL",
+    "level": 2,
+    "keywords": ["sandálias", "tênis femininos", "botas", "sapatos sociais", "chinelo"]
+  },
+  {
+    "id": "100001-03",
+    "parent_id": "100001",
+    "name": "Acessórios Femininos",
+    "sigla": "MDF-ACE",
+    "level": 2,
+    "keywords": ["bolsas", "bijuterias", "lenços", "chapéus", "óculos de sol"]
+  },
+  {
+    "id": "100001-04",
+    "parent_id": "100001",
+    "name": "Moda Íntima & Lingerie",
+    "sigla": "MDF-LIN",
+    "level": 2,
+    "keywords": ["sutiãs", "calcinhas", "lingerie", "pijamas", "meias"]
+  },
+  {
+  "id": "100001-05",
+  "parent_id": "100001",
+  "name": "Roupas de Praia Femininas",
+  "sigla": "MDF-PRA",
+  "level": 2,
+  "keywords": ["biquínis", "saídas de praia", "sungas", "chapéus de praia", "cangas"]
+  },
+  {
+  "id": "100001-06",
+  "parent_id": "100001",
+  "name": "Plus Size Feminino",
+  "sigla": "MDF-PLU",
+  "level": 2,
+  "keywords": ["vestidos plus size", "blusas plus size", "calças plus size", "saias plus size", "moda GG"]
+  }
+]
