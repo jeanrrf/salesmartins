@@ -20,6 +20,22 @@ if project_root not in sys.path:
     sys.path.insert(0, project_root)
 ```
 
+### Problema
+O módulo `backend` ainda não foi encontrado ao executar o script `run_server.py`.
+
+### Solução
+Adicionamos um comando para imprimir o `sys.path` no início do script `run_server.py` para depuração e verificar se o diretório raiz do projeto está corretamente incluído.
+
+### Arquivos Modificados
+- **`run_server.py`**: Adicionada impressão do `sys.path` para depuração.
+
+```python
+# Adicionado para depuração
+print("🔍 Python Path:", sys.path)
+```
+
 ## Observações
 - Certifique-se de que o diretório raiz do projeto contém o pacote `backend` corretamente estruturado.
+- Execute o script novamente e verifique se o caminho do diretório raiz está listado no `sys.path`.
+- Certifique-se de que o pacote `backend` está no local correto dentro do diretório raiz.
 - Este arquivo será atualizado com cada nova análise ou alteração.

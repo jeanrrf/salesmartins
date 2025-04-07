@@ -8,6 +8,9 @@ project_root = os.path.dirname(os.path.abspath(__file__))
 if project_root not in sys.path:
     sys.path.insert(0, project_root)
 
+# Debugging: Print the Python path to verify
+print("🔍 Python Path:", sys.path)
+
 def clear_port(port):
     """Limpa a porta especificada."""
     try:
