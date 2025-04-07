@@ -265,8 +265,31 @@ class RequestLogHandler(http.server.SimpleHTTPRequestHandler):
     def log_message(self, format, *args):
         logger.info(f"🌐 Frontend Request: {args[0]} {args[1]} - Status: {args[2]}")
 
+def launch_in_new_console(command, cwd, env=None, title=None):
+    """Launch a process in a new console window."""
+    if os.name == 'nt':  # Windows
+        if title:
+            command = ['cmd', '/k', f'title {title} && '] + command
+        else:
+            command = ['cmd', '/k'] + command
+        # CREATE_NEW_CONSOLE flag for Windows
+        creationflags = subprocess.CREATE_NEW_CONSOLE
+    else:  # Linux/Mac
+        if title:
+            command = ['gnome-terminal', '--title', title, '--', 'bash', '-c', ' '.join(command)]
+        else:
+            command = ['gnome-terminal', '--', 'bash', '-c', ' '.join(command)]
+        creationflags = 0
+
+    return subprocess.Popen(
+        command,
+        cwd=cwd,
+        env=env,
+        creationflags=creationflags if os.name == 'nt' else 0
+    )
+
 def serve_frontend():
-    """Inicia o servidor frontend."""
+    """Inicia o servidor frontend em nova janela."""
     global FRONTEND_PROCESS
     
     kill_process_on_port(FRONTEND_PORT)
@@ -275,14 +298,10 @@ def serve_frontend():
     command = [sys.executable, "-m", "http.server", str(FRONTEND_PORT), "--bind", LOCALHOST]
     
     try:
-        FRONTEND_PROCESS = subprocess.Popen(
+        FRONTEND_PROCESS = launch_in_new_console(
             command,
-            cwd=directory,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
-            text=True,
-            bufsize=1,
-            universal_newlines=True
+            directory,
+            title="Sentinnell Frontend Server"
         )
         logger.info(f"🌐 Frontend: http://{LOCALHOST}:{FRONTEND_PORT}")
         return True
@@ -291,43 +310,46 @@ def serve_frontend():
         return False
 
 def serve_backend():
-    """Inicia o servidor backend."""
+    """Inicia o servidor backend em nova janela."""
     global BACKEND_PROCESS
     
     kill_process_on_port(BACKEND_PORT)
-    backend_dir = os.path.join(os.getcwd(), "backend")
+    project_dir = os.getcwd()
+    backend_dir = os.path.join(project_dir, "backend")
     env = os.environ.copy()
     
-    # Add backend directory to Python path
-    if 'PYTHONPATH' in env:
-        env['PYTHONPATH'] = f"{backend_dir}{os.pathsep}{env['PYTHONPATH']}"
-    else:
-        env['PYTHONPATH'] = backend_dir
-        
-    env["CORS_ALLOW_ORIGINS"] = ",".join(ALLOWED_ORIGINS)
+    # Set proper PYTHONPATH to include both project root and backend directory
+    env['PYTHONPATH'] = os.pathsep.join([
+        project_dir,
+        backend_dir,
+        env.get('PYTHONPATH', '')
+    ])
     
-    data_dir = ensure_data_dir()
+    # Add backend directory to ensure relative imports work
+    os.chdir(project_dir)
+    sys.path.insert(0, project_dir)
+    sys.path.insert(0, backend_dir)
+    
+    env["CORS_ALLOW_ORIGINS"] = ",".join(ALLOWED_ORIGINS)
+    ensure_data_dir()
     
     command = [
-        sys.executable, 
+        sys.executable,
         "-m", "uvicorn",
-        "api:app",  # Changed from backend.api:app to api:app since we're setting PYTHONPATH
+        "backend.api:app",
         "--host", LOCALHOST,
         "--port", str(BACKEND_PORT),
         "--reload",
-        "--log-level", "info"
+        "--log-level", "info",
+        "--reload-dir", backend_dir
     ]
     
     try:
-        BACKEND_PROCESS = subprocess.Popen(
+        BACKEND_PROCESS = launch_in_new_console(
             command,
-            cwd=backend_dir,
+            project_dir,
             env=env,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.STDOUT,
-            text=True,
-            bufsize=1,
-            universal_newlines=True
+            title="Sentinnell Backend Server"
         )
         logger.info(f"🚀 Backend API: http://{LOCALHOST}:{BACKEND_PORT}")
         return True
@@ -335,44 +357,34 @@ def serve_backend():
         logger.error(f"Erro ao iniciar backend: {e}")
         return False
 
-def monitor_output():
-    """Monitora e exibe a saída dos processos."""
-    while FRONTEND_PROCESS or BACKEND_PROCESS:
-        if BACKEND_PROCESS:
-            while line := BACKEND_PROCESS.stdout.readline():
-                print(f"[Backend] {line}", end="")
-        time.sleep(0.1)
+def monitor_servers():
+    """Monitor server status without output monitoring."""
+    try:
+        while FRONTEND_PROCESS or BACKEND_PROCESS:
+            if FRONTEND_PROCESS and FRONTEND_PROCESS.poll() is not None:
+                logger.error("Frontend server stopped unexpectedly")
+                return False
+            if BACKEND_PROCESS and BACKEND_PROCESS.poll() is not None:
+                logger.error("Backend server stopped unexpectedly")
+                return False
+            time.sleep(1)
+    except KeyboardInterrupt:
+        return False
+    return True
 
 if __name__ == "__main__":
     try:
-        # Add psutil to requirements if not present
-        with open("requirements.txt", "a+") as f:
-            f.seek(0)
-            requirements = f.read()
-            if "psutil" not in requirements:
-                f.write("\npsutil>=5.9.0\n")
-        
         install_dependencies()
-
-        # Iniciar servidores
         if serve_backend() and serve_frontend():
-            time.sleep(1)  # Pequena pausa para inicialização
+            time.sleep(1)
             webbrowser.open(f"http://{LOCALHOST}:{FRONTEND_PORT}")
-            
-            print("\nPressione Ctrl+C para encerrar os servidores...\n")
-            
-            # Monitorar saída dos servidores
-            monitor_output()
-
+            print("\nServers running in separate windows. Press Ctrl+C to stop...\n")
+            monitor_servers()
     except KeyboardInterrupt:
         logger.info("\nEncerrando os servidores...")
-        kill_process_on_port(FRONTEND_PORT)
-        kill_process_on_port(BACKEND_PORT)
     except Exception as e:
         logger.error(f"Erro durante a execução: {e}")
     finally:
-        if FRONTEND_PROCESS:
-            FRONTEND_PROCESS.terminate()
-        if BACKEND_PROCESS:
-            BACKEND_PROCESS.terminate()
+        kill_process_on_port(FRONTEND_PORT)
+        kill_process_on_port(BACKEND_PORT)
         logger.info("Servidores encerrados.")

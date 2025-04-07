@@ -378,283 +378,95 @@
     <!-- Toast container for notifications -->
     <div id="toast-container" class="toast-container position-fixed bottom-0 end-0 p-3"></div>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script type="module">
         import { ProductSearch } from './static/js/modules/productSearch.js';
         import { IntegrityCheck } from './static/js/modules/integrityCheck.js';
         import { api, notify } from './static/js/modules/utils.js';
+        import { CategoryManager } from './static/js/modules/categoryManager.js';
+
+        // Initialize category manager
+        const categoryManager = new CategoryManager();
 
         async function loadCategories() {
             try {
-                const categories = await api.get('/categories');
+                // Initialize category manager first
+                await categoryManager.initialize();
+                
                 const categorySelect = document.getElementById('bulk-category-update');
-                if (categorySelect && categories) {
+                if (categorySelect && categoryManager.categories) {
                     categorySelect.innerHTML = `
                         <option value="">Selecione uma categoria</option>
-                        ${categories.map(cat => `<option value="${cat.id}">${cat.name}</option>`).join('')}
+                        ${categoryManager.categories.map(cat => 
+                            `<option value="${cat.id}">${cat.name}</option>`
+                        ).join('')}
                     `;
                 }
+                return categoryManager.categories;
             } catch (error) {
                 console.error('Erro ao carregar categorias:', error);
+                notify.error('Erro ao carregar categorias. Por favor, recarregue a página.');
+                throw error;
             }
         }
 
         document.addEventListener('DOMContentLoaded', async () => {
             try {
+                // Verificar integridade
+                const integrityChecker = new IntegrityCheck();
+                const checkResult = integrityChecker.runCheck();
+
+                if (!checkResult.success) {
+                    console.error('Alguns elementos críticos estão ausentes. Corrija antes de prosseguir.');
+                    return;
+                }
+
                 // Carregar categorias
-                const categories = await fetchCategories();
+                const categories = await loadCategories();
                 console.log('Categorias carregadas:', categories);
 
-                // Carregar produtos
-                const products = await fetchProducts();
-                console.log('Produtos carregados:', products);
-
-                // Atualizar a interface com os dados carregados
-                // (Exemplo: preencher dropdowns ou exibir produtos)
-            } catch (error) {
-                console.error('Erro ao carregar dados:', error);
-            }
-
-            // Iniciar verificação de integridade
-            const integrityChecker = new IntegrityCheck();
-            const checkResult = integrityChecker.runCheck();
-
-            if (!checkResult.success) {
-                console.error('Alguns elementos críticos estão ausentes. Corrija antes de prosseguir.');
-            }
-
-            try {
-                // Carregar categorias usando o módulo de API
-                await loadCategories();
-
-                // Iniciar a aplicação
+                // Inicializar aplicação
                 const app = new ProductSearch();
-                app.initialize();
+                await app.initialize();
 
-                // Event Listeners
+                // Event Listeners para categorias
                 const categorySelect = document.getElementById('bulk-category-update');
-                document.getElementById('apply-category-update').addEventListener('click', () => {
+                document.getElementById('apply-category-update').addEventListener('click', async () => {
                     const selectedCategoryId = categorySelect.value;
                     if (!selectedCategoryId) {
                         notify.error('Por favor, selecione uma categoria.');
                         return;
                     }
 
-                    // Update all products with the selected category
-                    const products = document.querySelectorAll('#products-container .product-card');
-                    const categories = Array.from(categorySelect.options).map(option => ({
-                        id: option.value,
-                        name: option.textContent
-                    }));
-                    const selectedCategory = categories.find(cat => cat.id === selectedCategoryId);
-
-                    products.forEach(product => {
-                        product.dataset.categoryId = selectedCategoryId;
-                        product.querySelector('.category-badge').textContent = selectedCategory.name;
-                    });
-
-                    notify.success('Categoria aplicada com sucesso!');
-                });
-
-                // Event listeners para outras funcionalidades
-                document.getElementById('edit-link-templates').addEventListener('click', async () => {
-                    // Aqui será implementada a edição de templates
-                    notify.info('Funcionalidade de edição de templates em desenvolvimento.');
-                });
-
-                document.getElementById('export-data').addEventListener('click', async () => {
-                    // Utilizar o método saveToDatabase da classe ProductSearch
-                    await app.saveToDatabase();
-                });
-
-                // Event listener para geração de links
-                document.getElementById('generate-sequential-links').addEventListener('click', async () => {
-                    await app.generateLinks();
-
-                    // Atualizar o indicador de status
-                    updateLinkStatusIndicator(app.getAffiliateLinkStats());
-                });
-
-                // Função para atualizar o indicador de status dos links
-                function updateLinkStatusIndicator(stats) {
-                    const container = document.getElementById('affiliate-links-status');
-                    const progressBar = document.getElementById('links-progress');
-                    const percentage = document.getElementById('links-percentage');
-                    const count = document.getElementById('links-count');
-
-                    // Mostrar o container
-                    container.style.display = stats.total > 0 ? 'block' : 'none';
-
-                    if (stats.total === 0) return;
-
-                    // Atualizar os elementos
-                    progressBar.style.width = `${stats.percentage}%`;
-                    progressBar.setAttribute('aria-valuenow', stats.percentage);
-                    percentage.textContent = `${stats.percentage}%`;
-                    count.textContent = `${stats.withLinks}/${stats.total}`;
-
-                    // Definir cor da barra baseada na porcentagem
-                    progressBar.className = 'progress-bar';
-                    if (stats.percentage === 100) {
-                        progressBar.classList.add('bg-success');
-                    } else if (stats.percentage >= 75) {
-                        progressBar.classList.add('bg-info');
-                    } else if (stats.percentage >= 25) {
-                        progressBar.classList.add('bg-warning');
-                    } else {
-                        progressBar.classList.add('bg-danger');
-                    }
-                }
-
-                // Gerenciamento de seleção e remoção de itens
-                let selectedItems = new Set();
-
-                function updateSelectedCount() {
-                    const count = selectedItems.size;
-                    document.getElementById('selected-count').textContent = `${count} ${count === 1 ? 'item selecionado' : 'itens selecionados'}`;
-                    document.getElementById('remove-selected').disabled = count === 0;
-                }
-
-                function toggleBulkActions(show) {
-                    const bulkActions = document.getElementById('bulk-actions');
-                    if (bulkActions) {
-                        bulkActions.style.display = show ? 'block' : 'none';
-                    }
-                }
-
-                function addSelectionCheckboxes() {
-                    // Adicionar checkboxes a todos os cards de produtos
-                    document.querySelectorAll('.product-card').forEach(card => {
-                        // Verificar se o checkbox já existe
-                        if (!card.querySelector('.product-selector')) {
-                            const productId = card.getAttribute('data-product-id');
-                            const checkbox = document.createElement('div');
-                            checkbox.className = 'product-selector form-check position-absolute top-0 start-0 m-2';
-                            checkbox.innerHTML = `
-                                <input class="form-check-input" type="checkbox" value="${productId}" id="selector-${productId}">
-                                <label class="form-check-label visually-hidden" for="selector-${productId}">
-                                    Selecionar produto
-                                </label>
-                            `;
-                            card.style.position = 'relative';
-                            card.appendChild(checkbox);
-
-                            // Adicionar evento de mudança ao checkbox
-                            const input = checkbox.querySelector('input');
-                            input.addEventListener('change', function() {
-                                if (this.checked) {
-                                    selectedItems.add(productId);
-                                } else {
-                                    selectedItems.delete(productId);
-                                }
-                                updateSelectedCount();
-                            });
+                    try {
+                        const selectedCategory = categoryManager.categoryMap[selectedCategoryId];
+                        if (!selectedCategory) {
+                            throw new Error('Categoria não encontrada');
                         }
-                    });
 
-                    // Mostrar as ações em massa se houver produtos
-                    toggleBulkActions(document.querySelectorAll('.product-card').length > 0);
-                }
-
-                // Eventos para os botões de seleção
-                document.getElementById('select-all')?.addEventListener('click', function() {
-                    document.querySelectorAll('.product-card .product-selector input').forEach(checkbox => {
-                        checkbox.checked = true;
-                        selectedItems.add(checkbox.value);
-                    });
-                    updateSelectedCount();
-                });
-
-                document.getElementById('deselect-all')?.addEventListener('click', function() {
-                    document.querySelectorAll('.product-card .product-selector input').forEach(checkbox => {
-                        checkbox.checked = false;
-                    });
-                    selectedItems.clear();
-                    updateSelectedCount();
-                });
-
-                document.getElementById('remove-selected')?.addEventListener('click', function() {
-                    if (selectedItems.size === 0) return;
-
-                    const confirmMessage = selectedItems.size === 1 
-                        ? 'Tem certeza que deseja remover o item selecionado dos resultados?'
-                        : `Tem certeza que deseja remover os ${selectedItems.size} itens selecionados dos resultados?`;
-
-                    if (confirm(confirmMessage)) {
-                        // Remover os itens selecionados
-                        selectedItems.forEach(id => {
-                            const card = document.querySelector(`.product-card[data-product-id="${id}"]`);
-                            if (card) {
-                                card.remove();
+                        // Update all products with the selected category
+                        const products = document.querySelectorAll('#products-container .product-card');
+                        products.forEach(product => {
+                            const productId = product.dataset.productId;
+                            product.dataset.categoryId = selectedCategoryId;
+                            const badge = product.querySelector('.category-badge');
+                            if (badge) {
+                                badge.textContent = selectedCategory.name;
+                                badge.dataset.categoryId = selectedCategoryId;
                             }
                         });
 
-                        // Limpar seleção
-                        selectedItems.clear();
-                        updateSelectedCount();
-
-                        // Verificar se restam produtos
-                        toggleBulkActions(document.querySelectorAll('.product-card').length > 0);
-
-                        // Notificar o usuário
-                        showToast('Itens removidos com sucesso dos resultados de pesquisa!', 'success');
+                        notify.success('Categoria aplicada com sucesso!');
+                    } catch (error) {
+                        console.error('Erro ao atualizar categorias:', error);
+                        notify.error('Erro ao atualizar categorias: ' + error.message);
                     }
                 });
 
-                // Modificar a função que renderiza os resultados para adicionar os checkboxes
-                function renderResults(products) {
-                    // ...código existente para renderização dos produtos...
+                // ... rest of the existing event listeners ...
 
-                    // Adicionar checkboxes após a renderização
-                    setTimeout(() => {
-                        addSelectionCheckboxes();
-                    }, 100);
-                }
-
-                // Adicionar uma função de toast para feedback
-                function showToast(message, type = 'info') {
-                    const toastContainer = document.getElementById('toast-container') || createToastContainer();
-
-                    const toast = document.createElement('div');
-                    toast.className = `toast align-items-center text-white bg-${type} border-0`;
-                    toast.setAttribute('role', 'alert');
-                    toast.setAttribute('aria-live', 'assertive');
-                    toast.setAttribute('aria-atomic', 'true');
-
-                    toast.innerHTML = `
-                        <div class="d-flex">
-                            <div class="toast-body">
-                                ${message}
-                            </div>
-                            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
-                        </div>
-                    `;
-
-                    toastContainer.appendChild(toast);
-
-                    const bsToast = new bootstrap.Toast(toast, {
-                        autohide: true,
-                        delay: 3000
-                    });
-
-                    bsToast.show();
-
-                    toast.addEventListener('hidden.bs.toast', () => {
-                        toast.remove();
-                    });
-                }
-
-                function createToastContainer() {
-                    const container = document.createElement('div');
-                    container.id = 'toast-container';
-                    container.className = 'toast-container position-fixed bottom-0 end-0 p-3';
-                    container.style.zIndex = '1050';
-                    document.body.appendChild(container);
-                    return container;
-                }
             } catch (error) {
                 console.error('Erro ao inicializar a aplicação:', error);
-                notify.error('Erro ao carregar categorias. Por favor, recarregue a página.');
+                notify.error('Erro ao inicializar. Por favor, recarregue a página.');
             }
         });
     </script>

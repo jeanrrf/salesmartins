@@ -1,7 +1,7 @@
 {
 	"folders": [
 		{
-			"path": "."
+			"path": "D:\\Users\\rosso\\SENTINNELL_GERADOR"
 		}
 	],
 	"settings": {
@@ -10,8 +10,8 @@
 			"maxPromptTokens": 1500,
 			"maxCompletionTokens": 500
 		},
-		"github.copilot.inlineSuggest.enable": true,
-		"github.copilot.chat.localeOverride": "pt-BR",
+		"github.copilot.editor.enableAutoCompletions": true,
+		"github.copilot.chat.localeOverride": "pt-br",
 		"workbench.editor.limit.enabled": true,
 		"workbench.editor.limit.value": 5,
 		"workbench.editor.limit.perEditorGroup": true,

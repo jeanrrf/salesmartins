@@ -7,38 +7,22 @@ import time
 import json
 import sqlite3
 import sys
+from pathlib import Path
 
-# Definir as versões esperadas para evitar incompatibilidades
-expected_pydantic = "1.10.7"
-expected_fastapi = "0.95.0"
+# Add the project root to the Python path
+project_root = str(Path(__file__).parent.parent)
+if project_root not in sys.path:
+    sys.path.insert(0, project_root)
 
-# Tentar importar e verificar versão do pydantic
-try:
-    import pydantic
-    pydantic_version = getattr(pydantic, "__version__", "unknown")
-    if pydantic_version != expected_pydantic:
-        logging.warning(f"Versão do pydantic ({pydantic_version}) diferente da esperada ({expected_pydantic})")
-except ImportError:
-    logging.error("Não foi possível importar pydantic")
-    sys.exit(1)
+# Use absolute imports
+from backend.utils.database import save_product, get_products
+from backend.models import Base, Product
 
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from dotenv import load_dotenv
-
-# Adjust import paths based on whether this is run as a module or directly
-if __name__ == "__main__":
-    # Add the parent directory to sys.path to allow absolute imports
-    sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-    # Use absolute imports when run directly
-    from backend.utils.database import save_product, get_products
-    from backend.models import Base, Product
-else:
-    # Use relative imports when imported as a module
-    from .utils.database import save_product, get_products
-    from .models import Base, Product
 
 from sqlalchemy import create_engine
 from typing import Dict, Any, Optional, List, Union

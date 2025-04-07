@@ -8,7 +8,7 @@ from typing import Dict, Any, Optional, List
 from fastapi.responses import JSONResponse
 
 # Import directly from the package
-from shopee_affiliate_auth import graphql_query, GraphQLRequest
+from .shopee_affiliate_auth import graphql_query, GraphQLRequest
 from utils.database import save_product, get_products
 from models import Base, Product
 
