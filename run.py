@@ -9,6 +9,7 @@ import socketserver
 import logging
 import sys
 import venv
+import psutil  # Add this import at the top
 
 # Configure logging
 logging.basicConfig(
@@ -64,9 +65,18 @@ def ensure_venv():
     )
     
     if os.path.exists(activate_this):
-        with open(activate_this) as f:
-            exec(f.read(), {'__file__': activate_this})
+        try:
+            with open(activate_this) as f:
+                exec(f.read(), {'__file__': activate_this})
             logger.info("Ambiente virtual ativado.")
+            
+            # Set environment variables for category loading
+            os.environ['PYTHONPATH'] = os.path.dirname(get_script_dir())
+            os.environ['CATEGORIA_PATH'] = os.path.join(get_script_dir(), 'backend', 'CATEGORIA.json')
+            
+        except Exception as e:
+            logger.error(f"Erro ao ativar ambiente virtual: {e}")
+            logger.warning("Continuando sem ambiente virtual...")
     else:
         logger.warning("Arquivo de ativação não encontrado. Continuando sem venv...")
 
@@ -102,9 +112,17 @@ def check_server_available(port, timeout=5):
 def ensure_data_dir():
     """Ensure data directory exists and is writable."""
     data_dir = os.path.join(get_script_dir(), "data")
+    db_path = os.path.join(data_dir, "shopee-analytics.db")
+    
     if not os.path.exists(data_dir):
         logger.info("Criando diretório de dados...")
         os.makedirs(data_dir)
+    
+    if os.path.exists(db_path):
+        logger.info("Banco de dados existente encontrado em: %s", db_path)
+    else:
+        logger.info("Novo banco de dados será criado em: %s", db_path)
+        
     return data_dir
 
 def open_terminal(command, title, cwd=None):
@@ -121,8 +139,23 @@ def open_terminal(command, title, cwd=None):
     
     subprocess.Popen(terminal_cmd, shell=True, cwd=cwd)
 
+def kill_process_on_port(port):
+    """Kill any process running on the specified port."""
+    for proc in psutil.process_iter(['pid', 'name', 'connections']):
+        try:
+            for conn in proc.connections():
+                if conn.laddr.port == port:
+                    logger.info(f"Killing process {proc.info['pid']} on port {port}")
+                    if os.name == 'nt':
+                        subprocess.run(['taskkill', '/F', '/PID', str(proc.info['pid'])], capture_output=True)
+                    else:
+                        proc.kill()
+        except (psutil.NoSuchProcess, psutil.AccessDenied, psutil.ZombieProcess):
+            pass
+
 def serve_frontend():
     """Inicia o servidor frontend em um terminal separado."""
+    kill_process_on_port(FRONTEND_PORT)
     directory = os.path.join(os.getcwd(), "frontend")
     command = f'python -m http.server {FRONTEND_PORT}'
     
@@ -131,6 +164,7 @@ def serve_frontend():
 
 def serve_backend():
     """Inicia o servidor backend em um terminal separado."""
+    kill_process_on_port(BACKEND_PORT)
     backend_dir = os.path.join(os.getcwd(), "backend")
     env = os.environ.copy()
     env["PYTHONPATH"] = backend_dir
@@ -139,17 +173,29 @@ def serve_backend():
     data_dir = ensure_data_dir()
     db_path = os.path.join(data_dir, "shopee-analytics.db")
     
-    command = f'uvicorn api:app --host {LOCALHOST} --port {BACKEND_PORT} --reload'
+    # Configure log file for backend
+    log_dir = os.path.join(get_script_dir(), "logs")
+    if not os.path.exists(log_dir):
+        os.makedirs(log_dir)
+    
+    # Adiciona flag para não recriar o banco se já existe e configura logging
     if os.environ.get("MSYSTEM"):  # Git Bash
-        command = f'DB_PATH="{db_path}" {command}'
+        command = f'DB_PATH="{db_path}" PRESERVE_DB=1 LOG_LEVEL=debug uvicorn api:app --host {LOCALHOST} --port {BACKEND_PORT} --reload --log-level debug'
     else:
-        command = f'set DB_PATH={db_path} && {command}' if os.name == "nt" else f'DB_PATH="{db_path}" {command}'
+        command = f'set DB_PATH={db_path}&& set PRESERVE_DB=1&& set LOG_LEVEL=debug&& uvicorn api:app --host {LOCALHOST} --port {BACKEND_PORT} --reload --log-level debug' if os.name == "nt" else f'DB_PATH="{db_path}" PRESERVE_DB=1 LOG_LEVEL=debug uvicorn api:app --host {LOCALHOST} --port {BACKEND_PORT} --reload --log-level debug'
     
     open_terminal(command, "Backend Server", backend_dir)
     logger.info(f"Servidor backend iniciado em http://{LOCALHOST}:{BACKEND_PORT}")
 
 if __name__ == "__main__":
     try:
+        # Add psutil to requirements if not present
+        with open("requirements.txt", "a+") as f:
+            f.seek(0)
+            requirements = f.read()
+            if "psutil" not in requirements:
+                f.write("\npsutil>=5.9.0\n")
+        
         # Instalar dependências
         install_dependencies()
 

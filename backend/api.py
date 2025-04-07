@@ -229,21 +229,25 @@ async def update_categories(request: Request):
 
 @app.get('/api/categories')
 async def get_categories():
-    """Endpoint para obter as categorias do arquivo CATEGORIA.json"""
     try:
         categories_path = os.path.join(os.path.dirname(__file__), 'CATEGORIA.json')
         
         if not os.path.exists(categories_path):
-            return JSONResponse(content={'success': False, 'message': 'Arquivo de categorias não encontrado.'}, status_code=404)
+            return JSONResponse(
+                content={'success': False, 'message': 'Arquivo de categorias não encontrado.'}, 
+                status_code=404
+            )
             
         with open(categories_path, 'r', encoding='utf-8') as f:
             categories = json.load(f)
             
         return categories
-    
     except Exception as e:
         logger.error(f"Erro ao carregar categorias: {str(e)}")
-        return JSONResponse(content={'success': False, 'message': f'Erro ao carregar categorias: {str(e)}'}, status_code=500)
+        return JSONResponse(
+            content={'success': False, 'message': f'Erro ao carregar categorias: {str(e)}'}, 
+            status_code=500
+        )
 
 @app.post('/api/search')
 async def search_shopee_products(request: Request):

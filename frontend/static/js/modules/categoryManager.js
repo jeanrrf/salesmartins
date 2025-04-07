@@ -1,19 +1,5 @@
 import { storage, notify, api } from './utils.js';
 
-export const CATEGORIAS_SHOPEE = {
-    "100001": { nome: "Eletrônicos", sigla: "ELE" },
-    "100006": { nome: "Celulares e Acessórios", sigla: "CEL" },
-    "100018": { nome: "Moda Feminina", sigla: "MFE" },
-    "100019": { nome: "Moda Masculina", sigla: "MMA" },
-    "100039": { nome: "Casa e Decoração", sigla: "CAS" },
-    "100040": { nome: "Bebês e Crianças", sigla: "BCR" },
-    "100041": { nome: "Beleza e Cuidado Pessoal", sigla: "BEL" },
-    "100042": { nome: "Esporte e Lazer", sigla: "ESP" },
-    "100048": { nome: "Jogos e Hobbies", sigla: "JOG" },
-    "100049": { nome: "Automotivo", sigla: "AUT" },
-    "100050": { nome: "Ferramentas e Construção", sigla: "FER" }
-};
-
 export class CategoryManager {
     constructor() {
         this.counters = this.loadCounters();
@@ -27,10 +13,10 @@ export class CategoryManager {
         if (this.initialized) return;
         
         try {
-            // Carregar categorias do arquivo CATEGORIA.json através da API
-            this.categories = await api.get('/categories');
+            const response = await api.get('/categories');
+            this.categories = response.categories;
             
-            // Criar um mapa para acesso rápido por ID
+            // Criar mapa para acesso rápido
             this.categoryMap = this.categories.reduce((map, category) => {
                 map[category.id] = category;
                 return map;
@@ -40,8 +26,7 @@ export class CategoryManager {
             console.log('Categorias carregadas:', this.categories.length);
         } catch (error) {
             console.error('Erro ao carregar categorias:', error);
-            this.categories = [];
-            this.categoryMap = {};
+            notify.error('Erro ao carregar categorias. Por favor, recarregue a página.');
         }
     }
 
@@ -56,8 +41,8 @@ export class CategoryManager {
             categories: {}
         };
 
-        Object.values(CATEGORIAS_SHOPEE).forEach(({ sigla }) => {
-            defaultCounters.categories[sigla] = 1;
+        this.categories.forEach(({ id }) => {
+            defaultCounters.categories[id] = 1;
         });
 
         storage.set('shopee_counters', defaultCounters);
@@ -103,52 +88,21 @@ export class CategoryManager {
 
     getCategoryInfo(product) {
         if (!this.initialized) {
-            console.warn('CategoryManager não inicializado. Inicializando agora...');
+            console.warn('CategoryManager não inicializado');
             this.initialize();
+            return { id: "0", name: "Carregando...", sigla: "..." };
         }
 
-        // Se o produto já tem uma categoria definida, usar ela
-        if (product.categoryId && product.categoryName) {
-            return {
-                id: product.categoryId,
-                name: product.categoryName,
-                sigla: CATEGORIAS_SHOPEE[product.categoryId]?.sigla || "GEN"
-            };
-        }
-
-        let categoryId = null;
-
-        if (product.productCatIds && Array.isArray(product.productCatIds) && product.productCatIds.length > 0) {
-            categoryId = product.productCatIds[0].toString();
-        } else if (product.catid) {
-            categoryId = product.catid.toString();
-        } else if (product.productCatId) {
-            categoryId = product.productCatId.toString();
-        }
-
-        // Check for category adjustment
-        const adjustment = this.adjustments.get(product.itemId);
-        if (adjustment) {
-            categoryId = adjustment.newCategoryId.toString();
-        }
-
-        if (categoryId && CATEGORIAS_SHOPEE[categoryId]) {
-            return {
-                id: categoryId,
-                name: CATEGORIAS_SHOPEE[categoryId].nome,
-                sigla: CATEGORIAS_SHOPEE[categoryId].sigla
-            };
-        }
-
-        if (categoryId) {
-            return { id: categoryId, name: `Categoria ${categoryId}`, sigla: "OUT" };
+        // Se o produto já tem uma categoria definida
+        if (product.categoryId && this.categoryMap[product.categoryId]) {
+            return this.categoryMap[product.categoryId];
         }
 
         return { id: "0", name: "Não categorizado", sigla: "GEN" };
     }
 
     adjustCategory(productId, newCategoryId, reason) {
-        if (!CATEGORIAS_SHOPEE[newCategoryId]) {
+        if (!this.categoryMap[newCategoryId]) {
             notify.error('Categoria inválida');
             return false;
         }
@@ -171,9 +125,9 @@ export class CategoryManager {
     }
 
     getAllCategories() {
-        return Object.entries(CATEGORIAS_SHOPEE).map(([id, info]) => ({
-            id,
-            ...info
+        return this.categories.map(category => ({
+            id: category.id,
+            ...category
         }));
     }
 
@@ -315,9 +269,28 @@ export class CategoryManager {
             const updatedProducts = products.map(product => {
                 const categoryInfo = this.getCategoryInfo(product);
                 return {
-                    ...product,
+                    itemId: product.itemId, // shopee_id no banco
+                    name: product.name,
+                    price: product.price,
+                    originalPrice: product.original_price,
                     categoryId: categoryInfo.id,
-                    categoryName: categoryInfo.name
+                    categoryName: categoryInfo.name, // Garantir que o nome da categoria seja incluído
+                    shopId: product.shopId,
+                    stock: product.stock,
+                    commissionRate: product.commissionRate,
+                    sales: product.sales,
+                    imageUrl: product.imageUrl,
+                    shopName: product.shopName,
+                    offerLink: product.offerLink,
+                    shortLink: product.shortLink,
+                    ratingStar: product.ratingStar,
+                    priceDiscountRate: product.priceDiscountRate,
+                    subIds: JSON.stringify(product.subIds),
+                    productLink: product.productLink || '',
+                    shopType: product.shopType || '',
+                    affiliateLink: product.affiliateLink,
+                    productMetadata: JSON.stringify(product.metadata || {}),
+                    discount: product.discount || ''
                 };
             });
             
