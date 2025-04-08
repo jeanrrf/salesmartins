@@ -3,9 +3,11 @@
 # ###################################################################################################
 
 import os
-from fastapi import FastAPI
+import json
+from fastapi import FastAPI, Response
 from backend.routes import router
 from backend.utils.logs import setup_api_logs
+from backend.cors_middleware import setup_cors_for_app, setup_static_files
 
 # Configurar logs exclusivos para API
 setup_api_logs()
@@ -13,9 +15,34 @@ setup_api_logs()
 # Criar a aplicação FastAPI
 app = FastAPI(title="Sentinnell API")
 
+# Configurar CORS
+app = setup_cors_for_app(app)
+
+# Define path to mock data
+project_root = os.path.dirname(os.path.dirname(__file__))
+mock_data_dir = os.path.join(project_root, "backend", "mock_data")
+os.makedirs(mock_data_dir, exist_ok=True)
+
+# Mount static files for mock data
+app = setup_static_files(app, mock_data_dir)
+
 # Incluir rotas
 app.include_router(router)
 
 @app.get("/health")
 async def health_check():
     return {"status": "online"}
+
+# Add API endpoint that serves the same mock data
+@app.get("/api/products")
+async def get_products(minSales: int = 0, maxCommission: int = 100, similarityThreshold: int = 0):
+    try:
+        mock_file = os.path.join(mock_data_dir, "products.json")
+        if os.path.exists(mock_file):
+            with open(mock_file, 'r') as f:
+                data = json.load(f)
+                return data
+        else:
+            return {"error": "Mock data file not found"}
+    except Exception as e:
+        return {"error": f"Error loading mock data: {str(e)}"}

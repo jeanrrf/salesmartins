@@ -6,6 +6,9 @@ import logging
 import threading
 import time
 import json
+import http.server
+import socketserver
+from functools import partial
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s | %(levelname)s | %(message)s")
 
@@ -41,6 +44,36 @@ def install_dependencies():
     except Exception as e:
         logging.warning(f"Error installing dependencies: {e}")
 
+class CORSHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
+    """Custom HTTP request handler with CORS headers"""
+    
+    def __init__(self, *args, **kwargs):
+        self.directory = kwargs.pop('directory', os.getcwd())
+        super().__init__(*args, **kwargs)
+    
+    def end_headers(self):
+        self.send_header('Access-Control-Allow-Origin', '*')
+        self.send_header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS')
+        self.send_header('Access-Control-Allow-Headers', 'Content-Type, Authorization')
+        self.send_header('Cache-Control', 'no-store, no-cache, must-revalidate')
+        super().end_headers()
+        
+    def do_OPTIONS(self):
+        self.send_response(200)
+        self.end_headers()
+
+def start_mock_server(port, directory):
+    """Start a simple HTTP server for mock data with CORS support"""
+    try:
+        handler = partial(CORSHTTPRequestHandler, directory=directory)
+        httpd = socketserver.TCPServer(("", port), handler)
+        logging.info(f"Starting mock data server on http://localhost:{port}")
+        threading.Thread(target=httpd.serve_forever, daemon=True).start()
+        return True
+    except Exception as e:
+        logging.error(f"Error starting mock server: {e}")
+        return False
+
 def setup_mock_api():
     """Create a simple mock API for frontend development"""
     mock_data_dir = os.path.join(project_root, "backend", "mock_data")
@@ -72,27 +105,39 @@ def setup_mock_api():
         json.dump(products_data, f, indent=2)
         
     logging.info("Mock API data created successfully")
+    return mock_data_dir
 
 def run_server():
     try:
+        # Set up mock API data
+        mock_data_dir = setup_mock_api()
+        
+        # Update api_config
+        api_config_path = os.path.join(project_root, "backend", "api_config.json")
+        api_config = {
+            "API_BASE_URL": "http://localhost:3000/api",
+            "USE_MOCK_DATA": True,
+            "MOCK_DATA_URL": "http://localhost:3000/mock_data"
+        }
+        with open(api_config_path, "w") as f:
+            json.dump(api_config, f, indent=2)
+        
         # Setup environment variables for cross-origin requests
         cors_env = {
             **os.environ,
-            "CORS_ALLOW_ORIGINS": "http://localhost:3000,http://localhost:3001,http://localhost:3002"
+            "CORS_ALLOW_ORIGINS": "*",
+            "CORS_ALLOW_METHODS": "GET,POST,PUT,DELETE,OPTIONS,PATCH",
+            "CORS_ALLOW_HEADERS": "Content-Type,Authorization,X-Requested-With",
+            "CORS_ALLOW_CREDENTIALS": "true"
         }
         
-        # Set up mock API data
-        setup_mock_api()
-        
-        # Ensure shopee API settings are available
-        api_config_path = os.path.join(project_root, "backend", "api_config.json")
-        if not os.path.exists(api_config_path):
-            api_config = {
-                "API_BASE_URL": "http://localhost:3000/api",
-                "USE_MOCK_DATA": True
-            }
-            with open(api_config_path, "w") as f:
-                json.dump(api_config, f, indent=2)
+        # Create or update .env file for FastAPI to use
+        env_path = os.path.join(project_root, "backend", ".env")
+        with open(env_path, "w") as env_file:
+            env_file.write("CORS_ALLOW_ORIGINS=*\n")
+            env_file.write("CORS_ALLOW_METHODS=GET,POST,PUT,DELETE,OPTIONS,PATCH\n")
+            env_file.write("CORS_ALLOW_HEADERS=Content-Type,Authorization,X-Requested-With\n")
+            env_file.write("CORS_ALLOW_CREDENTIALS=true\n")
                 
         # Run server with CORS enabled
         logging.info("Starting backend server on port 3000...")
@@ -104,16 +149,32 @@ def run_server():
     except Exception as e:
         logging.error(f"Error running the server: {str(e)}")
         
-        # Provide helpful error messages for common issues
         if "Address already in use" in str(e):
             logging.error("Port 3000 is already in use. Try clearing it with --clear-port flag.")
         elif "No module named" in str(e):
             logging.error("Missing Python module. Try reinstalling dependencies.")
         
-        # Try to start a fallback simple HTTP server for static content
+        # Try to start a fallback HTTP server for static files
         try:
-            logging.info("Attempting to start a simple HTTP server as fallback...")
-            subprocess.run([sys.executable, "-m", "http.server", "3000"], check=True)
+            from http.server import HTTPServer, SimpleHTTPRequestHandler
+            from functools import partial
+            
+            class CORSRequestHandler(SimpleHTTPRequestHandler):
+                def end_headers(self):
+                    self.send_header('Access-Control-Allow-Origin', '*')
+                    self.send_header('Access-Control-Allow-Methods', 'GET, OPTIONS')
+                    self.send_header('Access-Control-Allow-Headers', 'Content-Type, Authorization')
+                    super().end_headers()
+                
+                def do_OPTIONS(self):
+                    self.send_response(200)
+                    self.end_headers()
+            
+            logging.info("Starting fallback HTTP server...")
+            handler = partial(CORSRequestHandler, directory=project_root)
+            httpd = HTTPServer(('0.0.0.0', 3000), handler)
+            logging.info("Fallback server running on http://localhost:3000")
+            httpd.serve_forever()
         except Exception as fallback_err:
             logging.error(f"Fallback server also failed: {fallback_err}")
 

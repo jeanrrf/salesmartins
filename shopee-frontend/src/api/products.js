@@ -13,12 +13,13 @@ const api = axios.create({
 // Fallback to mock data if API fails
 const handleApiError = async (error, mockDataPath) => {
   console.error('API request failed:', error);
-  
+
   if (config.USE_MOCK_DATA) {
     try {
       const mockResponse = await axios.get(`${config.FALLBACK_API_URL}/${mockDataPath}`);
       console.log('Using mock data:', mockResponse.data);
-      return mockResponse.data;
+      // Extract the array from the data property if it exists
+      return mockResponse.data.data || [];
     } catch (mockError) {
       console.error('Failed to load mock data:', mockError);
       throw error; // Re-throw the original error if mock data fails
@@ -34,7 +35,8 @@ export const fetchProducts = async (filters = {}) => {
     const response = await api.get('/products', {
       params: filters,
     });
-    return response.data;
+    // Extract the array from the data property if it exists
+    return response.data.data || [];
   } catch (error) {
     return handleApiError(error, 'products.json');
   }
@@ -49,7 +51,8 @@ export const searchProducts = async (query, filters) => {
         ...filters,
       },
     });
-    return response.data;
+    // Extract the array from the data property if it exists
+    return response.data.data || [];
   } catch (error) {
     return handleApiError(error, 'products.json');
   }
@@ -67,7 +70,8 @@ export const getProductDetails = async (productId) => {
 export const getProductsByCategory = async (categoryId) => {
   try {
     const response = await api.get(`/products/category/${categoryId}`);
-    return response.data;
+    // Extract the array from the data property if it exists
+    return response.data.data || [];
   } catch (error) {
     return handleApiError(error, 'products.json');
   }

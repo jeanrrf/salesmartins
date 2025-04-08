@@ -13,7 +13,10 @@ const config = {
   USE_MOCK_DATA: true,
   
   // API timeout in milliseconds
-  API_TIMEOUT: 5000
+  API_TIMEOUT: 10000,
+  
+  // Access control settings
+  CORS_ENABLED: true
 };
 
 export default config;

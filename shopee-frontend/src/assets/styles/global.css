@@ -1,12 +1,19 @@
+@import './variables.css';
+
 body {
     margin: 0;
     padding: 0;
     font-family: 'Arial', sans-serif;
-    background-color: #f4f4f4;
-    color: #333;
+    background-color: var(--background-color, #f4f4f4);
+    color: var(--text-color, #333);
 }
 
-h1, h2, h3, h4, h5, h6 {
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
     margin: 0;
     padding: 0;
 }
@@ -57,8 +64,13 @@ a {
 }
 
 @keyframes spin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
+    0% {
+        transform: rotate(0deg);
+    }
+
+    100% {
+        transform: rotate(360deg);
+    }
 }
 
 .modal {
@@ -78,4 +90,65 @@ a {
     padding: 20px;
     border-radius: 5px;
     width: 400px;
+}
+
+/* Common layout styling */
+.dashboard,
+.product-search,
+.product-management {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+.dashboard h1,
+.product-search h1,
+.product-management h1 {
+    color: var(--primary-color, #FF5722);
+    margin-bottom: 24px;
+}
+
+.search-bar {
+    margin-bottom: 20px;
+}
+
+.search-bar form {
+    display: flex;
+}
+
+.search-bar input {
+    flex: 1;
+    padding: 10px;
+    border: 1px solid var(--border-color, #E0E0E0);
+    border-radius: 4px 0 0 4px;
+    font-size: 16px;
+}
+
+.search-bar button {
+    padding: 10px 20px;
+    background-color: var(--primary-color, #FF5722);
+    color: white;
+    border: none;
+    border-radius: 0 4px 4px 0;
+    cursor: pointer;
+}
+
+.search-bar button:hover {
+    background-color: var(--secondary-color, #FFC107);
+    color: #333;
+}
+
+.error-message {
+    padding: 10px;
+    background-color: #ffebee;
+    color: #c62828;
+    border-radius: 4px;
+    margin-bottom: 16px;
+}
+
+/* Responsive layout */
+@media (max-width: 768px) {
+    .container {
+        padding: 15px;
+    }
 }

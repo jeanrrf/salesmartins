@@ -1,0 +1,5 @@
+{
+  "API_BASE_URL": "http://localhost:3000/api",
+  "USE_MOCK_DATA": true,
+  "MOCK_DATA_URL": "http://localhost:3000/mock_data"
+}

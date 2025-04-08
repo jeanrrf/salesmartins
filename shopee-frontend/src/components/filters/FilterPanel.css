@@ -1,0 +1,68 @@
+.filter-panel {
+    background-color: white;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: var(--box-shadow, 0 2px 4px rgba(0, 0, 0, 0.1));
+    margin-bottom: 20px;
+}
+
+.filter-panel h2 {
+    font-size: 18px;
+    margin-bottom: 16px;
+    color: var(--text-color, #212121);
+}
+
+.filter-option {
+    margin-bottom: 16px;
+}
+
+.filter-option label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 500;
+    color: var(--text-color, #212121);
+}
+
+.filter-option input {
+    width: 100%;
+    padding: 8px;
+    border: 1px solid var(--border-color, #E0E0E0);
+    border-radius: 4px;
+    font-size: 14px;
+}
+
+.filter-option input[type="range"] {
+    -webkit-appearance: none;
+    height: 8px;
+    border-radius: 4px;
+    background: #ddd;
+    outline: none;
+}
+
+.filter-option input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: var(--primary-color, #FF5722);
+    cursor: pointer;
+}
+
+.filter-option button {
+    width: 100%;
+    padding: 10px;
+    margin-top: 8px;
+    background-color: var(--secondary-color, #FFC107);
+    color: #212121;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 500;
+    transition: background-color 0.3s ease;
+}
+
+.filter-option button:hover {
+    background-color: #FFB300;
+}

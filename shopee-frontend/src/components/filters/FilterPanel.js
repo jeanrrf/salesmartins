@@ -1,4 +1,5 @@
 import React from 'react';
+import './FilterPanel.css';
 
 const FilterPanel = ({ onFilterChange, onRemoveProduct, filterOptions }) => {
     const handleFilterChange = (e) => {
