@@ -1,6 +1,5 @@
 import React from 'react';
 import { BrowserRouter as Router, Route, Switch } from 'react-router-dom';
-import { AuthProvider } from './context/AuthContext';
 import { ProductProvider } from './context/ProductContext';
 import Header from './components/layout/Header';
 import Footer from './components/layout/Footer';
@@ -11,19 +10,19 @@ import './assets/styles/global.css';
 
 const App = () => {
     return (
-        <AuthProvider>
-            <ProductProvider>
-                <Router>
-                    <Header />
+        <ProductProvider>
+            <Router>
+                <Header />
+                <div className="container">
                     <Switch>
                         <Route path="/" exact component={Dashboard} />
                         <Route path="/products/manage" component={ProductManagement} />
                         <Route path="/products/search" component={ProductSearch} />
                     </Switch>
-                    <Footer />
-                </Router>
-            </ProductProvider>
-        </AuthProvider>
+                </div>
+                <Footer />
+            </Router>
+        </ProductProvider>
     );
 };
 

@@ -7,16 +7,13 @@ const Sidebar = () => {
             <h2>Navigation</h2>
             <ul>
                 <li>
-                    <Link to="/dashboard">Dashboard</Link>
+                    <Link to="/">Dashboard</Link>
                 </li>
                 <li>
                     <Link to="/product-search">Product Search</Link>
                 </li>
                 <li>
-                    <Link to="/product-management">Product Management</Link>
-                </li>
-                <li>
-                    <Link to="/login">Login</Link>
+                    <Link to="/products/manage">Product Management</Link>
                 </li>
             </ul>
         </div>

@@ -1,5 +1,8 @@
 import React, { createContext, useState, useEffect, useCallback, useRef } from 'react';
-import { fetchProducts as apiFetchProducts } from '../api/products';
+import axios from 'axios';
+import config from '../config';
+
+// Mock data for fallback
 
 export const ProductContext = createContext();
 
@@ -29,20 +32,107 @@ export const ProductProvider = ({ children }) => {
     // Create a memoized fetchProducts function
     const fetchProducts = useCallback(async (customFilters) => {
         setLoading(true);
+        const filtersToUse = customFilters || filterOptions;
+        console.log('Fetching products with filters:', filtersToUse);
+        
         try {
-            const filtersToUse = customFilters || filterOptions;
-            console.log('Fetching products with filters:', filtersToUse);
+            // Try Shopee API first via GraphQL (if enabled)
+            if (config.USE_SHOPEE_API) {
+                try {
+                    // Try GraphQL API first
+                    const graphqlRequest = {
+                        query: `
+                        query searchProducts($keyword: String!, $sortType: Int, $limit: Int, $page: Int) {
+                            productOfferV2(keyword: $keyword, sortType: $sortType, limit: $limit, page: $page) {
+                                nodes {
+                                    itemId
+                                    productName
+                                    commissionRate
+                                    sales
+                                    priceMin
+                                    priceMax
+                                    imageUrl
+                                    shopName
+                                    productLink
+                                    offerLink
+                                }
+                                pageInfo {
+                                    page
+                                    limit
+                                    hasNextPage
+                                }
+                            }
+                        }`,
+                        variables: {
+                            keyword: "popular",
+                            sortType: 2, // Sort by popularity
+                            limit: 20,
+                            page: 1,
+                            minSales: filtersToUse.minSales || 0,
+                            maxCommission: filtersToUse.maxCommission || 100,
+                            similarityThreshold: filtersToUse.similarityThreshold || 0
+                        }
+                    };
 
-            const response = await fetch(`/api/products?minSales=${filtersToUse.minSales}&maxCommission=${filtersToUse.maxCommission}&similarityThreshold=${filtersToUse.similarityThreshold}`);
-            const data = await response.json();
-
-            if (Array.isArray(data.data)) {
-                setProducts(data.data);
-            } else {
-                console.warn('Unexpected data format:', data);
-                setProducts([]);
+                    const response = await axios.post(
+                        config.GRAPHQL_ENDPOINT, 
+                        graphqlRequest,
+                        { timeout: 3000 } // Short timeout to fail faster
+                    );
+                    
+                    // Process successful GraphQL response...
+                    if (response.data && 
+                        response.data.data && 
+                        response.data.data.productOfferV2 && 
+                        response.data.data.productOfferV2.nodes) {
+                        
+                        // Format the data to match our app's expected structure
+                        const formattedProducts = response.data.data.productOfferV2.nodes.map(product => ({
+                            id: product.itemId,
+                            name: product.productName,
+                            price: product.priceMin,
+                            imageUrl: product.imageUrl,
+                            sales: product.sales || 0,
+                            commission: product.commissionRate || 0,
+                            shopName: product.shopName,
+                            productUrl: product.productLink,
+                            affiliateLink: product.offerLink
+                        }));
+                        
+                        setProducts(formattedProducts);
+                        setError(null);
+                        setLoading(false);
+                        return;
+                    }
+                } catch (graphqlError) {
+                    console.error("GraphQL API error, falling back to REST API:", graphqlError);
+                }
             }
-            setError(null);
+
+            // Try local REST API next
+            try {
+                const restResponse = await axios.get(`${config.API_BASE_URL}/api/products`, {
+                    params: {
+                        minSales: filtersToUse.minSales,
+                        maxCommission: filtersToUse.maxCommission,
+                        similarityThreshold: filtersToUse.similarityThreshold
+                    },
+                    timeout: 3000 // Short timeout to fail faster
+                });
+
+                if (restResponse.data && Array.isArray(restResponse.data.data)) {
+                    setProducts(restResponse.data.data);
+                    setError(null);
+                    setLoading(false);
+                    return;
+                } else {
+                    console.warn('Unexpected data format from local API:', restResponse.data);
+                    throw new Error('Invalid data format');
+                }
+            } catch (restError) {
+                console.error('REST API error, using mock data:', restError);
+                throw restError; // Allow to fall through to mock data
+            }
         } catch (err) {
             console.error('Error fetching products:', err);
             setError(err.message || 'Failed to fetch products');

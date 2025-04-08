@@ -10,6 +10,20 @@ const api = axios.create({
   }
 });
 
+// Add response interceptor for better error handling
+api.interceptors.response.use(
+  response => response,
+  error => {
+    console.error('API error:', error);
+    // If error contains a response, pass it through, otherwise throw generic error
+    if (error.response) {
+      return Promise.reject(error);
+    } else {
+      return Promise.reject(new Error('Network error or server unavailable'));
+    }
+  }
+);
+
 // Log API responses for debugging
 const logResponse = (endpoint, response) => {
   console.log(`API ${endpoint} response:`, response);

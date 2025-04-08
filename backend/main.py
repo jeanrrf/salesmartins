@@ -57,4 +57,5 @@ async def get_products(minSales: int = 0, maxCommission: int = 100, similarityTh
             return {"data": [], "error": "Mock data file not found"}
     except Exception as e:
         print(f"Error in API endpoint: {str(e)}")
+        # Return a JSON response even in case of error
         return {"data": [], "error": f"Error loading mock data: {str(e)}"}

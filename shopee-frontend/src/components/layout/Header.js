@@ -16,9 +16,6 @@ const Header = () => {
                     <li>
                         <Link to="/product-management">Product Management</Link>
                     </li>
-                    <li>
-                        <Link to="/login">Login</Link>
-                    </li>
                 </ul>
             </nav>
         </header>

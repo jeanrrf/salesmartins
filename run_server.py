@@ -56,6 +56,7 @@ class CORSHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
         self.send_header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS')
         self.send_header('Access-Control-Allow-Headers', 'Content-Type, Authorization')
         self.send_header('Cache-Control', 'no-store, no-cache, must-revalidate')
+        self.send_header('Content-Type', 'application/json')
         super().end_headers()
         
     def do_OPTIONS(self):
@@ -117,7 +118,8 @@ def run_server():
         api_config = {
             "API_BASE_URL": "http://localhost:3000/api",
             "USE_MOCK_DATA": True,
-            "MOCK_DATA_URL": "http://localhost:3000/mock_data"
+            "MOCK_DATA_URL": "http://localhost:3000/mock_data",
+            "SKIP_AUTH": True  # Add flag to skip authentication
         }
         with open(api_config_path, "w") as f:
             json.dump(api_config, f, indent=2)
@@ -128,7 +130,9 @@ def run_server():
             "CORS_ALLOW_ORIGINS": "*",
             "CORS_ALLOW_METHODS": "GET,POST,PUT,DELETE,OPTIONS,PATCH",
             "CORS_ALLOW_HEADERS": "Content-Type,Authorization,X-Requested-With",
-            "CORS_ALLOW_CREDENTIALS": "true"
+            "CORS_ALLOW_CREDENTIALS": "true",
+            "SKIP_AUTH": "true",  # Add env var to skip authentication
+            "CONTENT_TYPE": "application/json"  # Ensure content type is set properly
         }
         
         # Create or update .env file for FastAPI to use
@@ -138,6 +142,22 @@ def run_server():
             env_file.write("CORS_ALLOW_METHODS=GET,POST,PUT,DELETE,OPTIONS,PATCH\n")
             env_file.write("CORS_ALLOW_HEADERS=Content-Type,Authorization,X-Requested-With\n")
             env_file.write("CORS_ALLOW_CREDENTIALS=true\n")
+            env_file.write("SKIP_AUTH=true\n")
+                
+        # Start the frontend in a separate thread (if available)
+        frontend_dir = os.path.join(project_root, "shopee-frontend")
+        if os.path.exists(frontend_dir):
+            logging.info("Starting frontend application...")
+            frontend_thread = threading.Thread(
+                target=lambda: subprocess.run(
+                    ["npm", "start"], 
+                    cwd=frontend_dir, 
+                    env={**os.environ, "PORT": "3001", "NODE_OPTIONS": "--openssl-legacy-provider", "SKIP_AUTH": "true"}
+                ),
+                daemon=True
+            )
+            frontend_thread.start()
+            logging.info("Frontend should be available at http://localhost:3001")
                 
         # Run server with CORS enabled
         logging.info("Starting backend server on port 3000...")

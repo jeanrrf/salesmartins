@@ -3,20 +3,30 @@
  */
 
 const config = {
-  // API base URL - change this to match your backend server
-  API_BASE_URL: 'http://localhost:3000/api',
-  
-  // Fallback URL in case the primary API is not available
-  FALLBACK_API_URL: 'http://localhost:3000/mock_data',
-  
-  // Whether to use mock data for development
+  // Flag to enable/disable Shopee API attempts
+  USE_SHOPEE_API: true,
+
+  // API base URL - local backend API
+  API_BASE_URL: 'http://localhost:3000',
+
+  // GraphQL endpoint - Shopee API
+  GRAPHQL_ENDPOINT: 'http://localhost:8001/graphql',
+
+  // Whether to use mock data in case API fails
   USE_MOCK_DATA: false,
-  
+
   // API timeout in milliseconds
-  API_TIMEOUT: 10000,
-  
+  API_TIMEOUT: 5000,
+
+  // Retry settings
+  MAX_RETRIES: 2,
+  RETRY_DELAY: 1000,
+
   // Access control settings
-  CORS_ENABLED: true
+  CORS_ENABLED: true,
+
+  // Skip authentication in development
+  SKIP_AUTH: true
 };
 
 export default config;
