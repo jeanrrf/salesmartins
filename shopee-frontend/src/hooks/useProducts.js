@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { fetchProducts as apiFetchProducts } from '../api/products';
+import { fetchProducts as apiFetchProducts, searchProducts as apiSearchProducts } from '../api/products';
 
 export const useProducts = (initialSearchQuery = '', initialFilters = {}) => {
     const [products, setProducts] = useState([]);
@@ -12,7 +12,17 @@ export const useProducts = (initialSearchQuery = '', initialFilters = {}) => {
         setLoading(true);
         setError(null);
         try {
-            const data = await apiFetchProducts(query, customFilters);
+            let data;
+            
+            // If there's a search query, use the dedicated search endpoint
+            if (query && query.trim().length > 0) {
+                console.log('Using search endpoint with query:', query);
+                data = await apiSearchProducts(query, customFilters);
+            } else {
+                console.log('Using fetch products endpoint with filters:', customFilters);
+                data = await apiFetchProducts(query, customFilters);
+            }
+            
             setProducts(data);
             return data;
         } catch (err) {
@@ -24,8 +34,8 @@ export const useProducts = (initialSearchQuery = '', initialFilters = {}) => {
     }, [searchQuery, filters]);
 
     useEffect(() => {
-        fetchProducts();
-    }, [fetchProducts]);
+        fetchProducts(searchQuery, filters);
+    }, [fetchProducts, searchQuery, filters]);
 
     return { 
         products, 

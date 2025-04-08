@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 
-const SearchBar = ({ onSearch }) => {
-    const [query, setQuery] = useState('');
+const SearchBar = ({ onSearchChange, initialQuery = '' }) => {
+    const [query, setQuery] = useState(initialQuery);
 
     const handleInputChange = (e) => {
         setQuery(e.target.value);
@@ -9,7 +9,9 @@ const SearchBar = ({ onSearch }) => {
 
     const handleSearch = (e) => {
         e.preventDefault();
-        onSearch(query);
+        if (onSearchChange && typeof onSearchChange === 'function') {
+            onSearchChange(query);
+        }
     };
 
     return (
@@ -20,6 +22,7 @@ const SearchBar = ({ onSearch }) => {
                     placeholder="Search for products..."
                     value={query}
                     onChange={handleInputChange}
+                    aria-label="Search products"
                 />
                 <button type="submit">Search</button>
             </form>

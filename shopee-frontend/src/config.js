@@ -10,7 +10,7 @@ const config = {
   FALLBACK_API_URL: 'http://localhost:3000/mock_data',
   
   // Whether to use mock data for development
-  USE_MOCK_DATA: true,
+  USE_MOCK_DATA: false,
   
   // API timeout in milliseconds
   API_TIMEOUT: 10000,

@@ -10,39 +10,38 @@ const api = axios.create({
   }
 });
 
-// Fallback to mock data if API fails
-const handleApiError = async (error, mockDataPath) => {
-  console.error('API request failed:', error);
+// Log API responses for debugging
+const logResponse = (endpoint, response) => {
+  console.log(`API ${endpoint} response:`, response);
+  return response;
+};
 
-  if (config.USE_MOCK_DATA) {
-    try {
-      const mockResponse = await axios.get(`${config.FALLBACK_API_URL}/${mockDataPath}`);
-      console.log('Using mock data:', mockResponse.data);
-      // Extract the array from the data property if it exists
-      return mockResponse.data.data || [];
-    } catch (mockError) {
-      console.error('Failed to load mock data:', mockError);
-      throw error; // Re-throw the original error if mock data fails
+// Fetch products with filters
+export const fetchProducts = async (searchQuery = '', filters = {}) => {
+  console.log('Fetching products with query:', searchQuery, 'and filters:', filters);
+  try {
+    const response = await api.get('/products', {
+      params: {
+        query: searchQuery,
+        ...filters,
+      },
+    });
+
+    logResponse('/products', response);
+
+    if (response.data && Array.isArray(response.data.data)) {
+      return response.data.data;
+    } else {
+      console.warn('Unexpected API response format:', response.data);
+      return [];
     }
-  } else {
+  } catch (error) {
+    console.error('API request failed:', error.message || error);
     throw error;
   }
 };
 
-// Fetch products with filters
-export const fetchProducts = async (filters = {}) => {
-  try {
-    const response = await api.get('/products', {
-      params: filters,
-    });
-    // Extract the array from the data property if it exists
-    return response.data.data || [];
-  } catch (error) {
-    return handleApiError(error, 'products.json');
-  }
-};
-
-// Other API functions remain the same
+// Search products - dedicated endpoint for search
 export const searchProducts = async (query, filters) => {
   try {
     const response = await api.get('/products/search', {
@@ -51,28 +50,34 @@ export const searchProducts = async (query, filters) => {
         ...filters,
       },
     });
-    // Extract the array from the data property if it exists
+    logResponse('/products/search', response);
     return response.data.data || [];
   } catch (error) {
-    return handleApiError(error, 'products.json');
+    console.error('API request failed:', error.message || error);
+    throw error;
   }
 };
 
+// Get product details
 export const getProductDetails = async (productId) => {
   try {
     const response = await api.get(`/products/${productId}`);
+    logResponse(`/products/${productId}`, response);
     return response.data;
   } catch (error) {
-    return handleApiError(error, 'product_details.json');
+    console.error('API request failed:', error.message || error);
+    throw error;
   }
 };
 
+// Get products by category
 export const getProductsByCategory = async (categoryId) => {
   try {
     const response = await api.get(`/products/category/${categoryId}`);
-    // Extract the array from the data property if it exists
+    logResponse(`/products/category/${categoryId}`, response);
     return response.data.data || [];
   } catch (error) {
-    return handleApiError(error, 'products.json');
+    console.error('API request failed:', error.message || error);
+    throw error;
   }
 };

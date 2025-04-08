@@ -1,23 +1,11 @@
-import React, { useContext, useEffect } from 'react';
+import React, { useContext } from 'react';
 import { ProductContext } from '../../context/ProductContext';
 import ProductCard from './ProductCard';
 import Loader from '../common/Loader';
 import './ProductList.css';
 
 const ProductList = () => {
-    const { products, loading, error, fetchProducts } = useContext(ProductContext);
-
-    useEffect(() => {
-        // Only call fetchProducts if it exists
-        if (fetchProducts && typeof fetchProducts === 'function') {
-            fetchProducts().catch(err => console.error("Error fetching products:", err));
-        }
-
-        // Add cleanup function to prevent state updates on unmounted component
-        return () => {
-            // Cleanup function to address the memory leak warning
-        };
-    }, [fetchProducts]);
+    const { products, loading, error } = useContext(ProductContext);
 
     if (loading) {
         return <Loader />;
@@ -30,17 +18,19 @@ const ProductList = () => {
     // Ensure products is always an array
     const productArray = Array.isArray(products) ? products : [];
 
+    console.log("Rendering ProductList with products:", productArray.length);
+
     return (
         <div className="product-list">
             {productArray.length === 0 ? (
-                <p>No products found.</p>
+                <p>No products found. Please adjust your filters or try again later.</p>
             ) : (
                 productArray.map(product => (
                     <ProductCard
                         key={product.id || product.itemId}
                         product={product}
-                        onAddToCart={() => { }}
-                        onViewDetails={() => { }}
+                        onAddToCart={() => console.log('Add to cart:', product.id)}
+                        onViewDetails={() => console.log('View details:', product.id)}
                     />
                 ))
             )}

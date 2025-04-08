@@ -37,12 +37,24 @@ async def health_check():
 @app.get("/api/products")
 async def get_products(minSales: int = 0, maxCommission: int = 100, similarityThreshold: int = 0):
     try:
+        print(f"API request received with params: minSales={minSales}, maxCommission={maxCommission}, similarityThreshold={similarityThreshold}")
+        
         mock_file = os.path.join(mock_data_dir, "products.json")
         if os.path.exists(mock_file):
             with open(mock_file, 'r') as f:
                 data = json.load(f)
+                
+                # Apply filters to the mock data
+                if data and "data" in data:
+                    filtered_data = [
+                        product for product in data["data"] 
+                        if product.get("sales", 0) >= minSales and 
+                           product.get("commission", 0) <= maxCommission
+                    ]
+                    return {"data": filtered_data}
                 return data
         else:
-            return {"error": "Mock data file not found"}
+            return {"data": [], "error": "Mock data file not found"}
     except Exception as e:
-        return {"error": f"Error loading mock data: {str(e)}"}
+        print(f"Error in API endpoint: {str(e)}")
+        return {"data": [], "error": f"Error loading mock data: {str(e)}"}

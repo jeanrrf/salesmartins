@@ -13,6 +13,9 @@ export const ProductProvider = ({ children }) => {
         similarityThreshold: 0,
     });
 
+    // Track if the initial fetch has been performed
+    const initialFetchDone = useRef(false);
+
     // Use a ref to track mounted state
     const isMounted = useRef(true);
 
@@ -28,37 +31,37 @@ export const ProductProvider = ({ children }) => {
         setLoading(true);
         try {
             const filtersToUse = customFilters || filterOptions;
-            const data = await apiFetchProducts(filtersToUse);
+            console.log('Fetching products with filters:', filtersToUse);
 
-            // Only update state if component is still mounted
-            if (isMounted.current) {
-                // Ensure data is an array
-                setProducts(Array.isArray(data) ? data : []);
-                setError(null);
-            }
-            return data;
-        } catch (err) {
-            // Only update state if component is still mounted
-            if (isMounted.current) {
-                setError(err);
+            const response = await fetch(`/api/products?minSales=${filtersToUse.minSales}&maxCommission=${filtersToUse.maxCommission}&similarityThreshold=${filtersToUse.similarityThreshold}`);
+            const data = await response.json();
+
+            if (Array.isArray(data.data)) {
+                setProducts(data.data);
+            } else {
+                console.warn('Unexpected data format:', data);
                 setProducts([]);
             }
-            throw err;
+            setError(null);
+        } catch (err) {
+            console.error('Error fetching products:', err);
+            setError(err.message || 'Failed to fetch products');
+            setProducts([]);
         } finally {
-            // Only update state if component is still mounted
-            if (isMounted.current) {
-                setLoading(false);
-            }
+            setLoading(false);
         }
     }, [filterOptions]);
 
-    // Initial data loading
+    // Initial data loading - only run once
     useEffect(() => {
-        fetchProducts().catch(err => {
-            if (isMounted.current) {
-                console.error("Error fetching initial products:", err);
-            }
-        });
+        if (!initialFetchDone.current) {
+            initialFetchDone.current = true;
+            fetchProducts().catch(err => {
+                if (isMounted.current) {
+                    console.error("Error fetching initial products:", err);
+                }
+            });
+        }
     }, [fetchProducts]);
 
     return (

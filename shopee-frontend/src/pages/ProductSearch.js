@@ -3,6 +3,7 @@ import { useProducts } from '../hooks/useProducts';
 import FilterPanel from '../components/filters/FilterPanel';
 import SearchBar from '../components/filters/SearchBar';
 import ProductList from '../components/products/ProductList';
+import { validateProductSearch, validateFilterValues } from '../utils/validators';
 
 const ProductSearch = () => {
     const [searchTerm, setSearchTerm] = useState('');
@@ -14,18 +15,29 @@ const ProductSearch = () => {
     const { products, loading, error, fetchProducts } = useProducts();
 
     useEffect(() => {
+        // Initial fetch
         fetchProducts(searchTerm, filters);
-    }, [searchTerm, filters, fetchProducts]);
+    }, [fetchProducts]);
 
     const handleFilterChange = (name, value) => {
-        setFilters((prevFilters) => ({
-            ...prevFilters,
+        const newFilters = {
+            ...filters,
             [name]: value,
-        }));
+        };
+        
+        // Validate filter values
+        if (validateFilterValues(newFilters.minSales, newFilters.maxCommission)) {
+            setFilters(newFilters);
+            fetchProducts(searchTerm, newFilters);
+        }
     };
 
     const handleSearchChange = (term) => {
-        setSearchTerm(term);
+        // Validate search term
+        if (validateProductSearch(term)) {
+            setSearchTerm(term);
+            fetchProducts(term, filters);
+        }
     };
 
     return (
@@ -34,7 +46,7 @@ const ProductSearch = () => {
             <SearchBar onSearchChange={handleSearchChange} />
             <FilterPanel onFilterChange={handleFilterChange} filterOptions={filters} />
             {loading && <p>Loading products...</p>}
-            {error && <p>Error fetching products: {error.message}</p>}
+            {error && <p className="error-message">Error fetching products: {error.message || error}</p>}
             <ProductList products={products} />
         </div>
     );
