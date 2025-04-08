@@ -1,13 +1,23 @@
 import React, { createContext, useState, useEffect, useCallback, useRef } from 'react';
 import axios from 'axios';
+import axiosRetry from 'axios-retry';
 import config from '../config';
 
-// Create a more resilient axios instance with better timeouts
+// Criar instância axios resiliente
 const createApiClient = (timeout = config.API_TIMEOUT) => {
-    return axios.create({
+    const instance = axios.create({
         timeout,
         headers: { 'Content-Type': 'application/json' }
     });
+
+    axiosRetry(instance, {
+        retries: config.MAX_RETRIES,
+        retryDelay: (retryCount) => config.RETRY_DELAY * Math.pow(2, retryCount - 1),
+        retryCondition: error => axiosRetry.isNetworkOrIdempotentRequestError(error) ||
+            (error.response && error.response.status >= 500)
+    });
+
+    return instance;
 };
 
 export const ProductContext = createContext();
@@ -21,57 +31,53 @@ export const ProductProvider = ({ children }) => {
         maxCommission: 100,
         similarityThreshold: 0,
     });
-    const [dataSource, setDataSource] = useState('loading'); // 'api', 'local' or 'loading'
+    const [dataSource, setDataSource] = useState('loading');
     const [retryAttempt, setRetryAttempt] = useState(0);
 
-    // Track if the initial fetch has been performed
-    const initialFetchDone = useRef(false);
-
-    // Use a ref to track mounted state
+    // Controlar estado de montagem
     const isMounted = useRef(true);
 
-    // Set isMounted to false when the component unmounts
+    // Limpar na desmontagem
     useEffect(() => {
         return () => {
             isMounted.current = false;
         };
     }, []);
 
-    // Helper function to validate and process URLs
+    // Processar dados de produtos
     const processProductData = (productsData) => {
         return productsData.map(product => ({
             ...product,
-            // Ensure we don't have any via.placeholder.com URLs
-            imageUrl: product.imageUrl && !product.imageUrl.includes('via.placeholder.com')
+            // Garantir URLs de imagem válidas
+            imageUrl: product.imageUrl && product.imageUrl.startsWith('http')
                 ? product.imageUrl
                 : null
         }));
     };
 
-    // Create a memoized fetchProducts function
+    // Buscar produtos com retry automático
     const fetchProducts = useCallback(async (customFilters) => {
         if (!isMounted.current) return;
 
         setLoading(true);
         setError(null);
         const filtersToUse = customFilters || filterOptions;
-        console.log('Fetching products with filters:', filtersToUse);
+        console.log('Buscando produtos com filtros:', filtersToUse);
 
-        // Cache key for storing results
+        // Cache key
         const cacheKey = `products_context_${JSON.stringify(filtersToUse)}`;
 
-        // Try to get from session storage cache first
+        // Verificar cache se habilitado
         if (config.USE_CACHE) {
             try {
                 const cached = sessionStorage.getItem(cacheKey);
                 if (cached) {
-                    const { data, timestamp, source } = JSON.parse(cached);
-                    // Only use cache if it's less than 5 minutes old
-                    if (Date.now() - timestamp < 5 * 60 * 1000) {
-                        console.log('Using cached data from', source);
+                    const { data, timestamp } = JSON.parse(cached);
+                    // Usar cache apenas se for recente
+                    if (Date.now() - timestamp < config.CACHE_DURATION) {
                         if (isMounted.current) {
                             setProducts(processProductData(data));
-                            setDataSource(source);
+                            setDataSource('api');
                             setLoading(false);
                             setError(null);
                         }
@@ -79,18 +85,16 @@ export const ProductProvider = ({ children }) => {
                     }
                 }
             } catch (err) {
-                console.warn('Cache retrieval failed:', err.message);
-                // Continue with API requests - don't return
+                console.warn('Erro ao recuperar cache:', err.message);
             }
         }
 
         try {
-            // Try Shopee API first via GraphQL (if enabled)
+            // Tentar GraphQL API primeiro
             if (config.USE_SHOPEE_API) {
                 try {
-                    const apiClient = createApiClient(8000); // Use 8 seconds timeout for GraphQL
+                    const apiClient = createApiClient();
 
-                    // Try GraphQL API first
                     const graphqlRequest = {
                         query: `
                         query searchProducts($keyword: String!, $sortType: Int, $limit: Int, $page: Int) {
@@ -116,7 +120,7 @@ export const ProductProvider = ({ children }) => {
                         }`,
                         variables: {
                             keyword: "popular",
-                            sortType: 2, // Sort by popularity
+                            sortType: 2, // Por popularidade
                             limit: 20,
                             page: 1,
                             minSales: filtersToUse.minSales || 0,
@@ -130,13 +134,7 @@ export const ProductProvider = ({ children }) => {
                         graphqlRequest
                     );
 
-                    // Process successful GraphQL response...
-                    if (response.data &&
-                        response.data.data &&
-                        response.data.data.productOfferV2 &&
-                        response.data.data.productOfferV2.nodes) {
-
-                        // Format the data to match our app's expected structure
+                    if (response.data?.data?.productOfferV2?.nodes) {
                         const formattedProducts = response.data.data.productOfferV2.nodes.map(product => ({
                             id: product.itemId,
                             name: product.productName,
@@ -149,16 +147,14 @@ export const ProductProvider = ({ children }) => {
                             affiliateLink: product.offerLink
                         }));
 
-                        // Cache the successful result
                         if (config.USE_CACHE) {
                             try {
                                 sessionStorage.setItem(cacheKey, JSON.stringify({
                                     data: formattedProducts,
-                                    timestamp: Date.now(),
-                                    source: 'api'
+                                    timestamp: Date.now()
                                 }));
                             } catch (err) {
-                                console.warn('Cache storage failed:', err.message);
+                                console.warn('Erro ao salvar cache:', err.message);
                             }
                         }
 
@@ -167,18 +163,18 @@ export const ProductProvider = ({ children }) => {
                             setError(null);
                             setDataSource('api');
                             setLoading(false);
-                            setRetryAttempt(0); // Reset retry counter
+                            setRetryAttempt(0);
                         }
                         return;
                     }
                 } catch (graphqlError) {
-                    console.error("GraphQL API error, falling back to REST API:", graphqlError);
+                    console.error("Erro na API GraphQL, tentando API REST:", graphqlError.message);
                 }
             }
 
-            // Try local REST API next
+            // Tentar API REST local
             try {
-                const apiClient = createApiClient(5000); // Use 5 seconds timeout for local API
+                const apiClient = createApiClient();
 
                 const restResponse = await apiClient.get(`${config.API_BASE_URL}/api/products`, {
                     params: {
@@ -189,42 +185,40 @@ export const ProductProvider = ({ children }) => {
                 });
 
                 if (restResponse.data && Array.isArray(restResponse.data.data)) {
-                    // Cache the successful result
                     if (config.USE_CACHE) {
                         try {
                             sessionStorage.setItem(cacheKey, JSON.stringify({
                                 data: restResponse.data.data,
-                                timestamp: Date.now(),
-                                source: 'local'
+                                timestamp: Date.now()
                             }));
                         } catch (err) {
-                            console.warn('Cache storage failed:', err.message);
+                            console.warn('Erro ao salvar cache:', err.message);
                         }
                     }
 
                     if (isMounted.current) {
                         setProducts(processProductData(restResponse.data.data));
                         setError(null);
-                        setDataSource('local');
+                        setDataSource('api');
                         setLoading(false);
-                        setRetryAttempt(0); // Reset retry counter
+                        setRetryAttempt(0);
                     }
                     return;
                 } else {
-                    console.warn('Unexpected data format from local API:', restResponse.data);
-                    throw new Error('Invalid data format');
+                    console.warn('Formato inesperado da API local:', restResponse.data);
+                    throw new Error('Formato de dados inválido');
                 }
             } catch (restError) {
-                console.error('REST API error:', restError);
-                throw restError; // Allow to fall through to retry or error handling
+                console.error('Erro na API REST:', restError);
+                throw restError;
             }
         } catch (err) {
-            // Check if we should retry (max 3 attempts)
+            // Verificar se devemos tentar novamente
             if (retryAttempt < config.MAX_RETRIES && isMounted.current) {
                 setRetryAttempt(prev => prev + 1);
                 const delay = config.RETRY_DELAY * Math.pow(2, retryAttempt);
 
-                console.log(`API retry ${retryAttempt + 1}/${config.MAX_RETRIES} in ${delay}ms`);
+                console.log(`Tentando novamente em ${delay}ms (${retryAttempt + 1}/${config.MAX_RETRIES})`);
 
                 setTimeout(() => {
                     if (isMounted.current) {
@@ -235,57 +229,41 @@ export const ProductProvider = ({ children }) => {
                 return;
             }
 
-            console.error('All API attempts failed:', err);
+            console.error('Todas as tentativas falharam:', err);
 
             if (isMounted.current) {
                 setProducts([]);
-                setError("Failed to fetch products. Please check your connection and try again.");
+                setError("Falha ao buscar produtos. Verifique sua conexão e tente novamente.");
                 setDataSource('error');
                 setLoading(false);
             }
         }
     }, [filterOptions, retryAttempt]);
 
-    // Initial data loading - only run once
+    // Buscar produtos na montagem inicial
     useEffect(() => {
-        if (!initialFetchDone.current) {
-            initialFetchDone.current = true;
-            fetchProducts().catch(err => {
-                if (isMounted.current) {
-                    console.error("Error fetching initial products:", err);
-                    setError("Failed to fetch initial products. Please try again later.");
-                    setLoading(false);
-                }
-            });
-        }
-    }, [fetchProducts]);
-
-    // Clear cache when component unmounts
-    useEffect(() => {
-        return () => {
-            if (config.CLEAR_CACHE_ON_UNMOUNT) {
-                try {
-                    Object.keys(sessionStorage).forEach(key => {
-                        if (key.startsWith('products_context_')) {
-                            sessionStorage.removeItem(key);
-                        }
-                    });
-                } catch (err) {
-                    console.warn('Error clearing cache:', err);
-                }
-            }
-        };
+        fetchProducts();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
+
+    // Buscar produtos quando os filtros mudarem
+    useEffect(() => {
+        if (!isMounted.current) return;
+
+        // Resetar tentativa de retry ao mudar filtros
+        setRetryAttempt(0);
+        fetchProducts();
+    }, [filterOptions, fetchProducts]);
 
     return (
         <ProductContext.Provider value={{
             products,
             loading,
             error,
-            fetchProducts,
             filterOptions,
             setFilterOptions,
-            dataSource
+            dataSource,
+            fetchProducts
         }}>
             {children}
         </ProductContext.Provider>

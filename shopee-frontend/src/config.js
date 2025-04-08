@@ -3,33 +3,30 @@
  */
 
 const config = {
-  // Flag to enable/disable Shopee API attempts
+  // Garantir que sempre tentamos usar a API real
   USE_SHOPEE_API: true,
 
-  // Enable client-side caching
+  // Cache mínimo para melhor desempenho mas dados sempre atualizados
   USE_CACHE: true,
+  CACHE_DURATION: 60000, // 1 minuto apenas
 
-  // API base URL - local backend API
+  // API base URL - backend real
   API_BASE_URL: 'http://localhost:3000',
 
   // GraphQL endpoint - Shopee API
   GRAPHQL_ENDPOINT: 'http://localhost:8001/graphql',
 
-  // Whether to use mock data in case API fails
-  USE_MOCK_DATA: false, // Changed from true to false
+  // Desativar completamente o uso de dados mock
+  USE_MOCK_DATA: false,
 
-  // API timeout in milliseconds
-  API_TIMEOUT: 10000, // Increased from 5000 to 10000
-
-  // Retry settings
+  // Configuração otimizada para API real
+  API_TIMEOUT: 15000,
   MAX_RETRIES: 3,
-  RETRY_DELAY: 1500, // Base delay in ms
+  RETRY_DELAY: 2000,
 
   // Access control settings
   CORS_ENABLED: true,
-
-  // Skip authentication in development
-  SKIP_AUTH: true
+  SKIP_AUTH: false
 };
 
 export default config;

@@ -1,0 +1,48 @@
+{
+    "data": [
+        {
+            "id": 1,
+            "name": "Mock Product 1",
+            "price": 19.99,
+            "imageUrl": "https://via.placeholder.com/150",
+            "sales": 100,
+            "commission": 5,
+            "shopName": "Mock Shop 1",
+            "productUrl": "#",
+            "affiliateLink": "#"
+        },
+        {
+            "id": 2,
+            "name": "Mock Product 2",
+            "price": 29.99,
+            "imageUrl": "https://via.placeholder.com/150",
+            "sales": 200,
+            "commission": 7,
+            "shopName": "Mock Shop 2",
+            "productUrl": "#",
+            "affiliateLink": "#"
+        },
+        {
+            "id": 3,
+            "name": "Mock Product 3",
+            "price": 39.99,
+            "imageUrl": "https://via.placeholder.com/150",
+            "sales": 150,
+            "commission": 6,
+            "shopName": "Mock Shop 3",
+            "productUrl": "#",
+            "affiliateLink": "#"
+        },
+        {
+            "id": 4,
+            "name": "Mock Product 4",
+            "price": 49.99,
+            "imageUrl": "https://via.placeholder.com/150",
+            "sales": 300,
+            "commission": 8,
+            "shopName": "Mock Shop 4",
+            "productUrl": "#",
+            "affiliateLink": "#"
+        }
+    ]
+}

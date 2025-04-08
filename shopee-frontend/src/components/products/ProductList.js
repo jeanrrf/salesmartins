@@ -1,64 +1,67 @@
-import React, { useContext } from 'react';
-import { ProductContext } from '../../context/ProductContext';
+import React from 'react';
 import ProductCard from './ProductCard';
-import Loader from '../common/Loader';
 import './ProductList.css';
+import { ErrorBoundary } from 'react-error-boundary';
 
-const ProductList = ({ products: propProducts }) => {
-    // Use context products if props products not provided
-    const { products: contextProducts, loading, error, dataSource } = useContext(ProductContext);
+// Componente para exibir quando ocorre um erro
+const ErrorFallback = ({ error, resetErrorBoundary }) => {
+    return (
+        <div className="error-container">
+            <h3>Ocorreu um erro ao carregar os produtos</h3>
+            <p>{error.message}</p>
+            <button onClick={resetErrorBoundary}>Tentar novamente</button>
+        </div>
+    );
+};
 
-    // Determine which products to use - props take priority over context
-    const products = Array.isArray(propProducts) ? propProducts : contextProducts;
-
-    if (loading) {
-        return <Loader message="Loading products, please wait..." />;
-    }
-
-    // Ensure products is always an array
+const ProductList = ({ products, loading, error, dataSource, onRefresh }) => {
+    // Converter para array se não for
     const productArray = Array.isArray(products) ? products : [];
 
-    return (
-        <div className="product-list">
-            {dataSource === 'local' && (
-                <div className="data-source-indicator local">
-                    Using local API data
-                </div>
-            )}
+    if (loading) {
+        return (
+            <div className="product-list-container">
+                <div className="loading-spinner">Carregando produtos...</div>
+            </div>
+        );
+    }
 
+    return (
+        <div className="product-list-container">
             {dataSource === 'api' && (
                 <div className="data-source-indicator api">
-                    Using Shopee API data
-                </div>
-            )}
-
-            {dataSource === 'mock' && (
-                <div className="data-source-indicator mock">
-                    Using mock data (API unavailable)
+                    Usando dados da API Shopee
                 </div>
             )}
 
             {error && (
                 <div className="error-message">
-                    {error.message || String(error)}
+                    {error}
+                    <button onClick={onRefresh} className="retry-button">
+                        Tentar novamente
+                    </button>
                 </div>
             )}
 
             {productArray.length === 0 ? (
                 <p className="no-products">
-                    {error ? 'Failed to load products.' : 'No products found. Please adjust your filters or try again later.'}
+                    {error ? 'Falha ao carregar produtos.' : 'Nenhum produto encontrado. Ajuste seus filtros ou tente novamente.'}
                 </p>
             ) : (
-                <div className="product-grid">
-                    {productArray.map(product => (
-                        <ProductCard
-                            key={product.id || product.itemId || Math.random().toString(36).substring(2, 9)}
-                            product={product}
-                            onAddToCart={(id) => console.log('Add to cart:', id)}
-                            onViewDetails={(id) => console.log('View details:', id)}
-                        />
-                    ))}
-                </div>
+                <ErrorBoundary
+                    FallbackComponent={ErrorFallback}
+                    onReset={onRefresh}
+                >
+                    <div className="product-grid">
+                        {productArray.map(product => (
+                            <ProductCard
+                                key={product.id || product.itemId || Math.random().toString(36).substring(2, 9)}
+                                product={product}
+                                onAddToCart={(id) => console.log('Adicionar ao carrinho:', id)}
+                            />
+                        ))}
+                    </div>
+                </ErrorBoundary>
             )}
         </div>
     );
