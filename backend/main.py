@@ -35,9 +35,37 @@ async def health_check():
 
 # Add API endpoint that serves the same mock data
 @app.get("/api/products")
-async def get_products(minSales: int = 0, maxCommission: int = 100, similarityThreshold: int = 0):
+async def get_products(minSales: str = None, maxCommission: str = None, similarityThreshold: str = None):
     try:
-        print(f"API request received with params: minSales={minSales}, maxCommission={maxCommission}, similarityThreshold={similarityThreshold}")
+        # Parse and validate minSales
+        try:
+            min_sales = 0 if minSales in [None, ""] else int(minSales)
+            if min_sales < 0:
+                min_sales = 0
+        except ValueError:
+            min_sales = 0
+            
+        # Parse and validate maxCommission
+        try:
+            max_commission = 100 if maxCommission in [None, ""] else int(maxCommission)
+            if max_commission < 0:
+                max_commission = 0
+            elif max_commission > 100:
+                max_commission = 100
+        except ValueError:
+            max_commission = 100
+            
+        # Parse and validate similarityThreshold
+        try:
+            similarity_threshold = 0 if similarityThreshold in [None, ""] else int(similarityThreshold)
+            if similarity_threshold < 0:
+                similarity_threshold = 0
+            elif similarity_threshold > 100:
+                similarity_threshold = 100
+        except ValueError:
+            similarity_threshold = 0
+        
+        print(f"API request received with params: minSales={min_sales}, maxCommission={max_commission}, similarityThreshold={similarity_threshold}")
         
         mock_file = os.path.join(mock_data_dir, "products.json")
         if os.path.exists(mock_file):
@@ -48,8 +76,8 @@ async def get_products(minSales: int = 0, maxCommission: int = 100, similarityTh
                 if data and "data" in data:
                     filtered_data = [
                         product for product in data["data"] 
-                        if product.get("sales", 0) >= minSales and 
-                           product.get("commission", 0) <= maxCommission
+                        if product.get("sales", 0) >= min_sales and 
+                           product.get("commission", 0) <= max_commission
                     ]
                     return {"data": filtered_data}
                 return data

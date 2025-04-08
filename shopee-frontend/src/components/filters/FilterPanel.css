@@ -66,3 +66,9 @@
 .filter-option button:hover {
     background-color: #FFB300;
 }
+
+.filter-option .error-message {
+    color: #d32f2f;
+    font-size: 12px;
+    margin-top: 4px;
+}

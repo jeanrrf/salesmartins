@@ -1,11 +1,11 @@
 import React from 'react';
-import './Loader.css'; // Assuming you have a CSS file for loader styles
+import './Loader.css';
 
-const Loader = () => {
+const Loader = ({ message = 'Loading...' }) => {
     return (
         <div className="loader">
             <div className="spinner"></div>
-            <p>Loading...</p>
+            <p>{message}</p>
         </div>
     );
 };
