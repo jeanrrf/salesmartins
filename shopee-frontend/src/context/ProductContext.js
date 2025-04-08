@@ -243,8 +243,7 @@ export const ProductProvider = ({ children }) => {
     // Buscar produtos na montagem inicial
     useEffect(() => {
         fetchProducts();
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
+    }, [fetchProducts]);  // Added fetchProducts to the dependency array
 
     // Buscar produtos quando os filtros mudarem
     useEffect(() => {

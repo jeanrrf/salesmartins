@@ -1,151 +1,73 @@
 import React, { useState } from 'react';
 import './FilterPanel.css';
-import { validateFilterValues } from '../../utils/validators';
 
-const FilterPanel = ({ onFilterChange, onRemoveProduct, filterOptions }) => {
-    const [errors, setErrors] = useState({});
-    const [isApplyingFilters, setIsApplyingFilters] = useState(false);
+const FilterPanel = ({ onFilterChange, onSortChange, currentSort = 'most-sold' }) => {
+    const [sortOption, setSortOption] = useState(currentSort);
+    const [hideInventoryItems, setHideInventoryItems] = useState(true);
 
-    const handleFilterChange = (e) => {
-        const { name, value } = e.target;
-
-        // Clear previous errors
-        if (errors[name]) {
-            setErrors(prev => ({ ...prev, [name]: null }));
-        }
-
-        // Basic validation for numeric inputs
-        if (name === 'minSales' || name === 'maxCommission') {
-            // Allow empty strings
-            if (value === '') {
-                onFilterChange(name, value);
-                return;
-            }
-
-            // Check if value is a number
-            const numValue = parseFloat(value);
-            if (isNaN(numValue)) {
-                setErrors(prev => ({ ...prev, [name]: 'Please enter a valid number' }));
-                return;
-            }
-
-            // Specific validations
-            if (name === 'minSales' && numValue < 0) {
-                setErrors(prev => ({ ...prev, [name]: 'Minimum sales cannot be negative' }));
-                return;
-            }
-
-            if (name === 'maxCommission') {
-                if (numValue < 0) {
-                    setErrors(prev => ({ ...prev, [name]: 'Commission cannot be negative' }));
-                    return;
-                }
-                if (numValue > 100) {
-                    setErrors(prev => ({ ...prev, [name]: 'Maximum commission cannot exceed 100%' }));
-                    return;
-                }
-            }
-        }
-
-        onFilterChange(name, value);
-    };
-
-    const handleApplyFilters = () => {
-        // Validate all filters before applying
-        const validationErrors = validateFilterValues(
-            filterOptions.minSales,
-            filterOptions.maxCommission,
-            filterOptions.similarityThreshold
-        );
-
-        if (Object.keys(validationErrors).length > 0) {
-            setErrors(validationErrors);
-            return;
-        }
-
-        setIsApplyingFilters(true);
-
-        // Call the filter application function
-        if (onFilterChange) {
-            // Trigger a re-fetch by using the special 'apply' action
-            onFilterChange('apply', true);
-
-            // Reset the applying state after a short delay
-            setTimeout(() => {
-                setIsApplyingFilters(false);
-            }, 500);
+    const handleSortChange = (event) => {
+        const newSortOption = event.target.value;
+        setSortOption(newSortOption);
+        if (onSortChange && typeof onSortChange === 'function') {
+            onSortChange(newSortOption);
         }
     };
 
-    const handleRemoveProduct = (productId) => {
-        if (onRemoveProduct) {
-            onRemoveProduct(productId);
+    const handleInventoryToggle = (event) => {
+        const checked = event.target.checked;
+        setHideInventoryItems(checked);
+        if (onFilterChange && typeof onFilterChange === 'function') {
+            onFilterChange('hideInventoryItems', checked);
+        }
+    };
+
+    // Safe handler for apply button
+    const handleApplyClick = () => {
+        if (onSortChange && typeof onSortChange === 'function') {
+            onSortChange(sortOption);
+        } else if (onFilterChange && typeof onFilterChange === 'function') {
+            // Fallback to using onFilterChange if onSortChange is not available
+            onFilterChange('sortBy', sortOption);
         }
     };
 
     return (
         <div className="filter-panel">
-            <h2>Filter Products</h2>
+            <h2>Filtrar e Ordenar Produtos</h2>
+            
             <div className="filter-option">
-                <label htmlFor="minSales">Minimum Sales:</label>
-                <input
-                    type="number"
-                    id="minSales"
-                    name="minSales"
-                    value={filterOptions.minSales || ''}
-                    onChange={handleFilterChange}
-                    min="0"
-                />
-                {errors.minSales && <div className="error-message">{errors.minSales}</div>}
-            </div>
-            <div className="filter-option">
-                <label htmlFor="maxCommission">Maximum Commission (%):</label>
-                <input
-                    type="number"
-                    id="maxCommission"
-                    name="maxCommission"
-                    value={filterOptions.maxCommission || ''}
-                    onChange={handleFilterChange}
-                    min="0"
-                    max="100"
-                    step="0.1"
-                />
-                {errors.maxCommission && <div className="error-message">{errors.maxCommission}</div>}
-            </div>
-            <div className="filter-option">
-                <label htmlFor="similarityThreshold">
-                    Similarity Threshold: {filterOptions.similarityThreshold || 0}%
-                </label>
-                <input
-                    type="range"
-                    id="similarityThreshold"
-                    name="similarityThreshold"
-                    min="0"
-                    max="100"
-                    value={filterOptions.similarityThreshold || 0}
-                    onChange={handleFilterChange}
-                />
-                {errors.similarityThreshold && <div className="error-message">{errors.similarityThreshold}</div>}
-            </div>
-            <div className="filter-option">
-                <button
-                    onClick={handleApplyFilters}
-                    disabled={isApplyingFilters}
-                    className="apply-filters-button"
+                <label htmlFor="sort-options">Ordenar por:</label>
+                <select 
+                    id="sort-options" 
+                    value={sortOption}
+                    onChange={handleSortChange}
+                    className="sort-select"
                 >
-                    {isApplyingFilters ? 'Applying...' : 'Apply Filters'}
+                    <option value="most-sold">Mais Vendidos</option>
+                    <option value="highest-discount">Maiores Descontos</option>
+                </select>
+            </div>
+            
+            <div className="filter-option checkbox-option">
+                <input
+                    type="checkbox"
+                    id="hideInventoryItems"
+                    checked={hideInventoryItems}
+                    onChange={handleInventoryToggle}
+                />
+                <label htmlFor="hideInventoryItems">
+                    Ocultar itens já existentes no estoque
+                </label>
+            </div>
+            
+            <div className="filter-actions">
+                <button 
+                    className="apply-button"
+                    onClick={handleApplyClick}
+                >
+                    Aplicar
                 </button>
             </div>
-            {filterOptions.selectedProductId && (
-                <div className="filter-option">
-                    <button
-                        onClick={() => handleRemoveProduct(filterOptions.selectedProductId)}
-                        className="remove-product-button"
-                    >
-                        Remove Selected Product
-                    </button>
-                </div>
-            )}
         </div>
     );
 };

@@ -1,6 +1,16 @@
 {
   "API_BASE_URL": "http://localhost:3000/api",
-  "USE_MOCK_DATA": true,
-  "MOCK_DATA_URL": "http://localhost:3000/mock_data",
-  "SKIP_AUTH": true
+  "USE_MOCK_DATA": false,
+  "SKIP_AUTH": true,
+  "SHOPEE_APP_ID": "18332550549",
+  "SHOPEE_APP_SECRET": "2RCBBT4W4WEOUI6FMTRVMEGYZOSMOKM2",
+  "SHOPEE_REDIRECT_URL": "http://localhost:3000/api/auth/callback",
+  "SHOPEE_SHOP_ID": "600000",
+  "SHOPEE_ACCESS_TOKEN": "c09222e3fc40ffb25fc947f738b1abf1",
+  "SHOPEE_API_ENDPOINT": "https://open-api.affiliate.shopee.com.br/graphql",
+  "DATABASE_URL": "./shopee-analytics.db",
+  "TOKEN_ENCRYPTION_KEY": "1ec78484fcab68c1112446114a7cdef7",
+  "ENABLE_CACHING": true,
+  "CACHE_DURATION": 300,
+  "API_TIMEOUT": 30
 }

@@ -1,120 +1,71 @@
 import axios from 'axios';
-import axiosRetry from 'axios-retry';
-import config from '../config';
+import { getToken } from './auth';
 
-// Criar instância do axios com configurações otimizadas
-const api = axios.create({
-  baseURL: config.API_BASE_URL,
-  timeout: config.API_TIMEOUT,
-  headers: {
-    'Content-Type': 'application/json'
-  }
-});
+// Use real API URL
+const API_URL = 'https://api.sentinnell.com/api';
 
-// Configurar retries automáticos para resiliência
-axiosRetry(api, {
-  retries: config.MAX_RETRIES,
-  retryDelay: (retryCount) => {
-    return config.RETRY_DELAY * Math.pow(2, retryCount - 1);
-  },
-  retryCondition: (error) => {
-    return axiosRetry.isNetworkOrIdempotentRequestError(error) ||
-      (error.response && error.response.status >= 500);
-  }
-});
-
-// Adicionar interceptor para melhor tratamento de erros
-api.interceptors.response.use(
-  response => response,
-  error => {
-    if (error.response) {
-      console.error(`Erro API (${error.response.status}):`, error.response.data);
-      return Promise.reject(error);
-    } else if (error.request) {
-      console.error('Erro de conexão:', error.message);
-      return Promise.reject(new Error('Erro de conexão. Verifique sua internet.'));
-    } else {
-      console.error('Erro na configuração da requisição:', error.message);
-      return Promise.reject(new Error('Erro na requisição. Tente novamente.'));
-    }
-  }
-);
-
-// Buscar produtos com filtros
-export const fetchProducts = async (searchQuery = '', filters = {}) => {
-  console.log('Buscando produtos com query:', searchQuery, 'e filtros:', filters);
-
-  try {
-    const response = await api.get('/api/products', {
-      params: {
-        query: searchQuery,
-        ...filters,
-      },
-    });
-
-    if (response.data && Array.isArray(response.data.data)) {
-      return response.data.data;
-    } else {
-      console.warn('Formato inesperado de resposta da API:', response.data);
-      throw new Error('Formato de resposta inválido');
-    }
-  } catch (error) {
-    console.error('Falha na requisição à API:', error.message || error);
-    throw error;
-  }
+// Setup default headers with authentication
+const getAuthHeaders = () => {
+  const token = getToken();
+  return token ? { Authorization: `Bearer ${token}` } : {};
 };
 
-// Buscar produtos específicos
-export const searchProducts = async (query, filters) => {
+/**
+ * Fetch products from the real API
+ * @param {Object} params Query parameters
+ * @returns {Promise} Promise resolving to product data
+ */
+export const getProducts = async (params = {}) => {
   try {
-    const response = await api.get('/api/products/search', {
-      params: {
-        query,
-        ...filters,
-      },
+    const response = await axios.get(`${API_URL}/products`, {
+      params,
+      headers: {
+        ...getAuthHeaders()
+      }
     });
 
-    if (response.data && Array.isArray(response.data.data)) {
-      return response.data.data;
-    } else {
-      throw new Error('Formato de resposta inválido');
-    }
-  } catch (error) {
-    console.error('Falha na busca de produtos:', error.message || error);
-    throw error;
-  }
-};
-
-// Obter detalhes de um produto
-export const getProductDetails = async (productId) => {
-  try {
-    const response = await api.get(`/api/products/${productId}`);
     return response.data;
   } catch (error) {
-    console.error('Falha ao obter detalhes do produto:', error.message || error);
+    console.error('Error fetching products:', error);
     throw error;
   }
 };
 
-// Obter produtos por categoria
-export const getProductsByCategory = async (categoryId) => {
+/**
+ * Get product details by ID from real API
+ * @param {string|number} id Product ID
+ * @returns {Promise} Promise resolving to product detail
+ */
+export const getProductDetails = async (id) => {
   try {
-    const response = await api.get(`/api/products/category/${categoryId}`);
+    const response = await axios.get(`${API_URL}/products/${id}`, {
+      headers: {
+        ...getAuthHeaders()
+      }
+    });
 
-    if (response.data && Array.isArray(response.data.data)) {
-      return response.data.data;
-    } else {
-      throw new Error('Formato de resposta inválido');
-    }
+    return response.data;
   } catch (error) {
-    console.error('Falha ao obter produtos por categoria:', error.message || error);
+    console.error(`Error fetching product ${id}:`, error);
     throw error;
   }
 };
 
-export default {
-  fetchProducts,
-  searchProducts,
-  getProductDetails,
-  getProductsByCategory
+/**
+ * Get all categories from real API
+ * @returns {Promise} Promise resolving to categories data
+ */
+export const getCategories = async () => {
+  try {
+    const response = await axios.get(`${API_URL}/categories`, {
+      headers: {
+        ...getAuthHeaders()
+      }
+    });
+
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching categories:', error);
+    throw error;
+  }
 };

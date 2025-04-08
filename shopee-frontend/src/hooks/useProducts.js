@@ -1,6 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import axios from 'axios';
-import axiosRetry from 'axios-retry';
 import config from '../config';
 
 // Create a more resilient axios instance with retry capability
@@ -9,20 +8,7 @@ const createApiClient = (timeout = config.API_TIMEOUT) => {
         timeout,
         headers: { 'Content-Type': 'application/json' }
     });
-
-    // Configurar retry para tentativas automáticas em caso de falha
-    axiosRetry(instance, {
-        retries: config.MAX_RETRIES,
-        retryDelay: (retryCount) => {
-            return config.RETRY_DELAY * Math.pow(2, retryCount - 1);
-        },
-        retryCondition: (error) => {
-            // Retry on network errors or 5xx server errors
-            return axiosRetry.isNetworkOrIdempotentRequestError(error) ||
-                (error.response && error.response.status >= 500);
-        }
-    });
-
+    
     // Add request interceptor for better tracking
     instance.interceptors.request.use(config => {
         config.metadata = { startTime: new Date() };
@@ -30,13 +16,36 @@ const createApiClient = (timeout = config.API_TIMEOUT) => {
     }, error => {
         return Promise.reject(error);
     });
-
-    // Add response interceptor for logging
+    
+    // Add response interceptor for logging and retry functionality
     instance.interceptors.response.use(response => {
         const duration = new Date() - response.config.metadata.startTime;
         console.log(`API request to ${response.config.url} completed in ${duration}ms`);
         return response;
-    }, error => {
+    }, async error => {
+        const config = error.config;
+        
+        // Implementação manual de retry sem depender de axios-retry
+        if (!config || !config.retry) config.retry = 0;
+        
+        const shouldRetry = config.retry < (config.maxRetries || 3) && 
+            (!error.response || (error.response.status >= 500 && error.response.status !== 501));
+            
+        if (shouldRetry) {
+            config.retry += 1;
+            console.log(`Tentativa ${config.retry} para ${config.url}`);
+            
+            // Delay exponencial
+            const delay = config.retryDelay || 1000;
+            const waitTime = delay * Math.pow(2, config.retry - 1);
+            
+            return new Promise(resolve => {
+                setTimeout(() => {
+                    resolve(instance(config));
+                }, waitTime);
+            });
+        }
+        
         if (error.response) {
             console.error('API Error:', error.response.status, error.response.data);
         } else if (error.request) {
@@ -46,7 +55,7 @@ const createApiClient = (timeout = config.API_TIMEOUT) => {
         }
         return Promise.reject(error);
     });
-
+    
     return instance;
 };
 
@@ -63,10 +72,10 @@ export const useProducts = (initialSearchQuery = '', initialFilters = {}) => {
     const [searchQuery, setSearchQuery] = useState(initialSearchQuery);
     const [filters, setFilters] = useState(initialFilters);
     const [dataSource, setDataSource] = useState('loading');
-
+    
     // Use a ref to track component mount state
     const isMounted = useRef(true);
-
+    
     // Clean up on unmount
     useEffect(() => {
         return () => {
@@ -84,7 +93,7 @@ export const useProducts = (initialSearchQuery = '', initialFilters = {}) => {
 
     const fetchProducts = useCallback(async (query = searchQuery, customFilters = filters) => {
         if (!isMounted.current) return;
-
+        
         setLoading(true);
         setError(null);
         setDataSource('loading');
@@ -99,7 +108,8 @@ export const useProducts = (initialSearchQuery = '', initialFilters = {}) => {
                 if (cached) {
                     const { data, timestamp } = JSON.parse(cached);
                     // Usar cache apenas se for recente
-                    if (Date.now() - timestamp < config.CACHE_DURATION) {
+                    const cacheTime = config.CACHE_DURATION || 60000; // 1 minuto padrão
+                    if (Date.now() - timestamp < cacheTime) {
                         if (isMounted.current) {
                             setProducts(data);
                             setDataSource('api');
@@ -116,7 +126,9 @@ export const useProducts = (initialSearchQuery = '', initialFilters = {}) => {
         try {
             console.log('Buscando produtos da API com query:', query, 'e filtros:', customFilters);
             const apiClient = createApiClient();
-
+            apiClient.defaults.maxRetries = config.MAX_RETRIES || 3;
+            apiClient.defaults.retryDelay = config.RETRY_DELAY || 1000;
+            
             // Tentar usar API GraphQL primeiro (se configurado)
             if (config.USE_SHOPEE_API) {
                 try {
