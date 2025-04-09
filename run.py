@@ -1,6 +1,7 @@
 import os
 import sys
-from flask import Flask, send_from_directory, jsonify
+import sqlite3
+from flask import Flask, send_from_directory, jsonify, g, request
 from flask_cors import CORS
 import psutil
 import requests
@@ -11,9 +12,6 @@ app = Flask(__name__,
             static_folder='frontend/static',
             template_folder='frontend')
 CORS(app)
-
-# Importações dos outros módulos (se necessário)
-# Adicionar importações aqui conforme necessidade
 
 # Configurações de ambiente
 def load_environment():
@@ -69,6 +67,22 @@ def check_js_dependencies():
     
     return True
 
+# Configuração do banco de dados
+DATABASE = 'database.db'
+
+def get_db():
+    db = getattr(g, '_database', None)
+    if db is None:
+        db = g._database = sqlite3.connect(DATABASE)
+        db.row_factory = sqlite3.Row
+    return db
+
+@app.teardown_appcontext
+def close_connection(exception):
+    db = getattr(g, '_database', None)
+    if db is not None:
+        db.close()
+
 # Rotas para servir a aplicação frontend
 @app.route('/')
 def index():
@@ -80,7 +94,7 @@ def serve_static(path):
         return send_from_directory(app.template_folder, path)
     return send_from_directory(app.template_folder, 'index.html')
 
-# Rotas da API
+# Rota de informações do sistema
 @app.route('/api/system/info', methods=['GET'])
 def get_system_info():
     cpu_percent = psutil.cpu_percent(interval=0.5)
@@ -106,7 +120,22 @@ def get_system_info():
         }
     })
 
-# Aqui você pode adicionar outras rotas de API conforme necessário
+# API endpoints
+@app.route('/api/categories', methods=['GET'])
+def get_categories():
+    # Implementar retorno das categorias
+    return jsonify([])
+
+@app.route('/api/db/products', methods=['GET'])
+def get_products():
+    # Implementar retorno dos produtos
+    return jsonify([])
+
+@app.route('/api/search', methods=['POST'])
+def search():
+    # Implementar busca de produtos
+    data = request.get_json()
+    return jsonify({"products": [], "recommendations": []})
 
 # Ponto de entrada para execução da aplicação
 if __name__ == "__main__":
