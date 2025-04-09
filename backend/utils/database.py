@@ -6,11 +6,12 @@ saving and updating products, and searching for products with filters and sortin
 """
 from sqlalchemy.orm import sessionmaker, Session
 from sqlalchemy import create_engine
-from models import Base, Product
+from ..models import Base, Product
 import json
 from datetime import datetime
 import logging
 import sqlite3
+from .datetime_utils import safe_fromisoformat
 
 # Configuração de logging
 logger = logging.getLogger(__name__)
@@ -114,73 +115,57 @@ async def save_product(product_data, affiliate_data=None):
     finally:
         db.close()
 
-async def get_products(filters=None, sort_by=None, limit=None):
-    """Busca produtos no banco de dados com filtros opcionais"""
-    db = next(get_db())
+async def get_products(limit: int = None, offset: int = 0, search: str = None):
     try:
-        query = db.query(Product)
+        # Build the query based on parameters
+        query = "SELECT * FROM products"
+        params = []
         
-        # Aplicar filtros se fornecidos
-        if filters:
-            for key, value in filters.items():
-                if hasattr(Product, key):
-                    query = query.filter(getattr(Product, key).like(f'%{value}%'))
+        # Add search condition if provided
+        if search:
+            query += " WHERE (name LIKE ? OR product_name LIKE ? OR category_name LIKE ?)"
+            search_param = f"%{search}%"
+            params.extend([search_param, search_param, search_param])
         
-        # Aplicar ordenação se fornecida
-        if sort_by:
-            field, direction = sort_by
-            if hasattr(Product, field):
-                order_by = getattr(Product, field)
-                if direction == 'desc':
-                    order_by = order_by.desc()
-                query = query.order_by(order_by)
+        # Add limit and offset
+        if limit is not None:
+            query += f" LIMIT ?"
+            params.append(limit)
+            
+        if offset > 0:
+            query += f" OFFSET ?"
+            params.append(offset)
         
-        # Aplicar limite se fornecido
-        if limit:
-            query = query.limit(limit)
+        logging.getLogger(__name__).info(f"Query antes da execução: {query}")
         
-        logger.info(f"Query antes da execução: {query}")
-        products = query.all()
+        # Get database connection and execute query
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        if params:
+            cursor.execute(query, params)
+        else:
+            cursor.execute(query)
+            
+        rows = cursor.fetchall()
         
-        # Converter para dicionário e tratar campos JSON
-        result = []
-        for product in products:
-            product_dict = {
-                'id': product.id,
-                'shopee_id': product.shopee_id,
-                'name': product.name,
-                'price': product.price,
-                'original_price': product.original_price,
-                'category_id': product.category_id,
-                'shop_id': product.shop_id,
-                'stock': product.stock,
-                'commission_rate': product.commission_rate,
-                'sales': product.sales,
-                'image_url': product.image_url,
-                'shop_name': product.shop_name,
-                'offer_link': product.offer_link,
-                'short_link': product.short_link,
-                'rating_star': product.rating_star,
-                'price_discount_rate': product.price_discount_rate,
-                'sub_ids': json.loads(product.sub_ids) if product.sub_ids else [],
-                'created_at': product.created_at,
-                'updated_at': product.updated_at,
-                'item_status': product.item_status,
-                'discount': product.discount,
-                'product_link': product.product_link,
-                'period_start_time': product.period_start_time,
-                'period_end_time': product.period_end_time,
-                'shop_type': product.shop_type,
-                'seller_commission_rate': product.seller_commission_rate,
-                'shopee_commission_rate': product.shopee_commission_rate,
-                'affiliate_link': product.affiliate_link,
-                'product_metadata': product.product_metadata
-            }
-            result.append(product_dict)
-        logger.info(f"get_products retorno: {result}")
-        return result
+        # Get column names
+        column_names = [description[0] for description in cursor.description]
+        
+        products = []
+        for row in rows:
+            # Convert row to dictionary using column names
+            product = dict(zip(column_names, row))
+            
+            # Safely parse datetime fields
+            for date_field in ['period_start_time', 'period_end_time', 'created_at', 'updated_at']:
+                if date_field in product:
+                    product[date_field] = safe_fromisoformat(product[date_field])
+            
+            products.append(product)
+        
+        conn.close()
+        return products
     except Exception as e:
-        logger.error(f"Error getting products: {str(e)}")
+        logging.getLogger(__name__).error(f"Error getting products: {str(e)}")
+        # Return empty list instead of raising error to keep application functioning
         return []
-    finally:
-        pass
