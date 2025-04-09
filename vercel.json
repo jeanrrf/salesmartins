@@ -1,9 +1,49 @@
 {
   "version": 2,
+  "functions": {
+    "api/index.py": {
+      "runtime": "python3.9",
+      "maxDuration": 30
+    }
+  },
   "builds": [
-    { "src": "index.js", "use": "@vercel/node" }
+    {
+      "src": "api/index.py",
+      "use": "@vercel/python"
+    },
+    {
+      "src": "frontend/**/*",
+      "use": "@vercel/static"
+    }
   ],
   "routes": [
-    { "src": "/(.*)", "dest": "/index.js" }
+    {
+      "src": "/api/(.*)",
+      "dest": "api/index.py"
+    },
+    {
+      "src": "/static/(.*)",
+      "dest": "frontend/static/$1"
+    },
+    {
+      "src": "/(.*)\\.js",
+      "dest": "frontend/$1.js"
+    },
+    {
+      "src": "/(.*)\\.css",
+      "dest": "frontend/$1.css"
+    },
+    {
+      "src": "/(.*)\\.html",
+      "dest": "frontend/$1.html"
+    },
+    {
+      "src": "/",
+      "dest": "frontend/vitrine.html"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "frontend/$1"
+    }
   ]
 }
