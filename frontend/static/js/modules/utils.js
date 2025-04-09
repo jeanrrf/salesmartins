@@ -1,7 +1,4 @@
-// Configuração dinâmica da URL da API baseada no ambiente
-export const API_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
-    ? `http://${window.location.hostname}:8001` 
-    : window.location.origin;
+export const API_URL = 'http://localhost:8001';
 
 export const formatters = {
     currency: (value) => {
@@ -79,7 +76,7 @@ export const api = {
             throw error;
         }
     },
-    
+
     async post(endpoint, data) {
         try {
             const response = await fetch(`${API_URL}${endpoint}`, {
@@ -267,12 +264,11 @@ function createLinkStatusIndicator(stats) {
     container.prepend(indicator);
 }
 
-// Função para verificar se o backend está disponível
-export async function waitForBackend(timeout = 30000) {
+async function waitForBackend(url, timeout = 30000) {
     const start = Date.now();
     while (Date.now() - start < timeout) {
         try {
-            const response = await fetch(`${API_URL}/api/system/info`);
+            const response = await fetch(url);
             if (response.ok) {
                 console.log("Backend is ready.");
                 return true;
@@ -286,10 +282,16 @@ export async function waitForBackend(timeout = 30000) {
     return false;
 }
 
-// Outras funções úteis
+// Example usage in your frontend initialization
+waitForBackend("http://localhost:8001").then(isReady => {
+    if (!isReady) {
+        alert("Backend server is not available. Please try again later.");
+    }
+});
+
 export const fetchCategories = async () => {
     try {
-        const response = await fetch(`${API_URL}/api/categories`);
+        const response = await fetch(`${API_URL}/categories`);
         if (!response.ok) {
             throw new Error(`Erro ao buscar categorias: ${response.status}`);
         }
@@ -302,7 +304,7 @@ export const fetchCategories = async () => {
 
 export const fetchProducts = async () => {
     try {
-        const response = await fetch(`${API_URL}/api/db/products`);
+        const response = await fetch(`${API_URL}/db/products`);
         if (!response.ok) {
             throw new Error(`Erro ao buscar produtos: ${response.status}`);
         }
