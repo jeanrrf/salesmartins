@@ -6,7 +6,7 @@ setup(
     packages=find_packages(),
     install_requires=[
         'fastapi==0.95.0',
-        'pydantic==1.10.7',
+        'pydantic==1.10.13',
         'uvicorn',
         'sqlalchemy',
         'requests',
